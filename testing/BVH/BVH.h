@@ -3,8 +3,13 @@
 
 template<class T>
 struct minmax_AABB {
- vector4D<T> min_v[3];
- vector4D<T> max_v[3];
+ #ifndef __USE_SSE__
+ vector3D<T> min_v[3];
+ vector3D<T> max_v[3];
+ #else
+ alignas(16) vector4D<T> min_v[3];
+ alignas(16) vector4D<T> max_v[3];
+ #endif
 };
 
 template<class T>
