@@ -51,6 +51,7 @@ ErrorCode InitD3D(void)
 
  // save backbuffer descriptor (save dimensions so you can create a depth buffer later of the same size)
  D3D11_TEXTURE2D_DESC bbd;
+ ZeroMemory(&bbd, sizeof(bbd));
  lpBackBuffer->GetDesc(&bbd);
 
  // create render target view and assign to it a back buffer
@@ -94,6 +95,16 @@ ErrorCode InitD3D(void)
  return EC_SUCCESS;
 }
 
+/**
+ * \fn     ResetD3D
+ * \brief  Resets the default Direct3D objects when window is resized.
+ * \return Returns an error code.
+*/
+ErrorCode ResetD3D(void)
+{
+ return EC_SUCCESS;
+}
+
 void FreeD3D(void)
 {
  // release framebuffer objects
@@ -133,4 +144,21 @@ ID3D11Device* GetD3DDevice(void)
 ID3D11DeviceContext* GetD3DDeviceContext(void)
 {
  return lpDeviceContext;
+}
+
+BOOL RenderFrame(void)
+{
+ // validate
+ if(!lpDeviceContext) return FALSE;
+ if(!lpSwapChain) return FALSE;
+
+ // clear buffers
+ FLOAT color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+ lpDeviceContext->ClearRenderTargetView(lpRenderTargetView, color);
+ lpDeviceContext->ClearDepthStencilView(lpDepthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+ // present
+ lpSwapChain->Present(0, 0);
+
+ return TRUE;
 }

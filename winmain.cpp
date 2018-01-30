@@ -20,7 +20,7 @@ int Run(void)
    }
 
  // run program
- return MessageLoop();
+ return MessagePump(RenderFrame);
 }
 
 int WINAPI WinMain(HINSTANCE basead, HINSTANCE unused, LPSTR cmdline, int cmdshow)
