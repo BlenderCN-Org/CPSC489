@@ -36,6 +36,12 @@ void InitErrorStrings(void)
  InsertErrorString(EC_D3D_CREATE_DEVICE, LC_ENGLISH, L"Failed to create Direct3D device.");
  InsertErrorString(EC_D3D_CREATE_DEVICE, LC_FRENCH, L"Impossible de créer le périphérique Direct3D.");
 
+ InsertErrorString(EC_D3D_GET_BUFFER, LC_ENGLISH, L"IDXGISwapChain::GetBuffer failed.");
+ InsertErrorString(EC_D3D_GET_BUFFER, LC_FRENCH, L"IDXGISwapChain::GetBuffer a échoué.");
+
+ InsertErrorString(EC_D3D_CREATE_RENDER_TARGET_VIEW, LC_ENGLISH, L"ID3D11Device::CreateRenderTargetView failed.");
+ InsertErrorString(EC_D3D_CREATE_RENDER_TARGET_VIEW, LC_FRENCH, L"ID3D11Device::CreateRenderTargetView a échoué.");
+
  // templates
  // InsertErrorString(, LC_ENGLISH, L"");
  // InsertErrorString(, LC_FRENCH, L"");

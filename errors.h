@@ -9,6 +9,8 @@ enum ErrorCode {
  EC_WIN32_MAIN_WINDOW,
  // Direct3D Errors
  EC_D3D_CREATE_DEVICE,
+ EC_D3D_GET_BUFFER,
+ EC_D3D_CREATE_RENDER_TARGET_VIEW,
 };
 
 enum LanguageCode {
