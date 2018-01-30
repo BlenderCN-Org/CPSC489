@@ -8,4 +8,5 @@ Week 1:
  
 Week 2:
  01/29/2018
-  Added base window and application code. Worked a good 3 - 4 hours on it. 
+  Added base window and application code. Worked a good 3 - 4 hours on it.
+  Added basic Direct3D initialization code.
