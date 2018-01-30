@@ -42,6 +42,12 @@ void InitErrorStrings(void)
  InsertErrorString(EC_D3D_CREATE_RENDER_TARGET_VIEW, LC_ENGLISH, L"ID3D11Device::CreateRenderTargetView failed.");
  InsertErrorString(EC_D3D_CREATE_RENDER_TARGET_VIEW, LC_FRENCH, L"ID3D11Device::CreateRenderTargetView a échoué.");
 
+ InsertErrorString(EC_D3D_CREATE_TEXTURE2D, LC_ENGLISH, L"ID3D11Device::CreateTexture2D failed.");
+ InsertErrorString(EC_D3D_CREATE_TEXTURE2D, LC_FRENCH, L"ID3D11Device::CreateTexture2D a échoué.");
+
+ InsertErrorString(EC_D3D_CREATE_DEPTH_STENCIL_VIEW, LC_ENGLISH, L"ID3D11Device::CreateDepthStencilView failed.");
+ InsertErrorString(EC_D3D_CREATE_DEPTH_STENCIL_VIEW, LC_FRENCH, L"ID3D11Device::CreateDepthStencilView a échoué.");
+
  // templates
  // InsertErrorString(, LC_ENGLISH, L"");
  // InsertErrorString(, LC_FRENCH, L"");

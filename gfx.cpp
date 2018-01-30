@@ -62,12 +62,49 @@ ErrorCode InitD3D(void)
  lpBackBuffer->Release();
  lpBackBuffer = 0;
 
+ // create depth buffer
+ D3D11_TEXTURE2D_DESC dsd;
+ ZeroMemory(&dsd, sizeof(dsd));
+ dsd.Width = bbd.Width;
+ dsd.Height = bbd.Height;
+ dsd.MipLevels = 1;
+ dsd.ArraySize = 1;
+ dsd.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+ dsd.SampleDesc.Count = 1;
+ dsd.SampleDesc.Quality = 0;
+ dsd.Usage = D3D11_USAGE_DEFAULT;
+ dsd.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+ if(FAILED(lpDevice->CreateTexture2D(&dsd, NULL, &lpDepthTexture)))
+    return EC_D3D_CREATE_TEXTURE2D;
+
+// create depth stencil view
+ D3D11_DEPTH_STENCIL_VIEW_DESC dsvd;
+ ZeroMemory(&dsvd, sizeof(dsvd));
+ dsvd.Format = dsd.Format;
+ dsvd.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+ if(FAILED(lpDevice->CreateDepthStencilView(lpDepthTexture, &dsvd, &lpDepthStencil)))
+    return EC_D3D_CREATE_DEPTH_STENCIL_VIEW;
+
+ // set render target and assign to it a depth/stencil buffer
+ // at this point we have our color, depth, and stencil buffers ready and assigned to the current render target
+ lpDeviceContext->OMSetRenderTargets(1, &lpRenderTargetView, lpDepthStencil);
+
+ // we are ready to create shaders and render now!
+
  return EC_SUCCESS;
 }
 
 void FreeD3D(void)
 {
  // release framebuffer objects
+ if(lpDepthTexture) {
+    lpDepthTexture->Release();
+    lpDepthTexture = NULL;
+   }
+ if(lpDepthStencil) {
+    lpDepthStencil->Release();
+    lpDepthStencil = NULL;
+   }
  if(lpRenderTargetView) {
     lpRenderTargetView->Release();
     lpRenderTargetView = NULL;
