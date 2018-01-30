@@ -7,6 +7,8 @@ enum ErrorCode {
  // Windows Errors
  EC_WIN32_REGISTER_WINDOW,
  EC_WIN32_MAIN_WINDOW,
+ // Direct3D Errors
+ EC_D3D_CREATE_DEVICE,
 };
 
 enum LanguageCode {

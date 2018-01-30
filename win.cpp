@@ -119,6 +119,7 @@ WINDOW_MESSAGE(EvCreate)
 
 WINDOW_MESSAGE(EvDestroy)
 {
+ FreeD3D();
  return DefWindowProc(window, WM_DESTROY, wparam, lparam);
 }
 

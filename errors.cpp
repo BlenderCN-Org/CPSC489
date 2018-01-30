@@ -32,6 +32,10 @@ void InitErrorStrings(void)
  InsertErrorString(EC_WIN32_MAIN_WINDOW, LC_ENGLISH, L"Invalid main window.");
  InsertErrorString(EC_WIN32_MAIN_WINDOW, LC_FRENCH, L"Fenêtre principale invalide.");
 
+ // Direct3D Errors
+ InsertErrorString(EC_D3D_CREATE_DEVICE, LC_ENGLISH, L"Failed to create Direct3D device.");
+ InsertErrorString(EC_D3D_CREATE_DEVICE, LC_FRENCH, L"Impossible de créer le périphérique Direct3D.");
+
  // templates
  // InsertErrorString(, LC_ENGLISH, L"");
  // InsertErrorString(, LC_FRENCH, L"");
