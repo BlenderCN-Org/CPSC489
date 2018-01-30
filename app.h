@@ -1,0 +1,18 @@
+#ifndef __APP_H
+#define __APP_H
+
+// Application Functions
+HINSTANCE GetInstance(void);
+HINSTANCE SetInstance(HINSTANCE handle);
+
+// Message Loops
+int MessageLoop(void);
+int MessagePump(BOOL (*function)(void));
+
+// Error and Warning Messages
+BOOL ErrorBox(LPCTSTR message);
+BOOL ErrorBox(LPCTSTR message, LPCTSTR title);
+BOOL ErrorBox(HWND window, LPCTSTR message);
+BOOL ErrorBox(HWND window, LPCTSTR message, LPCTSTR title);
+
+#endif
