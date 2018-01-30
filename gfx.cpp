@@ -96,12 +96,88 @@ ErrorCode InitD3D(void)
 }
 
 /**
- * \fn     ResetD3D
- * \brief  Resets the default Direct3D objects when window is resized.
- * \return Returns an error code.
-*/
-ErrorCode ResetD3D(void)
+ * \fn      ResetD3D
+ * \brief   Resets the default Direct3D objects when window is resized.
+ * \details When a window is resized, the render target, along with its associated buffers,
+ *          must be recreated. The back buffer(s), which are part of the swap chain, must
+ *          be resized as well.
+ * \return  Returns an error code.
+ */
+ErrorCode ResetD3D(UINT dx, UINT dy)
 {
+ // nothing to reset
+ if(!lpDeviceContext) return EC_SUCCESS;
+
+ // stop rendering
+ lpDeviceContext->OMSetRenderTargets(0, NULL, NULL);
+
+ // release depth texture
+ if(lpDepthTexture) {
+    lpDepthTexture->Release();
+    lpDepthTexture = NULL;
+   }
+
+ // release depth stencil view
+ if(lpDepthStencil) {
+    lpDepthStencil->Release();
+    lpDepthStencil = NULL;
+   }
+
+ // release render target view
+ if(lpRenderTargetView) {
+    lpRenderTargetView->Release();
+    lpRenderTargetView = NULL;
+   }
+
+ // resize display buffers
+ HRESULT result = lpSwapChain->ResizeBuffers(0, dx, dy, DXGI_FORMAT_UNKNOWN, 0);
+ if(FAILED(result)) return EC_D3D_RESIZE_BUFFERS;
+
+ // get interface to back buffer
+ ID3D11Texture2D* lpBackBuffer = NULL;
+ result = lpSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&lpBackBuffer);
+ if(FAILED(result)) return EC_D3D_GET_BUFFER;
+
+ // get backbuffer descriptor
+ D3D11_TEXTURE2D_DESC bbd = {0};
+ lpBackBuffer->GetDesc(&bbd);
+
+ // create render target view
+ result = lpDevice->CreateRenderTargetView(lpBackBuffer, NULL, &lpRenderTargetView);
+ if(FAILED(result)) return EC_D3D_CREATE_RENDER_TARGET_VIEW;
+
+ // back buffer no longer needed
+ lpBackBuffer->Release();
+ lpBackBuffer = NULL;
+
+ // fill depth buffer parameters
+ D3D11_TEXTURE2D_DESC dsd;
+ ZeroMemory(&dsd, sizeof(dsd));
+ dsd.Width = bbd.Width;
+ dsd.Height = bbd.Height;
+ dsd.MipLevels = 1;
+ dsd.ArraySize = 1;
+ dsd.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+ dsd.SampleDesc.Count = 1;
+ dsd.SampleDesc.Quality = 0;
+ dsd.Usage = D3D11_USAGE_DEFAULT;
+ dsd.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+ // create depth buffer
+ if(FAILED(lpDevice->CreateTexture2D(&dsd, nullptr, &lpDepthTexture)))
+    return EC_D3D_CREATE_TEXTURE2D;
+
+// create depth stencil view
+ D3D11_DEPTH_STENCIL_VIEW_DESC dsvd;
+ ZeroMemory(&dsvd, sizeof(dsvd));
+ dsvd.Format = dsd.Format;
+ dsvd.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+ if(FAILED(lpDevice->CreateDepthStencilView(lpDepthTexture, &dsvd, &lpDepthStencil)))
+    return EC_D3D_CREATE_DEPTH_STENCIL_VIEW;
+
+ // set render target
+ lpDeviceContext->OMSetRenderTargets(1, &lpRenderTargetView, lpDepthStencil);
+
  return EC_SUCCESS;
 }
 

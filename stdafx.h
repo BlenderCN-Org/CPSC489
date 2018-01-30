@@ -123,7 +123,7 @@ typedef std::basic_stringstream<WCHAR> STDSTRINGSTREAMW;
  *           has served me quite well. Useful to prevent textures from being loaded
  *           multiple times (filename -> map -> texture data). If I remember right, I
  *           got the code from http://www.burtleburtle.net/bob/hash/doobs.html.
-*/
+ */
 struct WideStringHash {
  size_t operator ()(const std::wstring& str)const;
 };
@@ -133,7 +133,7 @@ struct WideStringHash {
  *  \details Yeah, the C++ STL string classes do not have case-insensitive
  *           string sorting so we have to provide function objects (or lambdas)
  *           to do it ourselves.
-*/
+ */
 struct WideStringInsensitiveEqual {
  bool operator ()(const std::wstring& s1, const std::wstring& s2)const {
   return _wcsicmp(s1.c_str(), s2.c_str()) == 0;

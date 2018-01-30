@@ -138,6 +138,14 @@ WINDOW_MESSAGE(EvSize)
  int dy = HIWORD(lparam);
  if(dx < 1) dx = 1;
  if(dy < 1) dy = 1;
+ if(GetD3DDeviceContext()) {
+    ErrorCode code = ResetD3D((UINT)dx, (UINT)dy);
+    if(Fail(code)) {
+       FreeD3D();
+       Error(code);
+       return retval;
+      }
+   }
  return retval;
 }
 

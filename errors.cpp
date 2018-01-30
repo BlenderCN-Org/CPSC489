@@ -48,6 +48,9 @@ void InitErrorStrings(void)
  InsertErrorString(EC_D3D_CREATE_DEPTH_STENCIL_VIEW, LC_ENGLISH, L"ID3D11Device::CreateDepthStencilView failed.");
  InsertErrorString(EC_D3D_CREATE_DEPTH_STENCIL_VIEW, LC_FRENCH, L"ID3D11Device::CreateDepthStencilView a échoué.");
 
+ InsertErrorString(EC_D3D_RESIZE_BUFFERS, LC_ENGLISH, L"IDXGISwapChain::ResizeBuffers failed.");
+ InsertErrorString(EC_D3D_RESIZE_BUFFERS, LC_FRENCH, L"IDXGISwapChain::ResizeBuffers a échoué.");
+
  // templates
  // InsertErrorString(, LC_ENGLISH, L"");
  // InsertErrorString(, LC_FRENCH, L"");
