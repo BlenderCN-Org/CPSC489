@@ -141,11 +141,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="app.cpp" />
+    <ClCompile Include="errors.cpp" />
+    <ClCompile Include="gfx.cpp" />
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="win.cpp" />
     <ClCompile Include="winmain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="app.h" />
+    <ClInclude Include="errors.h" />
+    <ClInclude Include="gfx.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="win.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

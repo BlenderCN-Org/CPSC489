@@ -113,6 +113,7 @@ typedef std::basic_stringstream<WCHAR> STDSTRINGSTREAMW;
 //
 // String Functions
 //
+#pragma region STRING_FUNCTIONS
 
 #ifndef RC_INVOKED
 
@@ -130,7 +131,7 @@ struct WideStringHash {
 /** \class   WideStringInsensitiveEqual
  *  \brief   A C++ function object for use with std::sort.
  *  \details Yeah, the C++ STL string classes do not have case-insensitive
- *           string sorting so we have to provide a function object (or lambda)
+ *           string sorting so we have to provide function objects (or lambdas)
  *           to do it ourselves.
 */
 struct WideStringInsensitiveEqual {
@@ -140,5 +141,43 @@ struct WideStringInsensitiveEqual {
 };
 
 #endif
+
+#pragma endregion STRING_FUNCTIONS
+
+//
+// Window Message Macros
+//
+#pragma region WINDOW_MESSAGE_MACROS
+
+#ifndef RC_INVOKED
+
+#define BEGIN_MESSAGE_HANDLER switch(message) {
+#define BEGIN_COMMAND_HANDLER switch(LOWORD(wparam)) {
+#define END_MESSAGE_HANDLER }
+#define END_COMMAND_HANDLER }
+
+#define WINDOW_PROCEDURE(function) LRESULT CALLBACK function(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+#define WINDOW_MESSAGE(function) LRESULT function(HWND window, WPARAM wparam, LPARAM lparam)
+#define WINDOW_MESSAGE_HANDLER(message, function) case(message) : return function(window, wparam, lparam)
+#define WINDOW_MESSAGE_DEFAULT default : return DefWindowProc(window, message, wparam, lparam)
+
+#define WINDOW_COMMAND(function) LRESULT function(HWND window, WPARAM wparam, LPARAM lparam)
+#define WINDOW_COMMAND_HANDLER(command, function) case(command) : return function(window, wparam, lparam)
+#define WINDOW_COMMAND_DEFAULT default : return DefWindowProc(window, WM_COMMAND, wparam, lparam)
+
+#define DIALOG_PROCEDURE(function) INT_PTR CALLBACK function(HWND dialog, UINT message, WPARAM wparam, LPARAM lparam)
+#define DIALOG_MESSAGE(function) INT_PTR function(HWND dialog, WPARAM wparam, LPARAM lparam)
+#define DIALOG_MESSAGE_HANDLER(message, function) case(message) : return function(dialog, wparam, lparam)
+#define DIALOG_MESSAGE_DEFAULT default : return FALSE
+
+#define DIALOG_COMMAND(function) INT_PTR function(HWND dialog, WPARAM wparam, LPARAM lparam)
+#define DIALOG_COMMAND_HANDLER(command, function) case(command) : return function(dialog, wparam, lparam)
+#define DIALOG_COMMAND_DEFAULT default : return FALSE
+
+#define COMMAND_ENABLER(function) LRESULT function(HWND window, HMENU menu)
+
+#endif
+
+#pragma endregion WINDOW_MESSAGE_MACROS
 
 #endif
