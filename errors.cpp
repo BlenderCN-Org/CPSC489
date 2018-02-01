@@ -36,6 +36,9 @@ void InitErrorStrings(void)
  InsertErrorString(EC_D3D_CREATE_DEVICE, LC_ENGLISH, L"Failed to create Direct3D device.");
  InsertErrorString(EC_D3D_CREATE_DEVICE, LC_FRENCH, L"Impossible de créer le périphérique Direct3D.");
 
+ InsertErrorString(EC_D3D_DEVICE_CONTEXT, LC_ENGLISH, L"Must have a valid Direct3D device context for this operation.");
+ InsertErrorString(EC_D3D_DEVICE_CONTEXT, LC_FRENCH, L"Doit avoir un contexte de périphérique Direct3D valide pour cette opération.");
+
  InsertErrorString(EC_D3D_GET_BUFFER, LC_ENGLISH, L"IDXGISwapChain::GetBuffer failed.");
  InsertErrorString(EC_D3D_GET_BUFFER, LC_FRENCH, L"IDXGISwapChain::GetBuffer a échoué.");
 
@@ -50,6 +53,9 @@ void InitErrorStrings(void)
 
  InsertErrorString(EC_D3D_RESIZE_BUFFERS, LC_ENGLISH, L"IDXGISwapChain::ResizeBuffers failed.");
  InsertErrorString(EC_D3D_RESIZE_BUFFERS, LC_FRENCH, L"IDXGISwapChain::ResizeBuffers a échoué.");
+
+ InsertErrorString(EC_D3D_SET_INPUT_LAYOUT, LC_ENGLISH, L"Direct3D input layout not found."); // failed to set input layout (couldn't find it that's why)
+ InsertErrorString(EC_D3D_SET_INPUT_LAYOUT, LC_FRENCH, L"Disposition d'entrée Direct3D non trouvée.");
 
  // templates
  // InsertErrorString(, LC_ENGLISH, L"");
