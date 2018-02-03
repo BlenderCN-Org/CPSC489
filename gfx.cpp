@@ -197,14 +197,29 @@ void FreeRenderTarget(void)
 
 #pragma endregion RENDER_TARGET_FUNCTIONS
 
+#pragma region
+
+// Vertex Shader Functions
+ErrorCode InitVertexShaders(void)
+{
+ return EC_SUCCESS;
+}
+
+void FreeVertexShaders(void)
+{
+}
+
+#pragma endregion
+
 #pragma region INPUT_LAYOUT_FUNCTIONS
 
 ErrorCode InitInputLayouts(void)
 {
- static const DWORD IL_DEFAULT  = 0; // P4 (lines + default color)
- static const DWORD IL_GRID     = 1; // P4 + C4 (lines + vertex color)
- static const DWORD IL_AXES     = 2; // P4 + C4 + M4x4 (lines + vertex color + instance data)
- static const DWORD IL_SKELETON = 3; 
+ // static const DWORD IL_DEFAULT  = 0; // P4 (position + default color)
+ // static const DWORD IL_GRID     = 1; // P4 + C4 (position + vertex color)
+ // static const DWORD IL_SKELETON = 1; // P4 + C4 (position + vertex color)
+ // static const DWORD IL_AXES     = 2; // P4 + C4 + M4 (position + vertex color + instance data)
+ // static const DWORD IL_MODEL1   = 3; // P4 + UV2 (position + uv)
 
  // must have device
  ID3D11Device* device = GetD3DDevice();
@@ -317,6 +332,28 @@ ErrorCode InitInputLayouts(void)
  descriptors[IL_index][6].AlignedByteOffset = 64;
  descriptors[IL_index][6].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
  descriptors[IL_index][6].InstanceDataStepRate = 1;
+
+ // INPUT LAYOUT INDEX #3
+ // 1: POSITION (real32, real32, real32, real32)
+ // 2: TEXCOORD (real32, real32)
+ IL_index = 3;
+ VS_index = 3;
+ input_layout_map.insert(input_layout_map_type::value_type((INPUT_LAYOUT_INDEX)IL_index, VS_index)); // not assigned
+ descriptors[IL_index] = std::vector<D3D11_INPUT_ELEMENT_DESC>(2);
+ descriptors[IL_index][0].SemanticName = "POSITION";
+ descriptors[IL_index][0].SemanticIndex = 0;
+ descriptors[IL_index][0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+ descriptors[IL_index][0].InputSlot = 0;
+ descriptors[IL_index][0].AlignedByteOffset = 0;
+ descriptors[IL_index][0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+ descriptors[IL_index][0].InstanceDataStepRate = 0;
+ descriptors[IL_index][1].SemanticName = "TEXCOORD";
+ descriptors[IL_index][1].SemanticIndex = 0;
+ descriptors[IL_index][1].Format = DXGI_FORMAT_R32G32_FLOAT;
+ descriptors[IL_index][1].InputSlot = 1;
+ descriptors[IL_index][1].AlignedByteOffset = 0;
+ descriptors[IL_index][1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+ descriptors[IL_index][1].InstanceDataStepRate = 0;
 
  return EC_SUCCESS;
 }
