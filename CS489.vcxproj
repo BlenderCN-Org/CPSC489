@@ -141,22 +141,28 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
+    <ClCompile Include="camera.cpp" />
     <ClCompile Include="errors.cpp" />
     <ClCompile Include="gfx.cpp" />
     <ClCompile Include="layout.cpp" />
+    <ClCompile Include="matrix4x4.cpp" />
     <ClCompile Include="shaders.cpp" />
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="stdgfx.cpp" />
     <ClCompile Include="stdwin.cpp" />
     <ClCompile Include="win.cpp" />
     <ClCompile Include="winmain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h" />
+    <ClInclude Include="camera.h" />
     <ClInclude Include="errors.h" />
     <ClInclude Include="gfx.h" />
     <ClInclude Include="layout.h" />
+    <ClInclude Include="matrix4x4.h" />
     <ClInclude Include="shaders.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="stdgfx.h" />
     <ClInclude Include="stdwin.h" />
     <ClInclude Include="win.h" />
   </ItemGroup>
