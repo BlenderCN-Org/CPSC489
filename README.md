@@ -10,3 +10,5 @@ Week 2:
 01/29/2018
 Added base window and application code. Worked a good 3 - 4 hours on it.
 Added basic Direct3D initialization code.
+02/04/2018
+Added input layouts, started work on shaders.
