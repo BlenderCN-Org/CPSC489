@@ -3,16 +3,16 @@
 
 struct VShaderInput
 {
- float4 pos : POSITION;
- float4 col : COLOR;
- column_major float4x4 transform : TRANSFORM;
- float size : SCALE;
+ float3 pos : POSITION;
+ float2 tc1 : TEXCOORD;
+ float2 tc2 : TEXCOORD;
 };
 
 struct PShaderInput
 {
  float4 pos : SV_POSITION;
- float4 col : COLOR;
+ float2 tc1 : TEXCOORD;
+ float2 tc2 : TEXCOORD;
 };
 
 cbuffer perframe : register(b0)
@@ -29,14 +29,11 @@ cbuffer permodel : register(b1)
 PShaderInput VS(VShaderInput input)
 {
  PShaderInput psi;
- psi.pos = input.pos;
- psi.pos.x = psi.pos.x*input.size;
- psi.pos.y = psi.pos.y*input.size;
- psi.pos.z = psi.pos.z*input.size;
- psi.pos = mul(psi.pos, input.transform);
+ psi.pos = float4(input.pos, 1.0);
  psi.pos = mul(psi.pos, mview);
  psi.pos = mul(psi.pos, wview);
  psi.pos = mul(psi.pos, pview);
- psi.col = input.col;
+ psi.tc1 = input.tc1;
+ psi.tc2 = input.tc2;
  return psi;
 }

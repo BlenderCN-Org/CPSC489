@@ -1,5 +1,5 @@
-#ifndef __ERRORS_H
-#define __ERRORS_H
+#ifndef __CPSC489_ERRORS_H
+#define __CPSC489_ERRORS_H
 
 enum ErrorCode {
  // Common Errors
@@ -9,6 +9,7 @@ enum ErrorCode {
  EC_WIN32_MAIN_WINDOW,
  // Direct3D Errors
  EC_D3D_CREATE_DEVICE,
+ EC_D3D_DEVICE,
  EC_D3D_DEVICE_CONTEXT,
  EC_D3D_GET_BUFFER,
  EC_D3D_CREATE_RENDER_TARGET_VIEW,
@@ -20,7 +21,6 @@ enum ErrorCode {
 
 enum LanguageCode {
  LC_ENGLISH = 0,
- LC_FRENCH,
 };
 
 // error string functions

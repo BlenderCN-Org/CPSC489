@@ -23,43 +23,21 @@ void InitErrorStrings(void)
 
  // Common Errors
  InsertErrorString(EC_SUCCESS, LC_ENGLISH, L"");
- InsertErrorString(EC_SUCCESS, LC_FRENCH, L"");
 
  // Windows Errors
  InsertErrorString(EC_WIN32_REGISTER_WINDOW, LC_ENGLISH, L"Failed to register window class.");
- InsertErrorString(EC_WIN32_REGISTER_WINDOW, LC_FRENCH, L"Impossible d'enregistrer la classe de la fenêtre.");
-
  InsertErrorString(EC_WIN32_MAIN_WINDOW, LC_ENGLISH, L"Invalid main window.");
- InsertErrorString(EC_WIN32_MAIN_WINDOW, LC_FRENCH, L"Fenêtre principale invalide.");
 
  // Direct3D Errors
  InsertErrorString(EC_D3D_CREATE_DEVICE, LC_ENGLISH, L"Failed to create Direct3D device.");
- InsertErrorString(EC_D3D_CREATE_DEVICE, LC_FRENCH, L"Impossible de créer le périphérique Direct3D.");
-
+ InsertErrorString(EC_D3D_DEVICE, LC_ENGLISH, L"Must have a valid Direct3D device for this operation.");
  InsertErrorString(EC_D3D_DEVICE_CONTEXT, LC_ENGLISH, L"Must have a valid Direct3D device context for this operation.");
- InsertErrorString(EC_D3D_DEVICE_CONTEXT, LC_FRENCH, L"Doit avoir un contexte de périphérique Direct3D valide pour cette opération.");
-
  InsertErrorString(EC_D3D_GET_BUFFER, LC_ENGLISH, L"IDXGISwapChain::GetBuffer failed.");
- InsertErrorString(EC_D3D_GET_BUFFER, LC_FRENCH, L"IDXGISwapChain::GetBuffer a échoué.");
-
  InsertErrorString(EC_D3D_CREATE_RENDER_TARGET_VIEW, LC_ENGLISH, L"ID3D11Device::CreateRenderTargetView failed.");
- InsertErrorString(EC_D3D_CREATE_RENDER_TARGET_VIEW, LC_FRENCH, L"ID3D11Device::CreateRenderTargetView a échoué.");
-
  InsertErrorString(EC_D3D_CREATE_TEXTURE2D, LC_ENGLISH, L"ID3D11Device::CreateTexture2D failed.");
- InsertErrorString(EC_D3D_CREATE_TEXTURE2D, LC_FRENCH, L"ID3D11Device::CreateTexture2D a échoué.");
-
  InsertErrorString(EC_D3D_CREATE_DEPTH_STENCIL_VIEW, LC_ENGLISH, L"ID3D11Device::CreateDepthStencilView failed.");
- InsertErrorString(EC_D3D_CREATE_DEPTH_STENCIL_VIEW, LC_FRENCH, L"ID3D11Device::CreateDepthStencilView a échoué.");
-
  InsertErrorString(EC_D3D_RESIZE_BUFFERS, LC_ENGLISH, L"IDXGISwapChain::ResizeBuffers failed.");
- InsertErrorString(EC_D3D_RESIZE_BUFFERS, LC_FRENCH, L"IDXGISwapChain::ResizeBuffers a échoué.");
-
  InsertErrorString(EC_D3D_SET_INPUT_LAYOUT, LC_ENGLISH, L"Direct3D input layout not found."); // failed to set input layout (couldn't find it that's why)
- InsertErrorString(EC_D3D_SET_INPUT_LAYOUT, LC_FRENCH, L"Disposition d'entrée Direct3D non trouvée.");
-
- // templates
- // InsertErrorString(, LC_ENGLISH, L"");
- // InsertErrorString(, LC_FRENCH, L"");
 }
 
 void FreeErrorStrings(void)

@@ -143,6 +143,7 @@
     <ClCompile Include="app.cpp" />
     <ClCompile Include="errors.cpp" />
     <ClCompile Include="gfx.cpp" />
+    <ClCompile Include="layout.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="win.cpp" />
     <ClCompile Include="winmain.cpp" />
@@ -151,6 +152,7 @@
     <ClInclude Include="app.h" />
     <ClInclude Include="errors.h" />
     <ClInclude Include="gfx.h" />
+    <ClInclude Include="layout.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="win.h" />
   </ItemGroup>
