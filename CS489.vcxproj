@@ -146,6 +146,7 @@
     <ClCompile Include="layout.cpp" />
     <ClCompile Include="shaders.cpp" />
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="stdwin.cpp" />
     <ClCompile Include="win.cpp" />
     <ClCompile Include="winmain.cpp" />
   </ItemGroup>
@@ -156,6 +157,7 @@
     <ClInclude Include="layout.h" />
     <ClInclude Include="shaders.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="stdwin.h" />
     <ClInclude Include="win.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

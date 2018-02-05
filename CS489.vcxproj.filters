@@ -35,6 +35,9 @@
     <ClCompile Include="shaders.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="stdwin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -56,6 +59,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="shaders.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdwin.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
