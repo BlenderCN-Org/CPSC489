@@ -1,5 +1,5 @@
-#ifndef __WIN_H
-#define __WIN_H
+#ifndef __CPSC489_WIN_H
+#define __CPSC489_WIN_H
 
 // Window Creation
 BOOL CreateMainWindow(void);

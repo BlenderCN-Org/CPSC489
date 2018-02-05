@@ -1,5 +1,5 @@
-#ifndef __APP_H
-#define __APP_H
+#ifndef __CPSC489_APP_H
+#define __CPSC489_APP_H
 
 // Application Functions
 HINSTANCE GetInstance(void);
