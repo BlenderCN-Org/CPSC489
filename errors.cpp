@@ -23,12 +23,14 @@ void InitErrorStrings(void)
 
  // Common Errors
  InsertErrorString(EC_SUCCESS, LC_ENGLISH, L"");
+ InsertErrorString(EC_FILE_READ, LC_ENGLISH, L"Failed to read file.");
+ InsertErrorString(EC_FILE_WRITE, LC_ENGLISH, L"Failed to write to file.");
 
  // Windows Errors
  InsertErrorString(EC_WIN32_REGISTER_WINDOW, LC_ENGLISH, L"Failed to register window class.");
  InsertErrorString(EC_WIN32_MAIN_WINDOW, LC_ENGLISH, L"Invalid main window.");
 
- // Direct3D Errors
+ // Direct3D: General Errors
  InsertErrorString(EC_D3D_CREATE_DEVICE, LC_ENGLISH, L"Failed to create Direct3D device.");
  InsertErrorString(EC_D3D_DEVICE, LC_ENGLISH, L"Must have a valid Direct3D device for this operation.");
  InsertErrorString(EC_D3D_DEVICE_CONTEXT, LC_ENGLISH, L"Must have a valid Direct3D device context for this operation.");
@@ -38,6 +40,16 @@ void InitErrorStrings(void)
  InsertErrorString(EC_D3D_CREATE_DEPTH_STENCIL_VIEW, LC_ENGLISH, L"ID3D11Device::CreateDepthStencilView failed.");
  InsertErrorString(EC_D3D_RESIZE_BUFFERS, LC_ENGLISH, L"IDXGISwapChain::ResizeBuffers failed.");
  InsertErrorString(EC_D3D_SET_INPUT_LAYOUT, LC_ENGLISH, L"Direct3D input layout not found."); // failed to set input layout (couldn't find it that's why)
+
+ // Direct3D: Shader Errors
+ InsertErrorString(EC_D3D_VERTEX_SHADER_FILE_NOT_FOUND, LC_ENGLISH, L"Vertex shader file not found.");
+ InsertErrorString(EC_D3D_VERTEX_SHADER_FILE_INVALID, LC_ENGLISH, L"Invalid vertex shader file.");
+ InsertErrorString(EC_D3D_CREATE_VERTEX_SHADER, LC_ENGLISH, L"Failed to create Direct3D vertex shader.");
+ InsertErrorString(EC_D3D_SET_VERTEX_SHADER, LC_ENGLISH, L"Failed to set Direct3D vertex shader.");
+ InsertErrorString(EC_D3D_PIXEL_SHADER_FILE_NOT_FOUND, LC_ENGLISH, L"Pixel shader file not found.");
+ InsertErrorString(EC_D3D_PIXEL_SHADER_FILE_INVALID, LC_ENGLISH, L"Invalid pixel shader file.");
+ InsertErrorString(EC_D3D_CREATE_PIXEL_SHADER, LC_ENGLISH, L"Failed to create Direct3D pixel shader.");
+ InsertErrorString(EC_D3D_SET_PIXEL_SHADER, LC_ENGLISH, L"Failed to set Direct3D pixel shader.");
 }
 
 void FreeErrorStrings(void)

@@ -12,10 +12,6 @@ ID3D11DeviceContext* GetD3DDeviceContext(void);
 ErrorCode InitRenderTarget(UINT dx = 0, UINT dy = 0);
 void FreeRenderTarget(void);
 
-// Vertex Shader Functions
-ErrorCode InitVertexShaders(void);
-void FreeVertexShaders(void);
-
 // Rendering Functions
 BOOL RenderFrame(void);
 

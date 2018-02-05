@@ -27,12 +27,12 @@ ErrorCode CreateVertexShader(LPCTSTR filename, VertexShader* shader)
  LARGE_INTEGER filesize;
  if(!GetFileSizeEx(handle, &filesize)) {
     CloseHandle(handle);
-    return EC_D3D_VERTEX_SHADER_FILE_NOT_FOUND;
+    return EC_D3D_VERTEX_SHADER_FILE_INVALID;
    }
  DWORD size = static_cast<DWORD>(filesize.QuadPart);
  if(!size || (size > 1048576)) {
     CloseHandle(handle);
-    return EC_D3D_VERTEX_SHADER_FILE_TOO_LARGE;
+    return EC_D3D_VERTEX_SHADER_FILE_INVALID;
    }
 
  // read vertex shader data
@@ -74,12 +74,12 @@ ErrorCode CreatePixelShader(LPCTSTR filename, PixelShader* shader)
  LARGE_INTEGER filesize;
  if(!GetFileSizeEx(handle, &filesize)) {
     CloseHandle(handle);
-    return EC_D3D_PIXEL_SHADER_FILE_NOT_FOUND;
+    return EC_D3D_PIXEL_SHADER_FILE_INVALID;
    }
  DWORD size = static_cast<DWORD>(filesize.QuadPart);
  if(!size || (size > 1048576)) {
     CloseHandle(handle);
-    return EC_D3D_PIXEL_SHADER_FILE_TOO_LARGE;
+    return EC_D3D_PIXEL_SHADER_FILE_INVALID;
    }
 
  // read pixel shader data

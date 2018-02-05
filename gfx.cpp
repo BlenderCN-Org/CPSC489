@@ -189,20 +189,6 @@ void FreeRenderTarget(void)
 
 #pragma endregion RENDER_TARGET_FUNCTIONS
 
-#pragma region
-
-// Vertex Shader Functions
-ErrorCode InitVertexShaders(void)
-{
- return EC_SUCCESS;
-}
-
-void FreeVertexShaders(void)
-{
-}
-
-#pragma endregion
-
 #pragma region RENDERING_FUNCTIONS
 
 BOOL RenderFrame(void)
