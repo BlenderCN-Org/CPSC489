@@ -6,8 +6,8 @@
 
 // Window Variables
 static HWND handle = NULL;
-static LPTSTR classname = TEXT("MainWindow");
-static LPTSTR title = TEXT("CSCP 489 (Direct3D 11)");
+static LPWSTR classname = L"MainWindow";
+static LPWSTR title = L"CSCP 489 (Direct3D 11)";
 
 // Window Messages
 static WINDOW_PROCEDURE(MainWindowProc);
@@ -74,6 +74,11 @@ BOOL CreateMainWindow(void)
 HWND GetMainWindow(void)
 {
  return ::handle;
+}
+
+LPWSTR GetMainWindowTitle(void)
+{
+ return ::title;
 }
 
 WINDOW_PROCEDURE(MainWindowProc)

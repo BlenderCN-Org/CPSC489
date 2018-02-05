@@ -13,8 +13,7 @@ static ID3D11Texture2D* lpDepthTexture;
 static ID3D11DepthStencilView* lpDepthStencil;
 
 // Direct3D Buffer Variables
-static ID3D11Buffer* lpMatrix = NULL;
-static ID3D11Buffer* lpIdentityMatrix = NULL;
+static ID3D11Buffer* lpMatrix = NULL; // TODO: Move to camera.cpp
 
 #pragma region DIRECT3D_INIT_FUNCTIONS
 
@@ -54,6 +53,10 @@ ErrorCode InitD3D(void)
  ErrorCode code = InitRenderTarget();
  if(Fail(code)) return code;
 
+ // create view projection matrix
+ code = InitPerCameraBuffer();
+ if(Fail(code)) return code;
+
  // we are ready to create shaders and render now!
 
  return EC_SUCCESS;
@@ -74,6 +77,9 @@ ErrorCode ResetD3D(UINT dx, UINT dy)
 
 void FreeD3D(void)
 {
+ // release view projection matrix
+ FreePerCameraBuffer();
+
  // release framebuffer objects
  FreeRenderTarget();
 
@@ -195,25 +201,25 @@ void FreeRenderTarget(void)
 
 #pragma region MATRIX_FUNCTIONS
 
-ErrorCode InitViewProjectionMatrix(void)
+ErrorCode InitPerCameraBuffer(void)
 {
  D3D11_BUFFER_DESC desc;
  ZeroMemory(&desc, sizeof(desc));
  desc.Usage = D3D11_USAGE_DYNAMIC;
- desc.ByteWidth = sizeof(DirectX::XMMATRIX);
+ desc.ByteWidth = sizeof(DirectX::XMMATRIX); // only one matrix for now, but can do two!
  desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
  desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
  HRESULT result = lpDevice->CreateBuffer(&desc, NULL, &lpMatrix);
  return (SUCCEEDED(result) ? EC_SUCCESS : EC_D3D_CREATE_BUFFER);
 }
 
-void FreeViewProjectionMatrix(void)
+void FreePerCameraBuffer(void)
 {
  if(lpMatrix) lpMatrix->Release();
  lpMatrix = nullptr;
 }
 
-ID3D11Buffer* GetViewProjectionMatrix(void)
+ID3D11Buffer* GetPerCameraBuffer(void)
 {
  return lpMatrix;
 }

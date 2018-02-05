@@ -1,10 +1,13 @@
 #include "stdafx.h"
+#include "stdwin.h"
 #include "errors.h"
 #include "app.h"
 #include "win.h"
 
 // Application Variables
 static HINSTANCE basead = NULL;
+static __int64 n_frames = 0;
+static __int64 dt = 0;
 
 //
 // Application Functions
@@ -38,6 +41,7 @@ int MessageLoop(void)
 
 int MessagePump(BOOL (*function)(void))
 {
+ PerformanceCounter hpc;
  MSG msg;
  for(;;) {
      if(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
@@ -50,8 +54,24 @@ int MessagePump(BOOL (*function)(void))
         else
            break;
        }
-     else if(function() == FALSE)
-        break;
+     else {
+        // render frame
+        hpc.begin();
+        BOOL result = function();
+        n_frames++;
+        hpc.end();
+        dt += hpc.ticks();
+        if(result == FALSE) break;
+        // track most recent time and reset after one second
+        if(double elapsed = hpc.seconds(dt) > 1.0) {
+           double fps = static_cast<double>(n_frames)/elapsed;
+           WCHAR buffer[1024];
+           swprintf(buffer, 1023, L"%s - %.2f frame per second", GetMainWindowTitle(), fps);
+           SetWindowText(GetMainWindow(), buffer);
+           n_frames = 0ll;
+           dt = 0ll;
+          }
+       }
     }
  return (int)msg.wParam;
 }

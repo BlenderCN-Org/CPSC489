@@ -4,5 +4,6 @@
 // Window Creation
 BOOL CreateMainWindow(void);
 HWND GetMainWindow(void);
+LPWSTR GetMainWindowTitle(void);
 
 #endif
