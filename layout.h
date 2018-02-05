@@ -1,5 +1,5 @@
-#ifndef CPSC489_LAYOUT_H
-#define CPSC489_LAYOUT_H
+#ifndef __CPSC489_LAYOUT_H
+#define __CPSC489_LAYOUT_H
 
 // Input Layout Signatures
 #define IL_P4                   0x00 // <float4>
