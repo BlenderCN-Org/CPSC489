@@ -34,12 +34,13 @@ void InitErrorStrings(void)
  InsertErrorString(EC_D3D_CREATE_DEVICE, LC_ENGLISH, L"Failed to create Direct3D device.");
  InsertErrorString(EC_D3D_DEVICE, LC_ENGLISH, L"Must have a valid Direct3D device for this operation.");
  InsertErrorString(EC_D3D_DEVICE_CONTEXT, LC_ENGLISH, L"Must have a valid Direct3D device context for this operation.");
- InsertErrorString(EC_D3D_GET_BUFFER, LC_ENGLISH, L"IDXGISwapChain::GetBuffer failed.");
+ InsertErrorString(EC_D3D_GET_BACKBUFFER, LC_ENGLISH, L"IDXGISwapChain::GetBuffer failed.");
  InsertErrorString(EC_D3D_CREATE_RENDER_TARGET_VIEW, LC_ENGLISH, L"ID3D11Device::CreateRenderTargetView failed.");
  InsertErrorString(EC_D3D_CREATE_TEXTURE2D, LC_ENGLISH, L"ID3D11Device::CreateTexture2D failed.");
  InsertErrorString(EC_D3D_CREATE_DEPTH_STENCIL_VIEW, LC_ENGLISH, L"ID3D11Device::CreateDepthStencilView failed.");
  InsertErrorString(EC_D3D_RESIZE_BUFFERS, LC_ENGLISH, L"IDXGISwapChain::ResizeBuffers failed.");
  InsertErrorString(EC_D3D_SET_INPUT_LAYOUT, LC_ENGLISH, L"Direct3D input layout not found."); // failed to set input layout (couldn't find it that's why)
+ InsertErrorString(EC_D3D_CREATE_BUFFER, LC_ENGLISH, L"Failed to create Direct3D buffer.");
 
  // Direct3D: Shader Errors
  InsertErrorString(EC_D3D_VERTEX_SHADER_FILE_NOT_FOUND, LC_ENGLISH, L"Vertex shader file not found.");

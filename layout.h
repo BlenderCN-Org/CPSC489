@@ -25,4 +25,3 @@ ID3D11InputLayout* GetInputLayout(size_t index);
 ErrorCode SetInputLayout(size_t index);
 
 #endif
-

@@ -12,6 +12,10 @@ static ID3D11RenderTargetView* lpRenderTargetView;
 static ID3D11Texture2D* lpDepthTexture;
 static ID3D11DepthStencilView* lpDepthStencil;
 
+// Direct3D Buffer Variables
+static ID3D11Buffer* lpMatrix = NULL;
+static ID3D11Buffer* lpIdentityMatrix = NULL;
+
 #pragma region DIRECT3D_INIT_FUNCTIONS
 
 ErrorCode InitD3D(void)
@@ -121,7 +125,7 @@ ErrorCode InitRenderTarget(UINT dx, UINT dy)
  // get interface to back buffer
  ID3D11Texture2D* lpBackBuffer = NULL;
  result = lpSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&lpBackBuffer);
- if(FAILED(result)) return EC_D3D_GET_BUFFER;
+ if(FAILED(result)) return EC_D3D_GET_BACKBUFFER;
 
  // get backbuffer descriptor
  D3D11_TEXTURE2D_DESC bbd = {0};
@@ -188,6 +192,33 @@ void FreeRenderTarget(void)
 }
 
 #pragma endregion RENDER_TARGET_FUNCTIONS
+
+#pragma region MATRIX_FUNCTIONS
+
+ErrorCode InitViewProjectionMatrix(void)
+{
+ D3D11_BUFFER_DESC desc;
+ ZeroMemory(&desc, sizeof(desc));
+ desc.Usage = D3D11_USAGE_DYNAMIC;
+ desc.ByteWidth = sizeof(DirectX::XMMATRIX);
+ desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+ HRESULT result = lpDevice->CreateBuffer(&desc, NULL, &lpMatrix);
+ return (SUCCEEDED(result) ? EC_SUCCESS : EC_D3D_CREATE_BUFFER);
+}
+
+void FreeViewProjectionMatrix(void)
+{
+ if(lpMatrix) lpMatrix->Release();
+ lpMatrix = nullptr;
+}
+
+ID3D11Buffer* GetViewProjectionMatrix(void)
+{
+ return lpMatrix;
+}
+
+#pragma endregion MATRIX_FUNCTIONS
 
 #pragma region RENDERING_FUNCTIONS
 

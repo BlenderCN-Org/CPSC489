@@ -12,6 +12,11 @@ ID3D11DeviceContext* GetD3DDeviceContext(void);
 ErrorCode InitRenderTarget(UINT dx = 0, UINT dy = 0);
 void FreeRenderTarget(void);
 
+// Matrix Functions
+ErrorCode InitViewProjectionMatrix(void);
+void FreeViewProjectionMatrix(void);
+ID3D11Buffer* GetViewProjectionMatrix(void);
+
 // Rendering Functions
 BOOL RenderFrame(void);
 

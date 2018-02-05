@@ -27,12 +27,6 @@ static input_layout_map_type input_layout_map;
 
 ErrorCode InitInputLayouts(void)
 {
- // static const DWORD IL_DEFAULT  = 0; // P4 (position + default color)
- // static const DWORD IL_GRID     = 1; // P4 + C4 (position + vertex color)
- // static const DWORD IL_SKELETON = 1; // P4 + C4 (position + vertex color)
- // static const DWORD IL_AXES     = 2; // P4 + C4 + M4 (position + vertex color + instance data)
- // static const DWORD IL_MODEL1   = 3; // P4 + UV2 (position + uv)
-
  // must have device
  ID3D11Device* device = GetD3DDevice();
  if(!device) return EC_D3D_DEVICE;
