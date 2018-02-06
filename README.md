@@ -18,3 +18,5 @@ Week 3:<br />
 Added camera class.<br />
 Added math.h, matrix4x4.h, vector3.h and ray.h files.<br />
 02/06/2018<br />
+Added grid.h file. Support for some basic geometry.<br />
+Added code to "gfx" units for creating buffers and doing input assembly.<br />
