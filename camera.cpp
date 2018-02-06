@@ -1,7 +1,10 @@
 #include "stdafx.h"
 #include "stdgfx.h"
 #include "errors.h"
+#include "math.h"
+#include "vector3.h"
 #include "matrix4x4.h"
+#include "ray.h"
 #include "gfx.h"
 #include "camera.h"
 
