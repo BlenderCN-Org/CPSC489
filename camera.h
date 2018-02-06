@@ -8,9 +8,6 @@
 #define __CPSC489_CAMERA_H
 
 class OrbitCamera {
- // Direct3D Data
- private :
-  ID3D11Buffer* lpMatrix;
  // Viewport Properties
  private :
   sint32 viewport[4];
@@ -104,5 +101,6 @@ class OrbitCamera {
 ErrorCode InitOrbitCamera(void);
 void FreeOrbitCamera(void);
 OrbitCamera* GetOrbitCamera(void);
+ErrorCode UpdateOrbitCamera(void);
 
 #endif

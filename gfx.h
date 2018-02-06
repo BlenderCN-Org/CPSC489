@@ -20,4 +20,28 @@ ID3D11Buffer* GetPerCameraBuffer(void);
 // Rendering Functions
 BOOL RenderFrame(void);
 
+// Buffer Functions
+ErrorCode CreateVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer, D3D11_USAGE usage);
+ErrorCode CreateVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
+ErrorCode CreateDynamicVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
+ErrorCode CreateImmutableVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
+ErrorCode CreateIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer, D3D11_USAGE usage);
+ErrorCode CreateIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
+ErrorCode CreateDynamicIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
+ErrorCode CreateImmutableIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
+
+// Shader Functions
+
+// Input Assembly Functions
+void SetVertexBuffer(ID3D11Buffer* buffer, UINT stride, UINT offset);
+void SetVertexBufferArray(ID3D11Buffer** buffer, DWORD n, const UINT* stride, const UINT* offset);
+void SetIndexBuffer(ID3D11Buffer* buffer, UINT offset, DXGI_FORMAT format);
+void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY topology);
+void DrawPointList(UINT vertices);
+void DrawLineList(UINT vertices);
+void DrawLineList(UINT vertices, UINT start);
+void DrawPointList(UINT vertices, UINT start);
+void DrawIndexedLineList(UINT indices);
+void DrawIndexedTriangleList(UINT indices);
+
 #endif

@@ -2,6 +2,7 @@
 #include "errors.h"
 #include "app.h"
 #include "win.h"
+#include "camera.h"
 #include "gfx.h"
 
 // Direct3D Variables
@@ -54,7 +55,7 @@ ErrorCode InitD3D(void)
  if(Fail(code)) return code;
 
  // create view projection matrix
- code = InitPerCameraBuffer();
+ code = InitOrbitCamera();
  if(Fail(code)) return code;
 
  // we are ready to create shaders and render now!
@@ -77,8 +78,8 @@ ErrorCode ResetD3D(UINT dx, UINT dy)
 
 void FreeD3D(void)
 {
- // release view projection matrix
- FreePerCameraBuffer();
+ // release camera objects
+ FreeOrbitCamera();
 
  // release framebuffer objects
  FreeRenderTarget();
@@ -246,3 +247,223 @@ BOOL RenderFrame(void)
 }
 
 #pragma endregion RENDERING_FUNCTIONS
+
+#pragma region DIRECT3D_BUFFER_FUNCTIONS
+
+ErrorCode CreateVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer, D3D11_USAGE usage)
+{
+ // must have device
+ ID3D11Device* device = GetD3DDevice();
+ if(!device) return EC_D3D_DEVICE;
+
+ // vertex buffer descriptor
+ D3D11_BUFFER_DESC bd;
+ ZeroMemory(&bd, sizeof(bd));
+ bd.Usage = usage;
+ bd.ByteWidth = n * stride;
+ bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+ bd.CPUAccessFlags = 0;
+
+ // create vertex buffer
+ D3D11_SUBRESOURCE_DATA srd;
+ ZeroMemory(&srd, sizeof(srd));
+ srd.pSysMem = data;
+ HRESULT result = lpDevice->CreateBuffer(&bd, &srd, buffer);
+ return (SUCCEEDED(result) ?  EC_SUCCESS : EC_D3D_CREATE_BUFFER);
+}
+
+ErrorCode CreateVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer)
+{
+ return CreateVertexBuffer(data, n, stride, buffer, D3D11_USAGE_DEFAULT);
+}
+
+ErrorCode CreateDynamicVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer)
+{
+ // must have device
+ ID3D11Device* device = GetD3DDevice();
+ if(!device) return EC_D3D_DEVICE;
+
+ // vertex buffer descriptor
+ D3D11_BUFFER_DESC bd;
+ ZeroMemory(&bd, sizeof(bd));
+ bd.Usage = D3D11_USAGE_DYNAMIC;
+ bd.ByteWidth = n * stride;
+ bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+ bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+ // create vertex buffer
+ HRESULT result = lpDevice->CreateBuffer(&bd, NULL, buffer);
+ if(FAILED(result)) return EC_D3D_CREATE_BUFFER;
+
+ // D3D11_USAGE_DYNAMIC REQUIRES initialization via ID3D11DeviceContext::Map
+ if(data) {
+    D3D11_MAPPED_SUBRESOURCE msr;
+    ZeroMemory(&msr, sizeof(msr));
+    if(!FAILED(lpDeviceContext->Map(*buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) {
+       memmove(msr.pData, data, bd.ByteWidth);
+       lpDeviceContext->Unmap(*buffer, 0);
+      }
+    else {
+       // failed!
+       (*buffer)->Release();
+       (*buffer) = NULL;
+       return EC_D3D_MAP_BUFFER;
+      }
+   }
+
+ // success
+ return EC_SUCCESS;
+}
+
+ErrorCode CreateImmutableVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer)
+{
+ return CreateVertexBuffer(data, n, stride, buffer, D3D11_USAGE_IMMUTABLE);
+}
+
+ErrorCode CreateIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer, D3D11_USAGE usage)
+{
+ // must have device
+ ID3D11Device* device = GetD3DDevice();
+ if(!device) return EC_D3D_DEVICE;
+
+ // index buffer descriptor
+ D3D11_BUFFER_DESC bd;
+ ZeroMemory(&bd, sizeof(bd));
+ bd.Usage = usage;
+ bd.ByteWidth = n * stride;
+ bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+ bd.CPUAccessFlags = 0;
+
+ // create index buffer
+ D3D11_SUBRESOURCE_DATA srd;
+ ZeroMemory(&srd, sizeof(srd));
+ srd.pSysMem = data;
+ HRESULT result = device->CreateBuffer(&bd, &srd, buffer);
+ return (SUCCEEDED(result) ? EC_SUCCESS : EC_D3D_CREATE_BUFFER);
+}
+
+ErrorCode CreateIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer)
+{
+ return CreateIndexBuffer(data, n, stride, buffer, D3D11_USAGE_DEFAULT);
+}
+
+ErrorCode CreateDynamicIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer)
+{
+ // must have device
+ ID3D11Device* device = GetD3DDevice();
+ if(!device) return EC_D3D_DEVICE;
+
+ // index buffer descriptor
+ D3D11_BUFFER_DESC bd;
+ ZeroMemory(&bd, sizeof(bd));
+ bd.Usage = D3D11_USAGE_DYNAMIC;
+ bd.ByteWidth = n * stride;
+ bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+ bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+ // create index buffer
+ D3D11_SUBRESOURCE_DATA srd;
+ ZeroMemory(&srd, sizeof(srd));
+ srd.pSysMem = data;
+ HRESULT result = device->CreateBuffer(&bd, NULL, buffer);
+ if(FAILED(result)) return EC_D3D_CREATE_BUFFER;
+
+ // map index buffer data
+ // D3D11_USAGE_DYNAMIC REQUIRES initialization via ID3D11DeviceContext::Map
+ if(data) {
+    D3D11_MAPPED_SUBRESOURCE msr;
+    ZeroMemory(&msr, sizeof(msr));
+    if(!FAILED(lpDeviceContext->Map(*buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) {
+       memcpy(msr.pData, data, bd.ByteWidth);
+       lpDeviceContext->Unmap(*buffer, 0);
+      }
+    else {
+       // failed!
+       (*buffer)->Release();
+       (*buffer) = NULL;
+       return EC_D3D_MAP_BUFFER;
+      }
+   }
+
+ // success
+ return EC_SUCCESS;
+}
+
+ErrorCode CreateImmutableIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer)
+{
+ return CreateIndexBuffer(data, n, stride, buffer, D3D11_USAGE_IMMUTABLE);
+}
+
+#pragma endregion DIRECT3D_BUFFER_FUNCTIONS
+
+#pragma region DIRECT3D_INPUT_ASSEMBLY_FUNCTIONS
+
+void SetVertexBuffer(ID3D11Buffer* buffer, UINT stride, UINT offset)
+{
+ if(lpDeviceContext) lpDeviceContext->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
+}
+
+void SetVertexBufferArray(ID3D11Buffer** buffer, DWORD n, const UINT* stride, const UINT* offset)
+{
+ if(lpDeviceContext) lpDeviceContext->IASetVertexBuffers(0, n, buffer, stride, offset);
+}
+
+void SetIndexBuffer(ID3D11Buffer* buffer, UINT offset, DXGI_FORMAT format)
+{
+ if(lpDeviceContext) lpDeviceContext->IASetIndexBuffer(buffer, format, offset);
+}
+
+void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY topology)
+{
+ if(lpDeviceContext) lpDeviceContext->IASetPrimitiveTopology(topology);
+}
+
+void DrawPointList(UINT vertices)
+{
+ if(lpDeviceContext && vertices) {
+    lpDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+    lpDeviceContext->Draw(vertices, 0);
+   }
+}
+
+void DrawLineList(UINT vertices)
+{
+ if(lpDeviceContext && vertices) {
+    lpDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    lpDeviceContext->Draw(vertices, 0);
+   }
+}
+
+void DrawLineList(UINT vertices, UINT start)
+{
+ if(lpDeviceContext && vertices) {
+    lpDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    lpDeviceContext->Draw(vertices, start);
+   }
+}
+
+void DrawPointList(UINT vertices, UINT start)
+{
+ if(lpDeviceContext && vertices) {
+    lpDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+    lpDeviceContext->Draw(vertices, start);
+   }
+}
+
+void DrawIndexedLineList(UINT indices)
+{
+ if(lpDeviceContext && indices) {
+    lpDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    lpDeviceContext->DrawIndexed(indices, 0, 0);
+   }
+}
+
+void DrawIndexedTriangleList(UINT indices)
+{
+ if(lpDeviceContext && indices) {
+    lpDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    lpDeviceContext->DrawIndexed(indices, 0, 0);
+   }
+}
+
+#pragma endregion DIRECT3D_INPUT_ASSEMBLY_FUNCTIONS

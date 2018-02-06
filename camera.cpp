@@ -10,15 +10,12 @@
 
 // Orbit Camera Variables
 static OrbitCamera orbitcam;
-OrbitCamera* GetOrbitCamera(void) { return &orbitcam; }
+static ID3D11Buffer* lpMatrix = nullptr;
 
 #pragma region CONSTRUCTORS_DESTRUCTORS
 
 OrbitCamera::OrbitCamera()
 {
- // Direct3D Data
- lpMatrix = nullptr;
-
  // Viewport Properties
  viewport[0] = 0;
  viewport[1] = 0;
@@ -42,6 +39,10 @@ OrbitCamera::OrbitCamera(const OrbitCamera& vc)
 
 OrbitCamera::~OrbitCamera()
 {
+ if(lpMatrix) {
+    lpMatrix->Release();
+    lpMatrix = nullptr;
+   }
 }
 
 #pragma endregion CONSTRUCTORS_DESTRUCTORS
@@ -435,3 +436,90 @@ bool OrbitCamera::Dolly(int unit)
 }
 
 #pragma endregion MOUSE_TRACKING_FUNCTIONS
+
+#pragma region GLOBAL_FUNCTIONS
+
+ErrorCode InitOrbitCamera(void)
+{
+ // must have device
+ auto device = GetD3DDevice();
+ if(!device) return EC_D3D_DEVICE;
+
+ // reset orbit camera
+ orbitcam.Reset();
+
+ // fill out camera buffer descriptor
+ D3D11_BUFFER_DESC desc;
+ ZeroMemory(&desc, sizeof(desc));
+ desc.Usage = D3D11_USAGE_DYNAMIC;
+ desc.ByteWidth = sizeof(DirectX::XMMATRIX);
+ desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+ // create camera buffer
+ HRESULT result = device->CreateBuffer(&desc, NULL, &lpMatrix);
+ return (SUCCEEDED(result) ? EC_SUCCESS : EC_D3D_CREATE_BUFFER);
+}
+
+void FreeOrbitCamera(void)
+{
+ if(lpMatrix) {
+    lpMatrix->Release();
+    lpMatrix = nullptr;
+   }
+ orbitcam.Reset();
+}
+
+OrbitCamera* GetOrbitCamera(void)
+{
+ return &orbitcam;
+}
+
+ErrorCode UpdateOrbitCamera(void)
+{
+ // must have device context
+ auto context = GetD3DDeviceContext();
+ if(!context) return EC_D3D_DEVICE_CONTEXT;
+
+ // get clipping plane coordinates
+ real32 coords[4];
+ orbitcam.GetClippingPlaneCoords(coords);
+
+ // calculate perspective matrix
+ using namespace DirectX;
+ float dx = 2*coords[1];
+ float dy = 2*coords[3];
+ float zn = orbitcam.GetNearPlane();
+ float zf = orbitcam.GetFarPlane();
+ XMMATRIX P;
+ P = XMMatrixPerspectiveRH(dx, dy, zn, zf);
+
+ // calculate view matrix
+ const real32* cam_E = orbitcam.GetCameraOrigin();
+ const real32* cam_X = orbitcam.GetCameraXAxis();
+ const real32* cam_Y = orbitcam.GetCameraYAxis();
+ const real32* cam_Z = orbitcam.GetCameraZAxis();
+ XMVECTOR E = XMVectorSet(cam_E[0], cam_E[1], cam_E[2], 0.0f);
+ XMVECTOR X = XMVectorSet(cam_X[0], cam_X[1], cam_X[2], 0.0f);
+ XMVECTOR Y = XMVectorSet(cam_Y[0], cam_Y[1], cam_Y[2], 0.0f);
+ XMVECTOR Z = XMVectorSet(cam_Z[0], cam_Z[1], cam_Z[2], 0.0f);
+ XMMATRIX V = XMMatrixLookToRH(E, X, Z);
+
+ // calculate perspective view matrix
+ XMMATRIX R = XMMatrixMultiply(V, P);
+ R = XMMatrixTranspose(R);
+
+ // update Direct3D resource (PER-CAMERA DATA IS SLOT 0)
+ D3D11_MAPPED_SUBRESOURCE msr;
+ if(!FAILED(context->Map(lpMatrix, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) {
+    XMMATRIX* data = (XMMATRIX*)msr.pData;
+    data[0] = R; // per-camera constant
+    context->Unmap(lpMatrix, 0);
+    context->VSSetConstantBuffers(0, 1, &lpMatrix);
+    return EC_SUCCESS;
+   }
+
+ return EC_D3D_MAP_RESOURCE;
+}
+
+#pragma endregion GLOBAL_FUNCTIONS

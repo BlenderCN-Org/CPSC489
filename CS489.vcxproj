@@ -144,6 +144,7 @@
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="errors.cpp" />
     <ClCompile Include="gfx.cpp" />
+    <ClCompile Include="grid.cpp" />
     <ClCompile Include="layout.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="matrix4x4.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="errors.h" />
     <ClInclude Include="gfx.h" />
+    <ClInclude Include="grid.h" />
     <ClInclude Include="layout.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="matrix4x4.h" />

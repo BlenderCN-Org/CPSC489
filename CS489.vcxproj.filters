@@ -59,6 +59,9 @@
     <ClCompile Include="ray.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
+    <ClCompile Include="grid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -102,6 +105,9 @@
     </ClInclude>
     <ClInclude Include="ray.h">
       <Filter>Source Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="grid.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
