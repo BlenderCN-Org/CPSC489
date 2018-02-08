@@ -13,12 +13,25 @@ static uint32 n_vertices = 8;
 static uint32 vb_stride = 32;
 static uint32 n_indices = 24;
 static uint32 ib_stride = 2;
+static bool scale_box = false;
 
 ErrorCode InitOrbitBox(void)
 {
  // must have device
  auto device = GetD3DDevice();
  if(!device) return EC_D3D_DEVICE;
+
+ // camera parameters
+ auto orbitcam = GetOrbitCamera();
+ const real32* E = orbitcam->GetCameraOrigin();
+ const real32* X = orbitcam->GetCameraXAxis();
+ real32 orbit_distance = orbitcam->GetOrbitDistance();
+
+ // compute orbit point
+ real32 orbit_point[3];
+ orbit_point[0] = E[0] + orbit_distance*X[0];
+ orbit_point[1] = E[1] + orbit_distance*X[1];
+ orbit_point[2] = E[2] + orbit_distance*X[2];
 
  // free previous
  FreeOrbitBox();
@@ -42,7 +55,7 @@ ErrorCode InitOrbitBox(void)
     }
 
  // constants
- float halfsize = 0.25f;
+ float halfsize = (scale_box ? (0.025f * orbit_distance) : 0.025f); // scale by orbit distance?
  float point[] = { 0.0f, 0.0f, 0.0f };
  float min_p[3] = { point[0] - halfsize, point[1] - halfsize, point[2] - halfsize };
  float max_p[3] = { point[0] + halfsize, point[1] + halfsize, point[2] + halfsize };
@@ -132,6 +145,9 @@ ErrorCode RenderOrbitBox(void)
 
 ErrorCode UpdateOrbitBox(void)
 {
+ // must have vertex buffer, return success if nothing to do
+ if(!vbuffer) return EC_SUCCESS;
+
  // must have device context
  auto context = GetD3DDeviceContext();
  if(!context) return EC_D3D_DEVICE_CONTEXT;
@@ -172,7 +188,7 @@ ErrorCode UpdateOrbitBox(void)
        }
 
     // constants
-    float halfsize = 0.025f * orbit_distance;
+    float halfsize = (scale_box ? (0.025f * orbit_distance) : 0.025f); // scale by orbit distance?
     float point[] = { 0.0f, 0.0f, 0.0f };
     float min_p[3] = { orbit_point[0] - halfsize, orbit_point[1] - halfsize, orbit_point[2] - halfsize };
     float max_p[3] = { orbit_point[0] + halfsize, orbit_point[1] + halfsize, orbit_point[2] + halfsize };
@@ -193,4 +209,15 @@ ErrorCode UpdateOrbitBox(void)
    }
 
  return EC_SUCCESS;
+}
+
+bool GetOrbitBoxScale(void)
+{
+ return scale_box;
+}
+
+ErrorCode SetOrbitBoxScale(bool state)
+{
+ ::scale_box = state;
+ return UpdateOrbitBox();
 }

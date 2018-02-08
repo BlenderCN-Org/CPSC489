@@ -2,12 +2,26 @@
 #include "errors.h"
 #include "app.h"
 #include "win.h"
+#include "camera.h"
+#include "orbit.h"
 #include "gfx.h"
 
 // Window Variables
 static HWND handle = NULL;
 static LPWSTR classname = L"MainWindow";
 static LPWSTR title = L"CSCP 489 (Direct3D 11)";
+
+// Mouse Tracking Variables
+static bool is_tracking = false;
+static sint32 track_flags = 0;
+static sint32 track_x0, track_y0;
+static sint32 track_x1, track_y1;
+static sint32 track_dx = 0;
+static sint32 track_dy = 0;
+
+// Mouse Tracking Functions
+static void BeginMouseTracking(HWND window, WPARAM wparam, LPARAM lparam);
+static void EndMouseTracking(void);
 
 // Window Messages
 static WINDOW_PROCEDURE(MainWindowProc);
@@ -30,6 +44,8 @@ static WINDOW_MESSAGE(EvCaptureChanged);
 static WINDOW_MESSAGE(EvCancelMode);
 static WINDOW_MESSAGE(EvKeyDown);
 static WINDOW_MESSAGE(EvSysKeyDown);
+
+#pragma region WINDOW_FUNCTIONS
 
 BOOL CreateMainWindow(void)
 {
@@ -80,6 +96,38 @@ LPWSTR GetMainWindowTitle(void)
 {
  return ::title;
 }
+
+#pragma endregion WINDOW_FUNCTIONS
+
+#pragma region MOUSETRACKING_FUNCTIONS
+
+void BeginMouseTracking(HWND window, WPARAM wparam, LPARAM lparam)
+{
+ if(!is_tracking) {
+    SetCapture(window);
+    is_tracking = true;
+    track_flags = (sint32)wparam;
+    track_x0 = track_x1 = GET_X_LPARAM(lparam);
+    track_y0 = track_y1 = GET_Y_LPARAM(lparam);
+    track_dx = 0;
+    track_dy = 0;
+   }
+}
+
+void EndMouseTracking(void)
+{
+ if(is_tracking) {
+    ReleaseCapture();
+    is_tracking = false;
+    track_flags = 0;
+    track_x0 = track_y0 = -1;
+    track_x1 = track_y1 = -1;
+    track_dx = 0;
+    track_dy = 0;
+   }
+}
+
+#pragma endregion MOUSETRACKING_FUNCTIONS
 
 WINDOW_PROCEDURE(MainWindowProc)
 {
@@ -169,51 +217,123 @@ WINDOW_MESSAGE(EvClose)
 
 WINDOW_MESSAGE(EvLButtonDown)
 {
+ BeginMouseTracking(window, wparam, lparam);
  return 0;
 }
 
 WINDOW_MESSAGE(EvLButtonUp)
 {
+ EndMouseTracking();
  return 0;
 }
 
 WINDOW_MESSAGE(EvMButtonDown)
 {
+ BeginMouseTracking(window, wparam, lparam);
  return 0;
 }
 
 WINDOW_MESSAGE(EvMButtonUp)
 {
+ EndMouseTracking();
  return 0;
 }
 
 WINDOW_MESSAGE(EvRButtonDown)
 {
+ BeginMouseTracking(window, wparam, lparam);
  return 0;
 }
 
 WINDOW_MESSAGE(EvRButtonUp)
 {
+ EndMouseTracking();
  return 0;
 }
 
 WINDOW_MESSAGE(EvMouseMove)
 {
+ // if tracking
+ if(is_tracking)
+   {
+    // MK_LBUTTON dragging = orbit
+    // MK_LBUTTON dragging + CONTROL = position model on ground
+    // MK_LBUTTON dragging + SHIFT = panning
+    if(track_flags & MK_LBUTTON)
+      {
+       // pan
+       if(GetAsyncKeyState(VK_SHIFT) & 0x8000)
+         {
+          track_flags = (sint32)wparam;
+          track_x0 = track_x1;
+          track_y0 = track_y1;
+          track_x1 = GET_X_LPARAM(lparam);
+          track_y1 = GET_Y_LPARAM(lparam);
+          GetOrbitCamera()->Pan(track_x0, track_y0, track_x1, track_y1);
+          UpdateCamera();
+         }
+       // orbit
+       else
+         {
+          track_flags = (sint32)wparam;
+          track_x0 = track_x1;
+          track_y0 = track_y1;
+          track_x1 = GET_X_LPARAM(lparam);
+          track_y1 = GET_Y_LPARAM(lparam);
+          GetOrbitCamera()->Orbit(track_x0, track_y0, track_x1, track_y1);
+          UpdateCamera();
+         }
+      }
+    // MK_MBUTTON dragging
+    else if(track_flags & MK_MBUTTON)
+      {
+      }
+    // MK_RBUTTON dragging
+    else if(track_flags & MK_RBUTTON)
+      {
+       // dolly
+       track_flags = (sint32)wparam;
+       track_x0 = track_x1;
+       track_y0 = track_y1;
+       track_x1 = GET_X_LPARAM(lparam);
+       track_y1 = GET_Y_LPARAM(lparam);
+       int speed = 1;
+       if(GetAsyncKeyState(VK_SHIFT) & 0x8000) speed = 2;
+       GetOrbitCamera()->Dolly(speed*(track_y1 - track_y0));
+       UpdateCamera();
+      }
+    // nothing is pressed
+    else
+       EndMouseTracking();
+   }
+
  return 0;
 }
 
 WINDOW_MESSAGE(EvMouseWheel)
 {
+ // can't be dragging
+ if(is_tracking) return 0;
+
+ // dolly camera
+ int speed = 1;
+ if(GetAsyncKeyState(VK_SHIFT) & 0x8000) speed = 2;
+ int delta = GET_WHEEL_DELTA_WPARAM(wparam); // 30, 60, 90, 120
+ GetOrbitCamera()->Dolly(-(speed*delta)/15);
+ UpdateCamera();
  return 0;
 }
 
 WINDOW_MESSAGE(EvCaptureChanged)
 {
+ // disable mouse-tracking
+ if(is_tracking) EndMouseTracking();
  return DefWindowProc(window, WM_CAPTURECHANGED, wparam, lparam);
 }
 
 WINDOW_MESSAGE(EvCancelMode)
 {
+ EndMouseTracking();
  return 0;
 }
 

@@ -6,6 +6,7 @@
 #include "layouts.h"
 #include "shaders.h"
 #include "grid.h"
+#include "orbit.h"
 #include "gfx.h"
 
 // Direct3D Variables
@@ -28,6 +29,10 @@ ErrorCode InitD3D(void)
 {
  // already exists
  if(lpDevice) return EC_SUCCESS;
+
+ //
+ // PHASE 1: INITIALIZE RENDER TARGET
+ //
 
  // initialize swap chain descriptor
  DXGI_SWAP_CHAIN_DESC scd;
@@ -60,6 +65,10 @@ ErrorCode InitD3D(void)
  ErrorCode code = InitRenderTarget();
  if(Fail(code)) return code;
 
+ //
+ // PHASE 2: INITIALIZE SHADERS
+ //
+
  // create vertex shaders
  code = InitVertexShaders();
  if(Fail(code)) return code;
@@ -72,17 +81,38 @@ ErrorCode InitD3D(void)
  code = InitInputLayouts();
  if(Fail(code)) return code;
 
+ //
+ // PHASE 3: INITIALIZE CONSTANT BUFFERS
+ //
+
  // create identity matrix
  code = InitIdentityMatrix();
- if(Fail(code)) return code;
-
- // create grid
- code = InitGrid();
  if(Fail(code)) return code;
 
  // create view projection matrix
  code = InitCamera();
  if(Fail(code)) return code;
+
+ //
+ // PHASE 4: INITIALIZE DEFAULT MODELS
+ //
+
+ // create grid
+ code = InitGrid();
+ if(Fail(code)) return code;
+
+ // create orbit box
+ code = InitOrbitBox();
+ if(Fail(code)) return code;
+
+ //
+ // PHASE 5: PREPARE FOR RENDERING
+ //
+
+ // set viewport and update camera before rendering
+ auto orbitcam = GetOrbitCamera();
+ orbitcam->SetViewport(0, 0, (int)buffer_dx, (int)buffer_dy);
+ UpdateCamera();
 
  // success
  return EC_SUCCESS;
@@ -112,11 +142,12 @@ ErrorCode ResetD3D(UINT dx, UINT dy)
 
 void FreeD3D(void)
 {
+ // release default models
+ FreeOrbitBox();
+ FreeGrid();
+
  // release camera
  FreeCamera();
-
- // release grid model
- FreeGrid();
 
  // release identity matrix
  FreeIdentityMatrix();
@@ -268,7 +299,7 @@ ErrorCode InitCamera(void)
  orbitcam->Reset();
 
  // update matrix buffer
- return UpdateCamera();
+ return EC_SUCCESS;
 }
 
 void FreeCamera(void)
@@ -318,6 +349,8 @@ ErrorCode UpdateCamera(void)
  if(Fail(code)) return code;
  SetVertexShaderPerCameraBuffer(lpMatrix);
 
+ // update orbit box
+ UpdateOrbitBox();
  return EC_SUCCESS;
 }
 
@@ -366,8 +399,9 @@ BOOL RenderFrame(void)
  lpDeviceContext->ClearRenderTargetView(lpRenderTargetView, color);
  lpDeviceContext->ClearDepthStencilView(lpDepthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
- // render grid
+ // render default models
  RenderGrid();
+ RenderOrbitBox();
 
  // present
  lpSwapChain->Present(0, 0);
