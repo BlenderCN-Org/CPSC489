@@ -5,6 +5,7 @@
 #include "camera.h"
 #include "layouts.h"
 #include "shaders.h"
+#include "axes.h"
 #include "grid.h"
 #include "orbit.h"
 #include "gfx.h"

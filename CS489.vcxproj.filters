@@ -12,6 +12,9 @@
     <Filter Include="Source Files\Math">
       <UniqueIdentifier>{058332e6-f3eb-47f5-9d5c-92648013fb6b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Models">
+      <UniqueIdentifier>{723d84cd-8e49-47be-928e-61495476763d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winmain.cpp">
@@ -56,14 +59,17 @@
     <ClCompile Include="ray.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
-    <ClCompile Include="grid.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="orbit.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="layouts.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="axes.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="grid.cpp">
+      <Filter>Source Files\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="orbit.cpp">
+      <Filter>Source Files\Models</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -106,14 +112,17 @@
     <ClInclude Include="ray.h">
       <Filter>Source Files\Math</Filter>
     </ClInclude>
-    <ClInclude Include="grid.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="orbit.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="layouts.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="axes.h">
+      <Filter>Source Files\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="grid.h">
+      <Filter>Source Files\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="orbit.h">
+      <Filter>Source Files\Models</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
