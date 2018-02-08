@@ -39,9 +39,9 @@ ErrorCode InitGrid(void)
 
  // set fixed color
  for(uint32 i = 0; i < n_vertices; i++) {
-     data[i].r = 1.0f;
-     data[i].g = 1.0f;
-     data[i].b = 0.0f;
+     data[i].r = (127.0f/255.0f);
+     data[i].g = (127.0f/255.0f);
+     data[i].b = (127.0f/255.0f);
      data[i].a = 1.0f;
     }
 

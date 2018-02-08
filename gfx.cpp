@@ -3,6 +3,7 @@
 #include "app.h"
 #include "win.h"
 #include "camera.h"
+#include "layout.h"
 #include "shaders.h"
 #include "grid.h"
 #include "gfx.h"
@@ -67,6 +68,10 @@ ErrorCode InitD3D(void)
  code = InitPixelShaders();
  if(Fail(code)) return code;
 
+ // create input layouts (after vertex shader creation)
+ code = InitInputLayouts();
+ if(Fail(code)) return code;
+
  // create identity matrix
  code = InitIdentityMatrix();
  if(Fail(code)) return code;
@@ -79,6 +84,7 @@ ErrorCode InitD3D(void)
  code = InitCamera();
  if(Fail(code)) return code;
 
+ // success
  return EC_SUCCESS;
 }
 
@@ -116,6 +122,7 @@ void FreeD3D(void)
  FreeIdentityMatrix();
 
  // release shaders
+ FreeInputLayouts();
  FreePixelShaders();
  FreeVertexShaders();
 
@@ -214,6 +221,10 @@ ErrorCode InitRenderTarget(UINT dx, UINT dy)
  // set render target
  lpDeviceContext->OMSetRenderTargets(1, &lpRenderTargetView, lpDepthStencil);
 
+ // set viewport
+ D3D11_VIEWPORT vp = { 0.0f, 0.0f, (FLOAT)buffer_dx, (FLOAT)buffer_dy, 0.0f, 1.0f };
+ lpDeviceContext->RSSetViewports(1, &vp);
+
  return EC_SUCCESS;
 }
 
@@ -273,11 +284,9 @@ ID3D11Buffer* GetCamera(void)
 
 ErrorCode UpdateCamera(void)
 {
- // must have device context
- auto orbitcam = GetOrbitCamera();
-
  // get clipping plane coordinates
  real32 coords[4];
+ auto orbitcam = GetOrbitCamera();
  orbitcam->GetClippingPlaneCoords(coords);
 
  // calculate perspective matrix
@@ -308,6 +317,7 @@ ErrorCode UpdateCamera(void)
  ErrorCode code = UpdateDynamicMatrixConstBuffer(lpMatrix, R);
  if(Fail(code)) return code;
  SetVertexShaderPerCameraBuffer(lpMatrix);
+
  return EC_SUCCESS;
 }
 
