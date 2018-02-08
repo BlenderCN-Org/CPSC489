@@ -43,6 +43,12 @@ void InitErrorStrings(void)
  InsertErrorString(EC_D3D_CREATE_BUFFER, LC_ENGLISH, L"Failed to create Direct3D buffer.");
  InsertErrorString(EC_D3D_MAP_RESOURCE, LC_ENGLISH, L"Failed to map Direct3D resource.");
 
+ // Direct3D: Input Layout Errors
+ InsertErrorString(EC_D3D_INPUT_LAYOUT_INDEX, LC_ENGLISH, L"Input layout index does not exist.");
+ InsertErrorString(EC_D3D_INPUT_LAYOUT_SHADER_LOOKUP, LC_ENGLISH, L"Input layout index is not associated with a vertex shader.");
+ InsertErrorString(EC_D3D_INPUT_LAYOUT_SHADER_SIGNATURE, LC_ENGLISH, L"Input layout index is not associated with a compiled vertex shader object.");
+ InsertErrorString(EC_D3D_CREATE_INPUT_LAYOUT, LC_ENGLISH, L"Failed to create Direct3D input layout object.");
+
  // Direct3D: Shader Errors
  InsertErrorString(EC_D3D_VERTEX_SHADER_FILE_NOT_FOUND, LC_ENGLISH, L"Vertex shader file not found.");
  InsertErrorString(EC_D3D_VERTEX_SHADER_FILE_INVALID, LC_ENGLISH, L"Invalid vertex shader file.");

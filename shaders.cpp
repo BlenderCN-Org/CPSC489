@@ -117,19 +117,19 @@ ErrorCode InitVertexShaders(void)
  vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_000.cso")), 0));
  vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_001.cso")), 1));
  vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_002.cso")), 2));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_003.cso")), 3));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_004.cso")), 4));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_005.cso")), 5));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_006.cso")), 6));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_007.cso")), 7));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_008.cso")), 8));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_009.cso")), 9));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_010.cso")), 10));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_011.cso")), 11));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_012.cso")), 12));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_013.cso")), 13));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_014.cso")), 14));
- vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_015.cso")), 15));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_003.cso")), 3));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_004.cso")), 4));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_005.cso")), 5));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_006.cso")), 6));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_007.cso")), 7));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_008.cso")), 8));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_009.cso")), 9));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_010.cso")), 10));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_011.cso")), 11));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_012.cso")), 12));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_013.cso")), 13));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_014.cso")), 14));
+ // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_015.cso")), 15));
 
  // load vertex shaders
  for(size_t i = 0; i < vslist.size(); i++) {
@@ -189,19 +189,19 @@ ErrorCode InitPixelShaders(void)
  pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_000.cso")), 0));
  pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_001.cso")), 1));
  pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_002.cso")), 2));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_003.cso")), 3));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_004.cso")), 4));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_005.cso")), 5));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_006.cso")), 6));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_007.cso")), 7));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_008.cso")), 8));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_009.cso")), 9));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_010.cso")), 10));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_011.cso")), 11));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_012.cso")), 12));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_013.cso")), 13));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_014.cso")), 14));
- pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_015.cso")), 15));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_003.cso")), 3));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_004.cso")), 4));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_005.cso")), 5));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_006.cso")), 6));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_007.cso")), 7));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_008.cso")), 8));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_009.cso")), 9));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_010.cso")), 10));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_011.cso")), 11));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_012.cso")), 12));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_013.cso")), 13));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_014.cso")), 14));
+ // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_015.cso")), 15));
 
  // load vertex shaders
  for(size_t i = 0; i < pslist.size(); i++) {

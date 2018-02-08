@@ -15,13 +15,12 @@ struct PShaderInput
  float4 col : COLOR;
 };
 
-cbuffer perframe : register(b0)
+cbuffer percam : register(b0)
 {
- matrix pview;
- matrix wview;
+ matrix cview;
 };
 
-cbuffer permodel : register(b1)
+cbuffer permdl : register(b1)
 {
  matrix mview;
 };
@@ -35,8 +34,7 @@ PShaderInput VS(VShaderInput input)
  psi.pos.z = psi.pos.z*input.size;
  psi.pos = mul(psi.pos, input.transform);
  psi.pos = mul(psi.pos, mview);
- psi.pos = mul(psi.pos, wview);
- psi.pos = mul(psi.pos, pview);
+ psi.pos = mul(psi.pos, cview);
  psi.col = input.col;
  return psi;
 }

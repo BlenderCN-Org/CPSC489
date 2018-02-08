@@ -3,6 +3,7 @@
 #include "app.h"
 #include "win.h"
 #include "camera.h"
+#include "shaders.h"
 #include "grid.h"
 #include "gfx.h"
 
@@ -18,6 +19,7 @@ static ID3D11DepthStencilView* lpDepthStencil;
 
 // Direct3D Buffer Variables
 static ID3D11Buffer* lpMatrix = NULL;
+static ID3D11Buffer* lpIdentityMatrix = NULL;
 
 #pragma region DIRECT3D_INIT_FUNCTIONS
 
@@ -57,6 +59,18 @@ ErrorCode InitD3D(void)
  ErrorCode code = InitRenderTarget();
  if(Fail(code)) return code;
 
+ // create vertex shaders
+ code = InitVertexShaders();
+ if(Fail(code)) return code;
+
+ // create pixel shaders
+ code = InitPixelShaders();
+ if(Fail(code)) return code;
+
+ // create identity matrix
+ code = InitIdentityMatrix();
+ if(Fail(code)) return code;
+
  // create grid
  code = InitGrid();
  if(Fail(code)) return code;
@@ -64,8 +78,6 @@ ErrorCode InitD3D(void)
  // create view projection matrix
  code = InitCamera();
  if(Fail(code)) return code;
-
- // we are ready to create shaders and render now!
 
  return EC_SUCCESS;
 }
@@ -80,7 +92,16 @@ ErrorCode InitD3D(void)
  */
 ErrorCode ResetD3D(UINT dx, UINT dy)
 {
- return InitRenderTarget(dx, dy);
+ // resize render target (buffers)
+ ErrorCode code = InitRenderTarget(dx, dy);
+ if(Fail(code)) return code;
+
+ // set viewport
+ auto orbitcam = GetOrbitCamera();
+ orbitcam->SetViewport(0, 0, (int)buffer_dx, (int)buffer_dy);
+ UpdateCamera();
+
+ return EC_SUCCESS;
 }
 
 void FreeD3D(void)
@@ -90,6 +111,13 @@ void FreeD3D(void)
 
  // release grid model
  FreeGrid();
+
+ // release identity matrix
+ FreeIdentityMatrix();
+
+ // release shaders
+ FreePixelShaders();
+ FreeVertexShaders();
 
  // release framebuffer objects
  FreeRenderTarget();
@@ -284,6 +312,36 @@ ErrorCode UpdateCamera(void)
 }
 
 #pragma endregion CAMERA_FUNCTIONS
+
+#pragma region IDENTITY_MATRIX_FUNCTIONS
+
+ErrorCode InitIdentityMatrix(void)
+{
+ // create matrix buffer
+ if(lpIdentityMatrix) return EC_SUCCESS; // already exists
+ float m[16] = {
+  1.0f, 0.0f, 0.0f, 0.0f,
+  0.0f, 1.0f, 0.0f, 0.0f,
+  0.0f, 0.0f, 1.0f, 0.0f,
+  0.0f, 0.0f, 0.0f, 1.0f,
+ };
+ return CreateImmutableMatrixConstBuffer(&lpIdentityMatrix, &m[0]);
+}
+
+void FreeIdentityMatrix(void)
+{
+ if(lpIdentityMatrix) {
+    lpIdentityMatrix->Release();
+    lpIdentityMatrix = nullptr;
+   }
+}
+
+ID3D11Buffer* GetIdentityMatrix(void)
+{
+ return lpIdentityMatrix;
+}
+
+#pragma endregion IDENTITY_MATRIX_FUNCTIONS
 
 #pragma region RENDERING_FUNCTIONS
 
@@ -534,6 +592,27 @@ ErrorCode UpdateDynamicMatrixConstBuffer(ID3D11Buffer* buffer, const DirectX::XM
  DirectX::XMMATRIX* data = reinterpret_cast<DirectX::XMMATRIX*>(msr.pData);
  data[0] = m;
  lpDeviceContext->Unmap(buffer, 0);
+ return EC_SUCCESS;
+}
+
+ErrorCode CreateImmutableMatrixConstBuffer(ID3D11Buffer** buffer, const real32* m)
+{
+ // buffer description
+ D3D11_BUFFER_DESC bd;
+ ZeroMemory(&bd, sizeof(bd));
+ bd.Usage = D3D11_USAGE_IMMUTABLE;
+ bd.ByteWidth = sizeof(DirectX::XMMATRIX);
+ bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ bd.CPUAccessFlags = 0;
+
+ // initialize data
+ D3D11_SUBRESOURCE_DATA srd;
+ ZeroMemory(&srd, sizeof(srd));
+ auto matrix = DirectX::XMMatrixIdentity();
+ srd.pSysMem = m;
+
+ // create buffer
+ if(FAILED(lpDevice->CreateBuffer(&bd, &srd, buffer))) return EC_D3D_CREATE_BUFFER;
  return EC_SUCCESS;
 }
 

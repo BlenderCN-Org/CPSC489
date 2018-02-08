@@ -137,12 +137,17 @@ ErrorCode RenderGrid(void)
  if(!context) return EC_D3D_DEVICE_CONTEXT;
 
  // set input layout
- ErrorCode code = SetInputLayout(IL_P4);
+ ErrorCode code = SetInputLayout(IL_P4_C4);
  if(Fail(code)) return code;
 
  // set shaders
- SetVertexShader(VS_VERTEX_COLOR);
- SetPixelShader(PS_VERTEX_COLOR);
+ code = SetVertexShader(VS_VERTEX_COLOR);
+ if(Fail(code)) return code;
+ code = SetPixelShader(PS_VERTEX_COLOR);
+ if(Fail(code)) return code;
+
+ // set per-model const data
+ SetVertexShaderPerModelBuffer(GetIdentityMatrix());
 
  // set buffers
  SetVertexBuffer(vbuffer, stride, 0);

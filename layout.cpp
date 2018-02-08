@@ -13,6 +13,7 @@
 #include "app.h"
 #include "win.h"
 #include "gfx.h"
+#include "shaders.h"
 #include "layout.h"
 
 // Direct3D Input Layout Variables
@@ -39,12 +40,12 @@ ErrorCode InitInputLayouts(void)
  DWORD VS_index = 0xFFFFFFFFul;
 
  // resize list of descriptors
- descriptors.resize(2);
+ descriptors.resize(3);
 
  // INPUT LAYOUT INDEX #0
  // 1: POSITION (real32, real32, real32, real32)
- IL_index = 0;
- VS_index = 0;
+ IL_index = IL_P4;
+ VS_index = VS_DEFAULT;
  input_layout_map.insert(input_layout_map_type::value_type(IL_index, VS_index));
  descriptors[IL_index] = std::vector<D3D11_INPUT_ELEMENT_DESC>(1);
  descriptors[IL_index][0].SemanticName = "POSITION";
@@ -58,8 +59,8 @@ ErrorCode InitInputLayouts(void)
  // INPUT LAYOUT INDEX #1
  // 1: POSITION (real32, real32, real32, real32)
  // 2: COLOR (real32, real32, real32, real32)
- IL_index = 1;
- VS_index = 1;
+ IL_index = IL_P4_C4;
+ VS_index = VS_VERTEX_COLOR;
  input_layout_map.insert(input_layout_map_type::value_type(IL_index, VS_index));
  descriptors[IL_index] = std::vector<D3D11_INPUT_ELEMENT_DESC>(2);
  descriptors[IL_index][0].SemanticName = "POSITION";
@@ -85,8 +86,8 @@ ErrorCode InitInputLayouts(void)
  // 5: TRANSFORM (real32, real32, real32, real32) matrix row 3
  // 6: TRANSFORM (real32, real32, real32, real32) matrix row 4
  // 7: SCALE     (real32, real32, real32, real32) scale
- IL_index = 2;
- VS_index = 2;
+ IL_index = IL_P4_C4_M4_S1;
+ VS_index = VS_AXES;
  input_layout_map.insert(input_layout_map_type::value_type((INPUT_LAYOUT_INDEX)IL_index, VS_index));
  descriptors[IL_index] = std::vector<D3D11_INPUT_ELEMENT_DESC>(7);
  descriptors[IL_index][0].SemanticName = "POSITION";
@@ -138,7 +139,7 @@ ErrorCode InitInputLayouts(void)
  descriptors[IL_index][6].AlignedByteOffset = 64;
  descriptors[IL_index][6].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
  descriptors[IL_index][6].InstanceDataStepRate = 1;
-
+/*
  // INPUT LAYOUT INDEX #3
  // 1: POSITION (real32, real32, real32, real32)
  // 2: TEXCOORD (real32, real32)
@@ -160,6 +161,57 @@ ErrorCode InitInputLayouts(void)
  descriptors[IL_index][1].AlignedByteOffset = 0;
  descriptors[IL_index][1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
  descriptors[IL_index][1].InstanceDataStepRate = 0;
+*/
+
+ // initialize input layouts
+ input_layouts.resize(descriptors.size(), nullptr);
+
+ // create input layouts
+ for(INPUT_LAYOUT_INDEX i = 0; i < input_layouts.size(); i++)
+    {
+     // input layout index -> vertex shader signature
+     input_layout_map_type::iterator iter = input_layout_map.find(i);
+     if(iter == input_layout_map.end()) {
+        FreeInputLayouts();
+        return EC_D3D_INPUT_LAYOUT_INDEX;
+       }
+
+     // input layout is not assigned to a vertex shader
+     if(iter->second == 0xFFFFFFFFul) {
+        input_layouts[i] = nullptr;
+        continue;
+       }
+
+     // get vertex shader
+     VertexShader* shader = GetVertexShader(iter->second);
+     if(!shader) {
+        FreeInputLayouts();
+        return EC_D3D_INPUT_LAYOUT_SHADER_LOOKUP;
+       }
+     if(!shader->shader) {
+        FreeInputLayouts();
+        return EC_D3D_INPUT_LAYOUT_SHADER_SIGNATURE;
+       }
+     if(!shader->code.get()) {
+        FreeInputLayouts();
+        return EC_D3D_INPUT_LAYOUT_SHADER_SIGNATURE;
+       }
+     if(!shader->size) {
+        FreeInputLayouts();
+        return EC_D3D_INPUT_LAYOUT_SHADER_SIGNATURE;
+       }
+
+     // create input layout
+     ID3D11InputLayout* lpil = nullptr;
+     HRESULT result = device->CreateInputLayout(&(descriptors[i][0]), (UINT)descriptors[i].size(), shader->code.get(), shader->size, &lpil);
+     if(FAILED(result)) {
+        FreeInputLayouts();
+        return EC_D3D_CREATE_INPUT_LAYOUT;
+       }
+     
+     // set input layout
+     input_layouts[i] = lpil;
+    }
 
  return EC_SUCCESS;
 }

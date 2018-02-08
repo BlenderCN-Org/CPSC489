@@ -1,5 +1,6 @@
-// To compile VS: fxc filename.hlsl /Tvs_5_0 /EVS /Fo filename.cso
-// To compile PS: fxc filename.hlsl /Tps_5_0 /EPS /Fo filename.cso
+// VS_VERTEX_COLOR: 1
+// Simply forwards transformed position and vertex color data to the pixel
+// shader. Vertices are transformed by camera and model matrices.
 
 struct VShaderInput
 {
@@ -13,13 +14,12 @@ struct PShaderInput
  float4 col : COLOR;
 };
 
-cbuffer perframe : register(b0)
+cbuffer percam : register(b0)
 {
- matrix pview;
- matrix wview;
+ matrix cview;
 };
 
-cbuffer permodel : register(b1)
+cbuffer permdl : register(b1)
 {
  matrix mview;
 };
@@ -29,8 +29,7 @@ PShaderInput VS(VShaderInput input)
  PShaderInput psi;
  psi.pos = input.pos;
  psi.pos = mul(psi.pos, mview);
- psi.pos = mul(psi.pos, wview);
- psi.pos = mul(psi.pos, pview);
+ psi.pos = mul(psi.pos, cview);
  psi.col = input.col;
  return psi;
 }

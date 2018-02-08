@@ -1,5 +1,5 @@
-// To compile VS: fxc filename.hlsl /Tvs_5_0 /EVS /Fo filename.cso
-// To compile PS: fxc filename.hlsl /Tps_5_0 /EPS /Fo filename.cso
+// PS_DEFAULT: 0
+// Takes position and renders using a default color.
 
 struct PixelShaderInput
 {
