@@ -31,6 +31,13 @@ ErrorCode CreateDynamicIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buf
 ErrorCode CreateImmutableIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
 
 // Shader Functions
+void SetVertexShaderPerCameraBuffer(ID3D11Buffer* buffer);
+void SetVertexShaderPerModelBuffer(ID3D11Buffer* buffer);
+void SetVertexShaderPerFrameBuffer(ID3D11Buffer* buffer);
+void SetPixelShaderPerCameraBuffer(ID3D11Buffer* buffer);
+void SetPixelShaderPerModelBuffer(ID3D11Buffer* buffer);
+void SetPixelShaderPerFrameBuffer(ID3D11Buffer* buffer);
+void SetShaderResources(UINT n, ID3D11ShaderResourceView** views);
 
 // Input Assembly Functions
 void SetVertexBuffer(ID3D11Buffer* buffer, UINT stride, UINT offset);

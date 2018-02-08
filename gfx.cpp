@@ -3,6 +3,7 @@
 #include "app.h"
 #include "win.h"
 #include "camera.h"
+#include "grid.h"
 #include "gfx.h"
 
 // Direct3D Variables
@@ -54,6 +55,10 @@ ErrorCode InitD3D(void)
  ErrorCode code = InitRenderTarget();
  if(Fail(code)) return code;
 
+ // create grid
+ code = InitGrid();
+ if(Fail(code)) return code;
+
  // create view projection matrix
  code = InitOrbitCamera();
  if(Fail(code)) return code;
@@ -80,6 +85,9 @@ void FreeD3D(void)
 {
  // release camera objects
  FreeOrbitCamera();
+
+ // release grid model
+ FreeGrid();
 
  // release framebuffer objects
  FreeRenderTarget();
@@ -240,6 +248,9 @@ BOOL RenderFrame(void)
  lpDeviceContext->ClearRenderTargetView(lpRenderTargetView, color);
  lpDeviceContext->ClearDepthStencilView(lpDepthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+ // render grid
+ RenderGrid();
+
  // present
  lpSwapChain->Present(0, 0);
 
@@ -307,7 +318,7 @@ ErrorCode CreateDynamicVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Bu
        // failed!
        (*buffer)->Release();
        (*buffer) = NULL;
-       return EC_D3D_MAP_BUFFER;
+       return EC_D3D_MAP_RESOURCE;
       }
    }
 
@@ -381,7 +392,7 @@ ErrorCode CreateDynamicIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buf
        // failed!
        (*buffer)->Release();
        (*buffer) = NULL;
-       return EC_D3D_MAP_BUFFER;
+       return EC_D3D_MAP_RESOURCE;
       }
    }
 
@@ -395,6 +406,45 @@ ErrorCode CreateImmutableIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11B
 }
 
 #pragma endregion DIRECT3D_BUFFER_FUNCTIONS
+
+#pragma region DIRECT3D_SHADER_FUNCTIONS
+
+void SetVertexShaderPerCameraBuffer(ID3D11Buffer* buffer)
+{
+ if(lpDeviceContext) lpDeviceContext->VSSetConstantBuffers(0, 1, &buffer);
+}
+
+void SetVertexShaderPerModelBuffer(ID3D11Buffer* buffer)
+{
+ if(lpDeviceContext) lpDeviceContext->VSSetConstantBuffers(1, 1, &buffer);
+}
+
+void SetVertexShaderPerFrameBuffer(ID3D11Buffer* buffer)
+{
+ if(lpDeviceContext) lpDeviceContext->VSSetConstantBuffers(2, 1, &buffer);
+}
+
+void SetPixelShaderPerCameraBuffer(ID3D11Buffer* buffer)
+{
+ if(lpDeviceContext) lpDeviceContext->PSSetConstantBuffers(0, 1, &buffer);
+}
+
+void SetPixelShaderPerModelBuffer(ID3D11Buffer* buffer)
+{
+ if(lpDeviceContext) lpDeviceContext->PSSetConstantBuffers(1, 1, &buffer);
+}
+
+void SetPixelShaderPerFrameBuffer(ID3D11Buffer* buffer)
+{
+ if(lpDeviceContext) lpDeviceContext->PSSetConstantBuffers(2, 1, &buffer);
+}
+
+void SetShaderResources(UINT n, ID3D11ShaderResourceView** views)
+{
+ if(lpDeviceContext && n && views) lpDeviceContext->PSSetShaderResources(0, n, views);
+}
+
+#pragma endregion DIRECT3D_SHADER_FUNCTIONS
 
 #pragma region DIRECT3D_INPUT_ASSEMBLY_FUNCTIONS
 
