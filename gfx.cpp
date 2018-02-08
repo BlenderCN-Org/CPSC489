@@ -10,12 +10,14 @@
 static ID3D11Device* lpDevice;
 static ID3D11DeviceContext* lpDeviceContext;
 static IDXGISwapChain* lpSwapChain;
+static UINT buffer_dx = 0;
+static UINT buffer_dy = 0;
 static ID3D11RenderTargetView* lpRenderTargetView;
 static ID3D11Texture2D* lpDepthTexture;
 static ID3D11DepthStencilView* lpDepthStencil;
 
 // Direct3D Buffer Variables
-static ID3D11Buffer* lpMatrix = NULL; // TODO: Move to camera.cpp
+static ID3D11Buffer* lpMatrix = NULL;
 
 #pragma region DIRECT3D_INIT_FUNCTIONS
 
@@ -60,7 +62,7 @@ ErrorCode InitD3D(void)
  if(Fail(code)) return code;
 
  // create view projection matrix
- code = InitOrbitCamera();
+ code = InitCamera();
  if(Fail(code)) return code;
 
  // we are ready to create shaders and render now!
@@ -83,8 +85,8 @@ ErrorCode ResetD3D(UINT dx, UINT dy)
 
 void FreeD3D(void)
 {
- // release camera objects
- FreeOrbitCamera();
+ // release camera
+ FreeCamera();
 
  // release grid model
  FreeGrid();
@@ -142,9 +144,11 @@ ErrorCode InitRenderTarget(UINT dx, UINT dy)
  result = lpSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&lpBackBuffer);
  if(FAILED(result)) return EC_D3D_GET_BACKBUFFER;
 
- // get backbuffer descriptor
+ // get backbuffer descriptor and dimensions
  D3D11_TEXTURE2D_DESC bbd = {0};
  lpBackBuffer->GetDesc(&bbd);
+ buffer_dx = bbd.Width;
+ buffer_dy = bbd.Height;
 
  // create render target view
  result = lpDevice->CreateRenderTargetView(lpBackBuffer, NULL, &lpRenderTargetView);
@@ -208,32 +212,78 @@ void FreeRenderTarget(void)
 
 #pragma endregion RENDER_TARGET_FUNCTIONS
 
-#pragma region MATRIX_FUNCTIONS
+#pragma region CAMERA_FUNCTIONS
 
-ErrorCode InitPerCameraBuffer(void)
+ErrorCode InitCamera(void)
 {
- D3D11_BUFFER_DESC desc;
- ZeroMemory(&desc, sizeof(desc));
- desc.Usage = D3D11_USAGE_DYNAMIC;
- desc.ByteWidth = sizeof(DirectX::XMMATRIX); // only one matrix for now, but can do two!
- desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
- desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
- HRESULT result = lpDevice->CreateBuffer(&desc, NULL, &lpMatrix);
- return (SUCCEEDED(result) ? EC_SUCCESS : EC_D3D_CREATE_BUFFER);
+ // already exists
+ if(lpMatrix) return EC_SUCCESS;
+
+ // create matrix buffer
+ ErrorCode code = CreateDynamicMatrixConstBuffer(&lpMatrix);
+ if(Fail(code)) return code;
+
+ // set camera parameters
+ auto orbitcam = GetOrbitCamera();
+ orbitcam->SetViewport(0, 0, (int)buffer_dx, (int)buffer_dy);
+ orbitcam->Reset();
+
+ // update matrix buffer
+ return UpdateCamera();
 }
 
-void FreePerCameraBuffer(void)
+void FreeCamera(void)
 {
  if(lpMatrix) lpMatrix->Release();
  lpMatrix = nullptr;
 }
 
-ID3D11Buffer* GetPerCameraBuffer(void)
+ID3D11Buffer* GetCamera(void)
 {
  return lpMatrix;
 }
 
-#pragma endregion MATRIX_FUNCTIONS
+ErrorCode UpdateCamera(void)
+{
+ // must have device context
+ auto orbitcam = GetOrbitCamera();
+
+ // get clipping plane coordinates
+ real32 coords[4];
+ orbitcam->GetClippingPlaneCoords(coords);
+
+ // calculate perspective matrix
+ using namespace DirectX;
+ float dx = 2*coords[1];
+ float dy = 2*coords[3];
+ float zn = orbitcam->GetNearPlane();
+ float zf = orbitcam->GetFarPlane();
+ XMMATRIX P;
+ P = XMMatrixPerspectiveRH(dx, dy, zn, zf);
+
+ // calculate view matrix
+ const real32* cam_E = orbitcam->GetCameraOrigin();
+ const real32* cam_X = orbitcam->GetCameraXAxis();
+ const real32* cam_Y = orbitcam->GetCameraYAxis();
+ const real32* cam_Z = orbitcam->GetCameraZAxis();
+ XMVECTOR E = XMVectorSet(cam_E[0], cam_E[1], cam_E[2], 0.0f);
+ XMVECTOR X = XMVectorSet(cam_X[0], cam_X[1], cam_X[2], 0.0f);
+ XMVECTOR Y = XMVectorSet(cam_Y[0], cam_Y[1], cam_Y[2], 0.0f);
+ XMVECTOR Z = XMVectorSet(cam_Z[0], cam_Z[1], cam_Z[2], 0.0f);
+ XMMATRIX V = XMMatrixLookToRH(E, X, Z);
+
+ // calculate perspective view matrix
+ XMMATRIX R = XMMatrixMultiply(V, P);
+ R = XMMatrixTranspose(R);
+
+ // update Direct3D resource
+ ErrorCode code = UpdateDynamicMatrixConstBuffer(lpMatrix, R);
+ if(Fail(code)) return code;
+ SetVertexShaderPerCameraBuffer(lpMatrix);
+ return EC_SUCCESS;
+}
+
+#pragma endregion CAMERA_FUNCTIONS
 
 #pragma region RENDERING_FUNCTIONS
 
@@ -259,7 +309,7 @@ BOOL RenderFrame(void)
 
 #pragma endregion RENDERING_FUNCTIONS
 
-#pragma region DIRECT3D_BUFFER_FUNCTIONS
+#pragma region DIRECT3D_VERTEX_BUFFER_FUNCTIONS
 
 ErrorCode CreateVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer, D3D11_USAGE usage)
 {
@@ -330,6 +380,10 @@ ErrorCode CreateImmutableVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11
 {
  return CreateVertexBuffer(data, n, stride, buffer, D3D11_USAGE_IMMUTABLE);
 }
+
+#pragma endregion DIRECT3D_VERTEX_BUFFER_FUNCTIONS
+
+#pragma region DIRECT3D_INDEX_BUFFER_FUNCTIONS
 
 ErrorCode CreateIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer, D3D11_USAGE usage)
 {
@@ -403,6 +457,84 @@ ErrorCode CreateDynamicIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buf
 ErrorCode CreateImmutableIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer)
 {
  return CreateIndexBuffer(data, n, stride, buffer, D3D11_USAGE_IMMUTABLE);
+}
+
+#pragma endregion DIRECT3D_INDEX_BUFFER_FUNCTIONS
+
+#pragma region DIRECT3D_CONSTANT_BUFFER_FUNCTIONS
+
+ErrorCode CreateDynamicFloat4ConstBuffer(real32* color, ID3D11Buffer** buffer)
+{
+ // create buffer
+ D3D11_BUFFER_DESC desc;
+ ZeroMemory(&desc, sizeof(desc));
+ desc.Usage = D3D11_USAGE_DYNAMIC;
+ desc.ByteWidth = 16;
+ desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+ HRESULT result = lpDevice->CreateBuffer(&desc, NULL, buffer);
+ if(FAILED(result)) return EC_D3D_CREATE_BUFFER;
+
+ // map data
+ D3D11_MAPPED_SUBRESOURCE msr;
+ ZeroMemory(&msr, sizeof(msr));
+ if(!FAILED(lpDeviceContext->Map(*buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) {
+    real32* data = reinterpret_cast<real32*>(msr.pData);
+    data[0] = color[0];
+    data[1] = color[1];
+    data[2] = color[2];
+    data[3] = color[3];
+    lpDeviceContext->Unmap(*buffer, 0);
+   }
+ else {
+    // failed!
+    (*buffer)->Release();
+    (*buffer) = NULL;
+    return EC_D3D_MAP_RESOURCE;
+   }
+
+ return EC_SUCCESS;
+}
+
+ErrorCode UpdateDynamicFloat4ConstBuffer(ID3D11Buffer* buffer, const real32* color)
+{
+ D3D11_MAPPED_SUBRESOURCE msr;
+ ZeroMemory(&msr, sizeof(msr));
+ if(FAILED(lpDeviceContext->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) return EC_D3D_MAP_RESOURCE;
+ real32* data = reinterpret_cast<real32*>(msr.pData);
+ data[0] = color[0];
+ data[1] = color[1];
+ data[2] = color[2];
+ data[3] = color[3];
+ lpDeviceContext->Unmap(buffer, 0);
+ return EC_SUCCESS;
+} 
+
+ErrorCode CreateDynamicMatrixConstBuffer(ID3D11Buffer** buffer)
+{
+ // initialize descriptor
+ D3D11_BUFFER_DESC desc;
+ ZeroMemory(&desc, sizeof(desc));
+ desc.Usage = D3D11_USAGE_DYNAMIC;
+ desc.ByteWidth = sizeof(DirectX::XMMATRIX);
+ desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+ // create buffer
+ HRESULT result = lpDevice->CreateBuffer(&desc, NULL, buffer);
+ if(FAILED(result)) return EC_D3D_CREATE_BUFFER;
+ return EC_SUCCESS;
+}
+
+ErrorCode UpdateDynamicMatrixConstBuffer(ID3D11Buffer* buffer, const DirectX::XMMATRIX& m)
+{
+ D3D11_MAPPED_SUBRESOURCE msr;
+ ZeroMemory(&msr, sizeof(msr));
+ if(FAILED(lpDeviceContext->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) return EC_D3D_MAP_RESOURCE;
+ DirectX::XMMATRIX* data = reinterpret_cast<DirectX::XMMATRIX*>(msr.pData);
+ data[0] = m;
+ lpDeviceContext->Unmap(buffer, 0);
+ return EC_SUCCESS;
 }
 
 #pragma endregion DIRECT3D_BUFFER_FUNCTIONS

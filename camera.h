@@ -98,9 +98,6 @@ class OrbitCamera {
   virtual ~OrbitCamera();
 };
 
-ErrorCode InitOrbitCamera(void);
-void FreeOrbitCamera(void);
 OrbitCamera* GetOrbitCamera(void);
-ErrorCode UpdateOrbitCamera(void);
 
 #endif

@@ -12,23 +12,32 @@ ID3D11DeviceContext* GetD3DDeviceContext(void);
 ErrorCode InitRenderTarget(UINT dx = 0, UINT dy = 0);
 void FreeRenderTarget(void);
 
-// Matrix Functions
-ErrorCode InitPerCameraBuffer(void);
-void FreePerCameraBuffer(void);
-ID3D11Buffer* GetPerCameraBuffer(void);
+// Camera Functions
+ErrorCode InitCamera(void);
+void FreeCamera(void);
+ID3D11Buffer* GetCamera(void);
+ErrorCode UpdateCamera(void);
 
 // Rendering Functions
 BOOL RenderFrame(void);
 
-// Buffer Functions
+// Vertex Buffer Functions
 ErrorCode CreateVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer, D3D11_USAGE usage);
 ErrorCode CreateVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
 ErrorCode CreateDynamicVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
 ErrorCode CreateImmutableVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
+
+// Index Buffer Functions
 ErrorCode CreateIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer, D3D11_USAGE usage);
 ErrorCode CreateIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
 ErrorCode CreateDynamicIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
 ErrorCode CreateImmutableIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
+
+// Constant Buffer Functions
+ErrorCode CreateDynamicFloat4ConstBuffer(real32* color, ID3D11Buffer** buffer);
+ErrorCode UpdateDynamicFloat4ConstBuffer(ID3D11Buffer* buffer, const real32* color);
+ErrorCode CreateDynamicMatrixConstBuffer(ID3D11Buffer** buffer);
+ErrorCode UpdateDynamicMatrixConstBuffer(ID3D11Buffer* buffer, const DirectX::XMMATRIX& m);
 
 // Shader Functions
 void SetVertexShaderPerCameraBuffer(ID3D11Buffer* buffer);
