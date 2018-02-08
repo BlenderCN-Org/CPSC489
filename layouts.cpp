@@ -1,4 +1,4 @@
-/** \file    layout.cpp
+/** \file    layouts.cpp
  *  \brief   Direct3D Input Layout functions and variables.
  *  \details An input layout map associates each input layout with a vertex shader. This is necessary because
  *           Direct3D checks the input layout with the vertex shader to make sure the signatures match. Later
@@ -14,7 +14,7 @@
 #include "win.h"
 #include "gfx.h"
 #include "shaders.h"
-#include "layout.h"
+#include "layouts.h"
 
 // Direct3D Input Layout Variables
 typedef DWORD INPUT_LAYOUT_INDEX;

@@ -32,9 +32,6 @@
     <ClCompile Include="errors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="layout.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="shaders.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -62,6 +59,12 @@
     <ClCompile Include="grid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="orbit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="layouts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -77,9 +80,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="errors.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="layout.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="shaders.h">
@@ -107,6 +107,12 @@
       <Filter>Source Files\Math</Filter>
     </ClInclude>
     <ClInclude Include="grid.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="orbit.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="layouts.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
