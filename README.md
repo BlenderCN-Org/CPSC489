@@ -20,3 +20,6 @@ Added math.h, matrix4x4.h, vector3.h and ray.h files.<br />
 02/06/2018<br />
 Added grid.h file. Support for some basic geometry.<br />
 Added code to "gfx" units for creating buffers and doing input assembly.<br />
+02/08/2018<br />
+Fixed some issues with the orbit box.<br />
+Turntable camera system now fully working.<br />
