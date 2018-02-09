@@ -174,9 +174,13 @@
     <ClInclude Include="shaders.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="stdgfx.h" />
+    <ClInclude Include="stdres.h" />
     <ClInclude Include="stdwin.h" />
     <ClInclude Include="vector3.h" />
     <ClInclude Include="win.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="stdres.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

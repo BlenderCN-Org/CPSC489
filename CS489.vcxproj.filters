@@ -124,5 +124,13 @@
     <ClInclude Include="orbit.h">
       <Filter>Source Files\Models</Filter>
     </ClInclude>
+    <ClInclude Include="stdres.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="stdres.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

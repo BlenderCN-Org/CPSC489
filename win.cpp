@@ -68,7 +68,7 @@ BOOL CreateMainWindow(void)
     wcx.hIcon = NULL;
     wcx.hCursor = LoadCursor(NULL, IDC_ARROW);
     wcx.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
-    wcx.lpszMenuName = NULL;
+    wcx.lpszMenuName = L"DEVMENU"; // NULL;
     wcx.lpszClassName = classname;
     wcx.hIconSm = NULL;
     if(RegisterClassEx(&wcx) == FALSE) return e_lambda(EC_WIN32_REGISTER_WINDOW);
