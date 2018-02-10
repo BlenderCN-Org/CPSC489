@@ -15,6 +15,9 @@
     <Filter Include="Source Files\Models">
       <UniqueIdentifier>{723d84cd-8e49-47be-928e-61495476763d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Testing">
+      <UniqueIdentifier>{180c3ed3-4f1e-431d-bc89-9d39b9a10ed2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winmain.cpp">
@@ -71,6 +74,12 @@
     <ClCompile Include="orbit.cpp">
       <Filter>Source Files\Models</Filter>
     </ClCompile>
+    <ClCompile Include="testing\sk_axes.cpp">
+      <Filter>Source Files\Testing</Filter>
+    </ClCompile>
+    <ClCompile Include="testing\tests.cpp">
+      <Filter>Source Files\Testing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -126,6 +135,12 @@
     </ClInclude>
     <ClInclude Include="stdres.h">
       <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="testing\sk_axes.h">
+      <Filter>Source Files\Testing</Filter>
+    </ClInclude>
+    <ClInclude Include="testing\tests.h">
+      <Filter>Source Files\Testing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -45,6 +45,10 @@ static WINDOW_MESSAGE(EvCancelMode);
 static WINDOW_MESSAGE(EvKeyDown);
 static WINDOW_MESSAGE(EvSysKeyDown);
 
+// Window Commands
+static WINDOW_COMMAND(CmSkeletonAxesTest);
+static WINDOW_COMMAND(CmSkeletonAnimTest);
+
 #pragma region WINDOW_FUNCTIONS
 
 BOOL CreateMainWindow(void)
@@ -348,3 +352,17 @@ WINDOW_MESSAGE(EvSysKeyDown)
 }
 
 #pragma endregion WINDOW_MESSAGES
+
+#pragma region WINDOW_COMMANDS
+
+WINDOW_COMMAND(CmSkeletonAxesTest)
+{
+ return 0;
+}
+
+WINDOW_COMMAND(CmSkeletonAnimTest)
+{
+ return 0;
+}
+
+#pragma endregion WINDOW_COMMANDS
