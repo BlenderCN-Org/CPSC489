@@ -80,6 +80,9 @@
     <ClCompile Include="testing\tests.cpp">
       <Filter>Source Files\Testing</Filter>
     </ClCompile>
+    <ClCompile Include="ascii.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -141,6 +144,9 @@
     </ClInclude>
     <ClInclude Include="testing\tests.h">
       <Filter>Source Files\Testing</Filter>
+    </ClInclude>
+    <ClInclude Include="ascii.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

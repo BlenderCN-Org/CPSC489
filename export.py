@@ -1,14 +1,21 @@
 import bpy
 import os
 
+class Bone:
+    # self.name
+    # self.parent
+    # self.position[3]
+    # self.matrix[3][3]
+    pass
+
 def MeshExporter():
     
     if bpy.context.mode != 'OBJECT':
         print("You must be in OBJECT mode to run this script.")
         return
 
-    if len(bpy.data.meshes) == 0:
-        raise 'There are no meshes to export.'
+    #if len(bpy.data.meshes) == 0:
+    #    raise 'There are no meshes to export.'
             
     # create file
     filename = os.path.splitext(bpy.data.filepath)[0] + ".txt"
@@ -26,6 +33,9 @@ def MeshExporter():
     # no bones
     if has_skeleton == False:
         file.write("0 # number of bones")
+        
+    # export animations
+    has_anim = False
 
     # save number of meshes
     file.write("{} # number of meshes\n".format(len(bpy.data.meshes)))
@@ -40,31 +50,44 @@ def MeshExporter():
 
 def ExportArmature(file, armature, skeleton):
 
-    # save number of bones    
-    n_bones = len(skeleton.bones)
-    file.write("{} # number of bones\n".format(n_bones))
-    if n_bones == 0: return
+        # save number of bones    
+        n_bones = len(skeleton.bones)
+        file.write("{} # number of bones\n".format(n_bones))
+        if n_bones == 0: return
 
-    # save location of root node
-    file.write("{} {} {}\n".format(armature.location[0], armature.location[1], armature.location[2]))
-            
-    for bone in skeleton.bones:
-        file.write(bone.name + "\n")
-        if bone.parent == None: file.write("\n")
-        else: file.write("{}\n".format(bone.parent.name))
-        #file.write("center {} {} {}\n".format(bone.center[0], bone.center[1], bone.center[2]))
-        #file.write("vector {} {} {}\n".format(bone.vector[0], bone.vector[1], bone.vector[2]))
-        #file.write("head {} {} {}\n".format(bone.head_local[0], bone.head_local[1], bone.head_local[2]))
-        #file.write("tail {} {} {}\n".format(bone.tail_local[0], bone.tail_local[1], bone.tail_local[2]))
-        #file.write("x-axis {} {} {}\n".format(bone.x_axis[0], bone.x_axis[1], bone.x_axis[2]))
-        #file.write("y-axis {} {} {}\n".format(bone.y_axis[0], bone.y_axis[1], bone.y_axis[2]))
-        #file.write("z-axis {} {} {}\n".format(bone.z_axis[0], bone.z_axis[1], bone.z_axis[2]))
-        file.write("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
-            bone.matrix_local[0][0], bone.matrix_local[0][1], bone.matrix_local[0][2], bone.matrix_local[0][3],
-            bone.matrix_local[1][0], bone.matrix_local[1][1], bone.matrix_local[1][2], bone.matrix_local[1][3],
-            bone.matrix_local[2][0], bone.matrix_local[2][1], bone.matrix_local[2][2], bone.matrix_local[2][3],
-            bone.matrix_local[3][0], bone.matrix_local[3][1], bone.matrix_local[3][2], bone.matrix_local[3][3]))
+        # PHASE 1        
+        # associate name with an index
+        indexmap = {}
+        for index, bone in enumerate(skeleton.bones):
+            indexmap[bone.name] = index
         
+        # PHASE 2
+        # construct bonelist
+        bonelist = []
+        for index, bone in enumerate(skeleton.bones):
+            bonelist.append(Bone())
+            bonelist[index].name = bone.name
+            bonelist[index].parent = -1
+            if bone.parent != None: bonelist[index].parent = indexmap[bone.parent.name]
+            bonelist[index].position = [
+                armature.location[0] + bone.head_local[0],
+                armature.location[1] + bone.head_local[1],
+                armature.location[2] + bone.head_local[2]]
+            bonelist[index].matrix = [
+                [bone.matrix_local[0][0], bone.matrix_local[0][1], bone.matrix_local[0][2]],
+                [bone.matrix_local[1][0], bone.matrix_local[1][1], bone.matrix_local[1][2]],
+                [bone.matrix_local[2][0], bone.matrix_local[2][1], bone.matrix_local[2][2]]]
+                            
+        # PHASE 3
+        # save bone data
+        for bone in bonelist:
+            file.write(bone.name + "\n")
+            file.write("{}\n".format(bone.parent))
+            file.write("{} {} {}\n".format(bone.position[0], bone.position[1], bone.position[2]))
+            file.write("{} {} {} {} {} {} {} {} {}\n".format(
+                bone.matrix[0][0], bone.matrix[0][1], bone.matrix[0][2],
+                bone.matrix[1][0], bone.matrix[1][1], bone.matrix[1][2],
+                bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2]))   
 
 def ExportMesh(file, objectname, mesh):
     

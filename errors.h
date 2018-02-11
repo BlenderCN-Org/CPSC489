@@ -4,8 +4,11 @@
 enum ErrorCode {
  // Common Errors
  EC_SUCCESS = 0,
+ EC_FILE_OPEN,
  EC_FILE_READ,
  EC_FILE_WRITE,
+ EC_FILE_EOF,
+ EC_FILE_PARSE,
  // Windows Errors
  EC_WIN32_REGISTER_WINDOW,
  EC_WIN32_MAIN_WINDOW,
