@@ -152,6 +152,7 @@
     <ClCompile Include="layouts.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="matrix4x4.cpp" />
+    <ClCompile Include="model.cpp" />
     <ClCompile Include="orbit.cpp" />
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="shaders.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="layouts.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="matrix4x4.h" />
+    <ClInclude Include="model.h" />
     <ClInclude Include="orbit.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="shaders.h" />

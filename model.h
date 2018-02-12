@@ -18,12 +18,12 @@ struct MeshASCIIKeyFrame {
 struct MeshASCIIBoneKeyFrame {
  STDSTRINGW bone;
  uint32 bone_index;
- std::vector<MeshASCIIKeyFrame> frames;
+ std::vector<MeshASCIIKeyFrame> keyframes;
 };
 
 struct MeshASCIIAnimation {
  STDSTRINGW name;
- std::vector<MeshASCIIBoneKeyFrame>;
+ std::vector<MeshASCIIBoneKeyFrame> bonelist;
 };
 
 struct MeshASCIIMesh {
@@ -34,9 +34,13 @@ class MeshASCII {
   std::vector<MeshASCIIJoint> joints;
   std::vector<MeshASCIIAnimation> animations;
   std::vector<MeshASCIIMesh> meshes;
+ public :
  public : 
   MeshASCII();
- ~MeshASCII();
+  virtual ~MeshASCII();
+ private :
+  MeshASCII(const MeshASCII&) = delete;
+  void operator =(const MeshASCII&) = delete;  
 };
 
 #endif
