@@ -3,11 +3,13 @@
 #include "errors.h"
 #include "win.h"
 #include "gfx.h"
+#include "axes.h"
 #include "ascii.h"
 #include "model.h"
 
 MeshUTF::MeshUTF()
 {
+ ja_buffer = 0;
 }
 
 MeshUTF::~MeshUTF()
@@ -259,11 +261,60 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
  // CREATE BUFFERS
  //
 
+ // prepare joint axes buffer
+ struct JAXISBUFFER {
+  real32 m[16];
+  real32 scale[4];
+ };
+
+ // create Direct3D buffer (move this to gfx.h)
+ D3D11_BUFFER_DESC desc;
+ ZeroMemory(&desc, sizeof(desc));
+ desc.Usage = D3D11_USAGE_DYNAMIC;
+ desc.ByteWidth = n_jnts*sizeof(JAXISBUFFER);
+ desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+ // create buffer
+ HRESULT result = GetD3DDevice()->CreateBuffer(&desc, NULL, &ja_buffer);
+ if(FAILED(result)) return EC_D3D_CREATE_BUFFER;
+
+ D3D11_MAPPED_SUBRESOURCE msr;
+ ZeroMemory(&msr, sizeof(msr));
+ if(FAILED(GetD3DDeviceContext()->Map(ja_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) return EC_D3D_MAP_RESOURCE;
+ JAXISBUFFER* data = reinterpret_cast<JAXISBUFFER*>(msr.pData);
+ for(size_t i = 0; i < n_jnts; i++) {
+     data[i].m[0x0] = joints[i].m[0];
+     data[i].m[0x1] = joints[i].m[3];
+     data[i].m[0x2] = joints[i].m[6];
+     data[i].m[0x3] = joints[i].position[0];
+     data[i].m[0x4] = joints[i].m[1];
+     data[i].m[0x5] = joints[i].m[4];
+     data[i].m[0x6] = joints[i].m[7];
+     data[i].m[0x7] = joints[i].position[1];
+     data[i].m[0x8] = joints[i].m[2];
+     data[i].m[0x9] = joints[i].m[5];
+     data[i].m[0xA] = joints[i].m[8];
+     data[i].m[0xB] = joints[i].position[2];
+     data[i].m[0xC] = 0.0f;
+     data[i].m[0xD] = 0.0f;
+     data[i].m[0xE] = 0.0f;
+     data[i].m[0xF] = 1.0f;
+     data[i].scale[0] = 1.0f;
+     data[i].scale[1] = 1.0f;
+     data[i].scale[2] = 1.0f;
+     data[i].scale[3] = 1.0f;
+    }
+ GetD3DDeviceContext()->Unmap(ja_buffer, 0);
+
  return EC_SUCCESS;
 }
 
 void MeshUTF::FreeModel(void)
 {
+ if(ja_buffer) ja_buffer->Release();
+ ja_buffer = nullptr;
+
  for(size_t i = 0; i < buffers.size(); i++) {
      buffers[i].jd_buffer->Release(); buffers[i].jd_buffer = nullptr;
      buffers[i].jv_buffer->Release(); buffers[i].jv_buffer = nullptr;
@@ -289,5 +340,6 @@ ErrorCode MeshUTF::RenderMeshList(void)
 
 ErrorCode MeshUTF::RenderModel(void)
 {
+ if(ja_buffer) RenderAxes(ja_buffer, joints.size());
  return EC_SUCCESS;
 }

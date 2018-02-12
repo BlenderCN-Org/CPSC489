@@ -4,7 +4,7 @@
 // Input Layout Signatures
 #define IL_P4                   0x00 // <float4>
 #define IL_P4_C4                0x01 // <float4> <float4> 
-#define IL_P4_C4_M4_S1          0x02 // <float4> <float4> <matrix> <float>
+#define IL_P4_C4_M4_S4          0x02 // <float4> <float4> <matrix> <float4>
 #define IL_P4_T2                0x03 // <float4> <float2>
 #define IL_P4_T2_T2             0x04 // <float4> <float2> <float2>
 #define IL_P4_N4_T2             0x05

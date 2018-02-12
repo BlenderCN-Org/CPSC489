@@ -9,6 +9,7 @@
 #include "grid.h"
 #include "orbit.h"
 #include "gfx.h"
+#include "testing/tests.h"
 
 // Direct3D Variables
 static ID3D11Device* lpDevice;
@@ -102,6 +103,10 @@ ErrorCode InitD3D(void)
  code = InitGrid();
  if(Fail(code)) return code;
 
+ // create axes
+ code = InitAxesModel();
+ if(Fail(code)) return code;
+
  // create orbit box
  code = InitOrbitBox();
  if(Fail(code)) return code;
@@ -145,6 +150,7 @@ void FreeD3D(void)
 {
  // release default models
  FreeOrbitBox();
+ FreeAxesModel();
  FreeGrid();
 
  // release camera
@@ -403,6 +409,10 @@ BOOL RenderFrame(void)
  // render default models
  RenderGrid();
  RenderOrbitBox();
+
+ // render test
+ if(GetActiveTest() != -1)
+    RenderTest();
 
  // present
  lpSwapChain->Present(0, 0);

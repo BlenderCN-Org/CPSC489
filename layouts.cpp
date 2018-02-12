@@ -86,7 +86,7 @@ ErrorCode InitInputLayouts(void)
  // 5: TRANSFORM (real32, real32, real32, real32) matrix row 3
  // 6: TRANSFORM (real32, real32, real32, real32) matrix row 4
  // 7: SCALE     (real32, real32, real32, real32) scale
- IL_index = IL_P4_C4_M4_S1;
+ IL_index = IL_P4_C4_M4_S4;
  VS_index = VS_AXES;
  input_layout_map.insert(input_layout_map_type::value_type((INPUT_LAYOUT_INDEX)IL_index, VS_index));
  descriptors[IL_index] = std::vector<D3D11_INPUT_ELEMENT_DESC>(7);
@@ -134,7 +134,7 @@ ErrorCode InitInputLayouts(void)
  descriptors[IL_index][5].InstanceDataStepRate = 1;
  descriptors[IL_index][6].SemanticName = "SCALE";
  descriptors[IL_index][6].SemanticIndex = 0;
- descriptors[IL_index][6].Format = DXGI_FORMAT_R32_FLOAT;
+ descriptors[IL_index][6].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
  descriptors[IL_index][6].InputSlot = 1;
  descriptors[IL_index][6].AlignedByteOffset = 64;
  descriptors[IL_index][6].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;

@@ -127,7 +127,7 @@ ErrorCode RenderAxes(ID3D11Buffer* instance, UINT n)
  ID3D11Buffer* buffers[2] = { vbuffer, instance };
 
  // set input layout
- ErrorCode code = SetInputLayout(IL_P4_C4_M4_S1);
+ ErrorCode code = SetInputLayout(IL_P4_C4_M4_S4);
  if(Fail(code)) return code;
 
  // set vertex shader

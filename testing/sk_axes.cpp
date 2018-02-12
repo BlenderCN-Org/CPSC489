@@ -21,3 +21,8 @@ void FreeSkeletonAxesTest(void)
 {
  model.FreeModel();
 }
+
+void RenderSkeletonAxesTest(void)
+{
+ model.RenderModel();
+}

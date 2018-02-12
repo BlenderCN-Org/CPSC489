@@ -18,6 +18,15 @@
     <Filter Include="Source Files\Testing">
       <UniqueIdentifier>{180c3ed3-4f1e-431d-bc89-9d39b9a10ed2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader Files">
+      <UniqueIdentifier>{eae11d43-ea96-4a44-a62f-19ebc6be046b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader Files\VS">
+      <UniqueIdentifier>{d9c98d80-0941-410a-a79d-8b102b7154fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader Files\PS">
+      <UniqueIdentifier>{c95db9a4-41e3-4a75-b91e-0d3b5183e295}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winmain.cpp">

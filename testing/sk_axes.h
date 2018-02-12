@@ -3,5 +3,6 @@
 
 BOOL InitSkeletonAxesTest(void);
 void FreeSkeletonAxesTest(void);
+void RenderSkeletonAxesTest(void);
 
 #endif

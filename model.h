@@ -60,6 +60,7 @@ class MeshUTF {
   std::vector<MeshUTFAnimation> animations;
   std::vector<MeshUTFMesh> meshes;
   std::vector<MeshUTFDirect3D> buffers;
+  ID3D11Buffer* ja_buffer;
  public :
   ErrorCode LoadModel(const wchar_t* filename);
   void FreeModel(void);
