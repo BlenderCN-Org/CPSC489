@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "stdres.h"
 #include "errors.h"
 #include "app.h"
 #include "win.h"
@@ -44,6 +45,7 @@ static WINDOW_MESSAGE(EvCaptureChanged);
 static WINDOW_MESSAGE(EvCancelMode);
 static WINDOW_MESSAGE(EvKeyDown);
 static WINDOW_MESSAGE(EvSysKeyDown);
+static WINDOW_MESSAGE(EvCommand);
 
 // Window Commands
 static WINDOW_COMMAND(CmSkeletonAxesTest);
@@ -155,6 +157,7 @@ WINDOW_PROCEDURE(MainWindowProc)
   WINDOW_MESSAGE_HANDLER(WM_MOUSEWHEEL, EvMouseWheel);
   WINDOW_MESSAGE_HANDLER(WM_KEYDOWN, EvKeyDown);
   WINDOW_MESSAGE_HANDLER(WM_SYSKEYDOWN, EvSysKeyDown);
+  WINDOW_MESSAGE_HANDLER(WM_COMMAND, EvCommand);
   WINDOW_MESSAGE_DEFAULT;
  END_MESSAGE_HANDLER
 }
@@ -351,12 +354,27 @@ WINDOW_MESSAGE(EvSysKeyDown)
  return 0;
 }
 
+WINDOW_MESSAGE(EvCommand)
+{
+ BEGIN_COMMAND_HANDLER
+  WINDOW_COMMAND_HANDLER(CM_SKELETON_AXES_TEST, CmSkeletonAxesTest);
+  WINDOW_COMMAND_DEFAULT;
+ END_COMMAND_HANDLER
+ return 0;
+}
+
 #pragma endregion WINDOW_MESSAGES
 
 #pragma region WINDOW_COMMANDS
 
+#include "testing/tests.h"
+
 WINDOW_COMMAND(CmSkeletonAxesTest)
 {
+ // skeleton axes test
+ if(GetActiveTest() == -1) BeginTest(CM_SKELETON_AXES_TEST);
+ else if(GetActiveTest() == CM_SKELETON_AXES_TEST) EndTest();
+
  return 0;
 }
 

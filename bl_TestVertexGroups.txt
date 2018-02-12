@@ -68,7 +68,6 @@ jnt_002
 1.0 1.0 1.0
 1 # number of meshes
 Cube
-dynamic
 4 # number of vertices
 2 # number of UV channels
 0 # number of color channels

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "stdgfx.h"
 #include "errors.h"
+#include "win.h"
 #include "gfx.h"
 #include "ascii.h"
 #include "model.h"
@@ -54,7 +55,7 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
      code = ASCIIReadVector3(linelist, &joints[i].position[0], false);
      if(Fail(code)) return code;
 
-     // read position
+     // read matrix
      code = ASCIIReadMatrix3(linelist, &joints[i].m[0], false);
      if(Fail(code)) return code;
 
@@ -68,7 +69,7 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
 
  // read number of animations
  uint32 n_anim = 0;
- code = ASCIIReadUint32(linelist, &n_jnts);
+ code = ASCIIReadUint32(linelist, &n_anim);
  if(Fail(code)) return code;
 
  // read animations
@@ -118,10 +119,17 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
          animations[i].bonelist[j].keyframes.resize(n_keyframes);
          for(size_t k = 0; k < n_keyframes; k++)
             {
-             animations[i].bonelist[j].keyframes[k].frame;
-             animations[i].bonelist[j].keyframes[k].position;
-             animations[i].bonelist[j].keyframes[k].quaternion;
-             animations[i].bonelist[j].keyframes[k].scale;
+             code = ASCIIReadUint32(linelist, &animations[i].bonelist[j].keyframes[k].frame);
+             if(Fail(code)) return code;
+
+             code = ASCIIReadVector3(linelist, &animations[i].bonelist[j].keyframes[k].position[0]);
+             if(Fail(code)) return code;
+
+             code = ASCIIReadVector4(linelist, &animations[i].bonelist[j].keyframes[k].quaternion[0]);
+             if(Fail(code)) return code;
+
+             code = ASCIIReadVector3(linelist, &animations[i].bonelist[j].keyframes[k].scale[0]);
+             if(Fail(code)) return code;
             }
         }
     }
@@ -200,6 +208,50 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
          // filename must be valid
          meshes[i].textures[j].filename = ConvertUTF8ToUTF16(buffer);
          if(!meshes[i].textures[j].filename.length()) return EC_MODEL_TEXTURE_FILENAME;
+        }
+
+     // create mesh data
+     meshes[i].position.resize(n_verts);
+     meshes[i].normal.resize(n_verts);
+     meshes[i].uvs[0].resize(n_verts);
+     meshes[i].uvs[1].resize(n_verts);
+     if(joints.size()) {
+        meshes[i].bi.resize(n_verts);
+        meshes[i].bw.resize(n_verts);
+       }
+     meshes[i].colors[0].resize(n_verts);
+     meshes[i].colors[1].resize(n_verts);
+
+     // read mesh data
+     for(uint32 j = 0; j < n_verts; j++)
+        {
+         // read position
+         code = ASCIIReadVector3(linelist, &meshes[i].position[j].v[0], false);
+         if(Fail(code)) return code;
+
+         // read normal
+         code = ASCIIReadVector3(linelist, &meshes[i].normal[j].v[0], false);
+         if(Fail(code)) return code;
+
+         // read UVs
+         for(uint32 k = 0; k < n_uvs; k++) {
+             code = ASCIIReadVector2(linelist, &meshes[i].uvs[j][k].v[0], false);
+             if(Fail(code)) return code;
+            }
+
+         // read blendindices and blendweights
+         if(joints.size()) {
+            code = ASCIIReadVector4(linelist, &meshes[i].bi[j].v[0], false); // set to repeat?
+            if(Fail(code)) return code;
+            code = ASCIIReadVector4(linelist, &meshes[i].bw[j].v[0], false); // set to repeat?
+            if(Fail(code)) return code;
+           }
+
+         // read colors
+         for(uint32 k = 0; k < n_colors; k++) {
+             code = ASCIIReadVector3(linelist, &meshes[i].colors[j][k].v[0], false);
+             if(Fail(code)) return code;
+            }
         }
     }
 

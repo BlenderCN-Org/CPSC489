@@ -189,11 +189,6 @@ def ExportMesh(file, obj, mesh, armature):
         raise Exception('Only one material per mesh is supported.')
 
     file.write(obj.name + "\n")
-
-    has_bones = ((armature != None) and (len(armature.data.bones) > 0))
-    if has_bones == True: file.write('dynamic\n')
-    else: file.wrtie('static\n')
-    
     file.write("{} # number of vertices\n".format(n_verts))
     file.write("{} # number of UV channels\n".format(n_channels))
     file.write("{} # number of color channels\n".format(n_colors))
@@ -242,7 +237,8 @@ def ExportMesh(file, obj, mesh, armature):
     # this is used to map vertex groups to bones
     bonemap = {}
     for index, bone in enumerate(armature.data.bones): bonemap[bone.name] = index
-
+    has_bones = ((armature != None) and (len(armature.data.bones) > 0))
+    
     # dictionary<vertex group index, vertex group name>
     vgdict = {}
     for vg in obj.vertex_groups:
