@@ -140,6 +140,8 @@ struct WideStringInsensitiveEqual {
  }
 };
 
+STDSTRINGW ConvertUTF8ToUTF16(const char* str);
+
 #endif
 
 #pragma endregion STRING_FUNCTIONS

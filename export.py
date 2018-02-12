@@ -11,14 +11,11 @@ class Bone:
 
 def MeshExporter():
     
-    for g in bpy.data.groups:
-        print('group = ' + g.name)
-    
     if bpy.context.mode != 'OBJECT':
         raise Exception("You must be in OBJECT mode to run this script.")
 
     if len(bpy.data.meshes) == 0:
-        raise 'There are no meshes to export.'
+        raise Exception('There are no meshes to export.')
             
     # create file
     filename = os.path.splitext(bpy.data.filepath)[0] + ".txt"
@@ -153,9 +150,7 @@ def ExportAnimations(file, armature):
         n_keyable = 0
         for name, keydict in bonemap.items():
             n_keys = len(keydict)
-            if n_keys > 0:
-                n_keyable = n_keyable + 1
-                break
+            if n_keys > 0: n_keyable = n_keyable + 1
             
         # print animation
         file.write(i.name + '\n')
@@ -186,7 +181,7 @@ def ExportMesh(file, obj, mesh, armature):
     elif n_material == 1:
         pass
     else:
-        raise 'Only one material per mesh is supported.'
+        raise Exception('Only one material per mesh is supported.')
     
     file.write("mesh " + obj.name + "\n")
     file.write("{} # number of vertices\n".format(n_verts))
@@ -225,22 +220,24 @@ def ExportMesh(file, obj, mesh, armature):
                     if uv_layer.name == slot.uv_layer:
                         channel = index;
                 if channel == -1:
-                    raise 'This material refers to a UV map that doesn\'t exist.'
+                    raise Exception('This material refers to a UV map that doesn\'t exist.')
                 
                 # write data
-                file.write(slot.name + " " + str(channel) + " " + slot.texture.image.filepath + "\n")
-
+                if slot.texture.image != None:
+                    file.write(slot.name + " " + str(channel) + " " + slot.texture.image.filepath + "\n")
+                else:
+                    file.write(slot.name + " " + str(channel) + " " + "default.bmp" + "\n")
+                    
     # associate each bone name with an index
     # this is used to map vertex groups to bones
     bonemap = {}
     for index, bone in enumerate(armature.data.bones): bonemap[bone.name] = index
     has_bones = ((armature != None) and (len(armature.data.bones) > 0))
 
-    # 
+    # dictionary<vertex group index, vertex group name>
     vgdict = {}
     for vg in obj.vertex_groups:
         vgdict[vg.index] = vg.name
-        print('vg {} {}'.format(vg.index, vg.name))
 
     # initialize index buffer (UVs done later)
     vbuffer1 = []
