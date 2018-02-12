@@ -1,5 +1,6 @@
 import bpy
 import os
+import re
 
 class Bone:
     # self.name
@@ -24,18 +25,21 @@ def MeshExporter():
 
     # export skeleton
     has_skeleton = False
+    armature = None
     for obj in bpy.data.objects:
         if obj.type == 'ARMATURE':
             has_skeleton = True
-            ExportArmature(file, obj, obj.data)
+            armature = obj
+            ExportArmature(file, armature, armature.data)
             break
         
-    # no bones
+    # no skeleton
     if has_skeleton == False:
         file.write("0 # number of bones")
         
     # export animations
-    has_anim = False
+    if has_skeleton == True:
+        ExportAnimations(file, armature)
 
     # save number of meshes
     file.write("{} # number of meshes\n".format(len(bpy.data.meshes)))
@@ -88,6 +92,84 @@ def ExportArmature(file, armature, skeleton):
                 bone.matrix[0][0], bone.matrix[0][1], bone.matrix[0][2],
                 bone.matrix[1][0], bone.matrix[1][1], bone.matrix[1][2],
                 bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2]))   
+
+def ExportAnimations(file, armature):
+
+    # number of actions
+    n_actions = len(bpy.data.actions)
+    if n_actions == 0: pass
+    file.write('{} # number of animations\n'.format(n_actions))
+        
+    # export animations
+    for i in bpy.data.actions:
+        
+        # map to associate bone with key
+        bonemap = {}
+        for bone in armature.data.bones: bonemap[bone.name] = {}
+        
+        # for each curve
+        for fcu in i.fcurves:
+            
+            # extract bone name and key type
+            pattern = r'pose\.bones\[\"(.*)\"\]\.(.*)'
+            str = fcu.data_path
+            m = re.match(pattern, str)
+            g1 = m.group(1)
+            g2 = m.group(2)
+            
+            # extract keyframes
+            for keyframe in fcu.keyframe_points:
+                
+                # frame/value pair
+                frame, value = keyframe.co
+                
+                # lookup key dictionary for bone
+                keydict = bonemap[g1]
+                if keydict == None: raise Exception('Bone name lookup failed.')
+                
+                # create default values
+                if frame not in keydict:
+                    keydict[frame] = [
+                        [0.0, 0.0, 0.0],      # position
+                        [1.0, 0.0, 0.0, 0.0], # quaternion
+                        [1.0, 1.0, 1.0]]      # scale
+                
+                # assign values
+                if g2 == 'location':
+                    if (fcu.array_index >= 0 and fcu.array_index <= 2):
+                        keydict[frame][0][fcu.array_index] = value
+                if g2 == 'rotation_euler':
+                    pass
+                if g2 == 'rotation_quaternion':
+                    if (fcu.array_index >= 0 and fcu.array_index <= 4):
+                        keydict[frame][1][fcu.array_index] = value
+                if g2 == 'scale':
+                    if (fcu.array_index >= 0 and fcu.array_index <= 2):
+                        keydict[frame][2][fcu.array_index] = value
+
+        # pre-iterate through <bone, keys> dictionary
+        n_keyable = 0
+        for name, keydict in bonemap.items():
+            n_keys = len(keydict)
+            if n_keys > 0:
+                n_keyable = n_keyable + 1
+                break
+            
+        # print animation
+        file.write(i.name + '\n')
+        file.write('{}'.format(n_keyable) + ' # number of keyframed bones\n')
+        
+        # iterate through <bone, keys> dictionary
+        for name, keydict in bonemap.items():
+            n_keys = len(keydict)
+            if n_keys > 0:
+                file.write(name + '\n')
+                file.write('{}'.format(len(keydict)) + ' # number of keys\n')
+                for frame, transforms in keydict.items():
+                    file.write('{}\n'.format(int(frame)))
+                    file.write('{} {} {}\n'.format(transforms[0][0], transforms[0][1], transforms[0][2]))
+                    file.write('{} {} {} {}\n'.format(transforms[1][0], transforms[1][1], transforms[1][2], transforms[1][3]))
+                    file.write('{} {} {}\n'.format(transforms[2][0], transforms[2][1], transforms[2][2]))
 
 def ExportMesh(file, objectname, mesh):
     
