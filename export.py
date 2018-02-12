@@ -11,12 +11,14 @@ class Bone:
 
 def MeshExporter():
     
+    for g in bpy.data.groups:
+        print('group = ' + g.name)
+    
     if bpy.context.mode != 'OBJECT':
-        print("You must be in OBJECT mode to run this script.")
-        return
+        raise Exception("You must be in OBJECT mode to run this script.")
 
-    #if len(bpy.data.meshes) == 0:
-    #    raise 'There are no meshes to export.'
+    if len(bpy.data.meshes) == 0:
+        raise 'There are no meshes to export.'
             
     # create file
     filename = os.path.splitext(bpy.data.filepath)[0] + ".txt"
@@ -35,7 +37,7 @@ def MeshExporter():
         
     # no skeleton
     if has_skeleton == False:
-        file.write("0 # number of bones")
+        file.write("0 # number of bones\n")
         
     # export animations
     if has_skeleton == True:
@@ -47,7 +49,7 @@ def MeshExporter():
     # export meshes
     for obj in bpy.data.objects:
          if obj.type == 'MESH':
-            ExportMesh(file, obj.name, obj.data)
+            ExportMesh(file, obj, obj.data, armature)
     
     #close file
     file.close()
@@ -171,12 +173,13 @@ def ExportAnimations(file, armature):
                     file.write('{} {} {} {}\n'.format(transforms[1][0], transforms[1][1], transforms[1][2], transforms[1][3]))
                     file.write('{} {} {}\n'.format(transforms[2][0], transforms[2][1], transforms[2][2]))
 
-def ExportMesh(file, objectname, mesh):
+def ExportMesh(file, obj, mesh, armature):
     
-    # save number of texture channels
+    # number of verts, texture channels, materials, and color channels
     n_verts = len(mesh.vertices)
     n_channels = len(mesh.uv_layers)
     n_material = len(mesh.materials)
+    n_colors = len(mesh.vertex_colors)
     
     if n_material == 0:
         pass
@@ -185,10 +188,11 @@ def ExportMesh(file, objectname, mesh):
     else:
         raise 'Only one material per mesh is supported.'
     
-    file.write("mesh " + objectname + "\n")
+    file.write("mesh " + obj.name + "\n")
     file.write("{} # number of vertices\n".format(n_verts))
     file.write("{} # number of UV channels\n".format(n_channels))
- 
+    file.write("{} # number of color channels\n".format(n_colors))
+     
     # save material
     if n_material == 1:
 
@@ -225,19 +229,74 @@ def ExportMesh(file, objectname, mesh):
                 
                 # write data
                 file.write(slot.name + " " + str(channel) + " " + slot.texture.image.filepath + "\n")
-                
+
+    # associate each bone name with an index
+    # this is used to map vertex groups to bones
+    bonemap = {}
+    for index, bone in enumerate(armature.data.bones): bonemap[bone.name] = index
+    has_bones = ((armature != None) and (len(armature.data.bones) > 0))
+
+    # 
+    vgdict = {}
+    for vg in obj.vertex_groups:
+        vgdict[vg.index] = vg.name
+        print('vg {} {}'.format(vg.index, vg.name))
+
     # initialize index buffer (UVs done later)
     vbuffer1 = []
     vbuffer2 = []
     vbuffer3 = []
     vbuffer4 = []
+    vbuffer5 = []
+    vbuffer6 = []
+    vbuffer7 = []
+    vbuffer8 = []
     for i in range(len(mesh.vertices)):
+        
+        # add the mesh object's location, even if it is usually <0, 0, 0>
         v = mesh.vertices[i]
-        vbuffer1.append(v.co)
+        temp = [0.0, 0.0, 0.0]
+        temp[0] = v.co[0] + obj.location[0]
+        temp[1] = v.co[1] + obj.location[1]
+        temp[2] = v.co[2] + obj.location[2]
+        vbuffer1.append(temp)
+        
+        # normal
         vbuffer2.append(v.normal)
+        
+        # uv
         vbuffer3.append([0.0, 0.0])
         vbuffer4.append([0.0, 0.0])
+
+        # if there are bones, assign blendindices and blendweights
+        if has_bones == True:
+
+            bi = [0, 0, 0, 0]
+            bw = [0.0, 0.0, 0.0, 0.0]
             
+            # get list of (vertex group index, weight)
+            vglist = v.groups
+            if len(vglist) > 4: raise Exception('Cannot have more than four weights per vertex.')
+            
+            # for each (vertex group index, weight)
+            for i, vg in enumerate(vglist):
+                if vg.group not in vgdict:
+                    raise Exception('The vertex group ({}) was not found in vertex group dictionary.'.format(vg.group))
+                vg_name = vgdict[vg.group]
+                if vg_name not in bonemap:
+                    raise Exception('The vertex group name ({}) was not found in bone dictionary'.format(vg_name))
+                bone_index = bonemap[vg_name]
+                bi[i] = bone_index
+                bw[i] = vg.weight
+
+            # insert values
+            vbuffer5.append(bi)
+            vbuffer6.append(bw)
+        
+        # color
+        vbuffer7.append([0.0, 0.0, 0.0, 1.0])
+        vbuffer8.append([0.0, 0.0, 0.0, 1.0])
+        
     # for each polygon
     for poly in mesh.polygons:
 
@@ -258,11 +317,28 @@ def ExportMesh(file, objectname, mesh):
                 data = mesh.uv_layers[1].data[loop_index]
                 vbuffer4[vindex] = data.uv
 
+            if n_colors > 0:
+                data = mesh.vertex_colors[0].data[loop_index]
+                vbuffer7[vindex][0] = data.color[0]
+                vbuffer7[vindex][1] = data.color[1]
+                vbuffer7[vindex][2] = data.color[2]
+                
+            if n_colors > 1:
+                data = mesh.vertex_colors[1].data[loop_index]
+                vbuffer8[vindex][0] = data.color[0]
+                vbuffer8[vindex][1] = data.color[1]
+                vbuffer8[vindex][2] = data.color[2]
+                
     # save vertex buffer
     for i in range(len(vbuffer1)): 
         file.write("{:.4f} {:.4f} {:.4f}\n".format(vbuffer1[i][0], vbuffer1[i][1], vbuffer1[i][2]))
         file.write("{:.4f} {:.4f} {:.4f}\n".format(vbuffer2[i][0], vbuffer2[i][1], vbuffer2[i][2]))    
         if n_channels > 0: file.write("{:.4f} {:.4f}\n".format(vbuffer3[i][0], vbuffer3[i][1]))  
-        if n_channels > 1: file.write("{:.4f} {:.4f}\n".format(vbuffer4[i][0], vbuffer4[i][1]))  
-         
+        if n_channels > 1: file.write("{:.4f} {:.4f}\n".format(vbuffer4[i][0], vbuffer4[i][1]))
+        if has_bones == True:
+            file.write("{} {} {} {}\n".format(vbuffer5[i][0], vbuffer5[i][1], vbuffer5[i][2], vbuffer5[i][3]))  
+            file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer6[i][0], vbuffer6[i][1], vbuffer6[i][2], vbuffer6[i][3]))
+        if n_colors > 0: file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer7[i][0], vbuffer7[i][1], vbuffer7[i][2], vbuffer7[i][3]))  
+        if n_colors > 1: file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer8[i][0], vbuffer8[i][1], vbuffer8[i][2], vbuffer8[i][3]))
+        
 MeshExporter()
