@@ -27,8 +27,9 @@ struct MeshUTFAnimation {
 };
 
 struct MeshUTFTexture {
- STDSTRINGW filename;
+ STDSTRINGW semantic;
  uint32 channel;
+ STDSTRINGW filename;
 };
 
 struct MeshUTFMesh {
@@ -56,6 +57,7 @@ struct MeshUTFDirect3D {
 
 class MeshUTF {
  private :
+  std::map<STDSTRINGW, uint32> jointmap;
   std::vector<MeshUTFJoint> joints;
   std::vector<MeshUTFAnimation> animations;
   std::vector<MeshUTFMesh> meshes;

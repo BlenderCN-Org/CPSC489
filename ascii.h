@@ -16,5 +16,7 @@ ErrorCode ASCIIReadVector2(std::deque<std::string>& linelist, real32* v, bool re
 ErrorCode ASCIIReadVector3(std::deque<std::string>& linelist, real32* v, bool repeat = false);
 ErrorCode ASCIIReadVector4(std::deque<std::string>& linelist, real32* v, bool repeat = false);
 ErrorCode ASCIIReadVector8(std::deque<std::string>& linelist, real32* v, bool repeat = false);
+ErrorCode ASCIIReadMatrix3(std::deque<std::string>& linelist, real32* v, bool repeat = false);
+ErrorCode ASCIIReadMatrix4(std::deque<std::string>& linelist, real32* v, bool repeat = false);
 
 #endif

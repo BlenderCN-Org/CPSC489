@@ -155,6 +155,11 @@ def ExportAnimations(file, armature):
         # print animation
         file.write(i.name + '\n')
         file.write('{}'.format(n_keyable) + ' # number of keyframed bones\n')
+
+        # offset from armature
+        dx = armature.location[0]
+        dy = armature.location[1]
+        dz = armature.location[2]
         
         # iterate through <bone, keys> dictionary
         for name, keydict in bonemap.items():
@@ -164,7 +169,7 @@ def ExportAnimations(file, armature):
                 file.write('{}'.format(len(keydict)) + ' # number of keys\n')
                 for frame, transforms in keydict.items():
                     file.write('{}\n'.format(int(frame)))
-                    file.write('{} {} {}\n'.format(transforms[0][0], transforms[0][1], transforms[0][2]))
+                    file.write('{} {} {}\n'.format(transforms[0][0] + dx, transforms[0][1] + dy, transforms[0][2] + dz))
                     file.write('{} {} {} {}\n'.format(transforms[1][0], transforms[1][1], transforms[1][2], transforms[1][3]))
                     file.write('{} {} {}\n'.format(transforms[2][0], transforms[2][1], transforms[2][2]))
 
@@ -182,8 +187,13 @@ def ExportMesh(file, obj, mesh, armature):
         pass
     else:
         raise Exception('Only one material per mesh is supported.')
+
+    file.write(obj.name + "\n")
+
+    has_bones = ((armature != None) and (len(armature.data.bones) > 0))
+    if has_bones == True: file.write('dynamic\n')
+    else: file.wrtie('static\n')
     
-    file.write("mesh " + obj.name + "\n")
     file.write("{} # number of vertices\n".format(n_verts))
     file.write("{} # number of UV channels\n".format(n_channels))
     file.write("{} # number of color channels\n".format(n_colors))
@@ -224,15 +234,14 @@ def ExportMesh(file, obj, mesh, armature):
                 
                 # write data
                 if slot.texture.image != None:
-                    file.write(slot.name + " " + str(channel) + " " + slot.texture.image.filepath + "\n")
+                    file.write(slot.name + "\n" + str(channel) + "\n" + slot.texture.image.filepath + "\n")
                 else:
-                    file.write(slot.name + " " + str(channel) + " " + "default.bmp" + "\n")
+                    file.write(slot.name + "\n" + str(channel) + "\n" + "default.bmp" + "\n")
                     
     # associate each bone name with an index
     # this is used to map vertex groups to bones
     bonemap = {}
     for index, bone in enumerate(armature.data.bones): bonemap[bone.name] = index
-    has_bones = ((armature != None) and (len(armature.data.bones) > 0))
 
     # dictionary<vertex group index, vertex group name>
     vgdict = {}

@@ -61,6 +61,22 @@ void InitErrorStrings(void)
  InsertErrorString(EC_D3D_PIXEL_SHADER_FILE_INVALID, LC_ENGLISH, L"Invalid pixel shader file.");
  InsertErrorString(EC_D3D_CREATE_PIXEL_SHADER, LC_ENGLISH, L"Failed to create Direct3D pixel shader.");
  InsertErrorString(EC_D3D_SET_PIXEL_SHADER, LC_ENGLISH, L"Failed to set Direct3D pixel shader.");
+
+ // Model Errors
+ InsertErrorString(EC_MODEL_BONENAME, LC_ENGLISH, L"Invalid bone name.");
+ InsertErrorString(EC_MODEL_BONE_LOOKUP, LC_ENGLISH, L"Bone lookup failed.");
+ InsertErrorString(EC_MODEL_ANIMATION_NAME, LC_ENGLISH, L"Invalid animation name.");
+ InsertErrorString(EC_MODEL_KEYFRAMED_BONES, LC_ENGLISH, L"Animations must have at least one keyframed bone.");
+ InsertErrorString(EC_MODEL_KEYFRAMES, LC_ENGLISH, L"Keyframed bones must have at least one keyframe.");
+ InsertErrorString(EC_MODEL_MESH, LC_ENGLISH, L"Model contains no meshes.");
+ InsertErrorString(EC_MODEL_MESHNAME, LC_ENGLISH, L"Invalid model mesh name.");
+ InsertErrorString(EC_MODEL_VERTICES, LC_ENGLISH, L"Invalid number of vertices.");
+ InsertErrorString(EC_MODEL_UV_CHANNELS, LC_ENGLISH, L"Invalid number of UV channels.");
+ InsertErrorString(EC_MODEL_COLOR_CHANNELS, LC_ENGLISH, L"Invalid number of color channels.");
+ InsertErrorString(EC_MODEL_TEXTURES, LC_ENGLISH, L"Invalid number of textures.");
+ InsertErrorString(EC_MODEL_TEXTURE_SEMANTIC, LC_ENGLISH, L"Invalid texture semantic (e.g. diffuse, normal).");
+ InsertErrorString(EC_MODEL_TEXTURE_CHANNEL, LC_ENGLISH, L"Texture reference out of bounds.");
+ InsertErrorString(EC_MODEL_TEXTURE_FILENAME, LC_ENGLISH, L"Invalid texture filename.");
 }
 
 void FreeErrorStrings(void)
