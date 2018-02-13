@@ -20,6 +20,11 @@ cbuffer percam : register(b0)
  matrix cview;
 };
 
+cbuffer permdl : register(b1)
+{
+ matrix mview;
+};
+
 PShaderInput VS(VShaderInput input)
 {
  PShaderInput psi;
@@ -28,6 +33,7 @@ PShaderInput VS(VShaderInput input)
  psi.pos.y = psi.pos.y*input.size.x;
  psi.pos.z = psi.pos.z*input.size.x;
  psi.pos = mul(psi.pos, input.transform);
+ psi.pos = mul(psi.pos, mview);
  psi.pos = mul(psi.pos, cview);
  psi.col = input.col;
  return psi;

@@ -309,7 +309,7 @@ ErrorCode ASCIIReadVector2(std::deque<std::string>& linelist, real32* v, bool re
 
  // convert parameters
  real32 temp[n] = { 0.0f, 0.0f };
- for(int i = 0; i < parameters.size(); i++) temp[i] = (float)strtod(parameters[0].c_str(), nullptr);
+ for(int i = 0; i < parameters.size(); i++) temp[i] = (float)strtod(parameters[i].c_str(), nullptr);
  if(repeat) for(size_t i = parameters.size(); i < n; i++) temp[i] = temp[parameters.size() - 1];
 
  // assign data and remove line from list
@@ -332,7 +332,7 @@ ErrorCode ASCIIReadVector3(std::deque<std::string>& linelist, real32* v, bool re
 
  // convert parameters
  real32 temp[n] = { 0.0f, 0.0f, 0.0f };
- for(int i = 0; i < parameters.size(); i++) temp[i] = (float)strtod(parameters[0].c_str(), nullptr);
+ for(int i = 0; i < parameters.size(); i++) temp[i] = (float)strtod(parameters[i].c_str(), nullptr);
  if(repeat) for(size_t i = parameters.size(); i < n; i++) temp[i] = temp[parameters.size() - 1];
 
  // assign data and remove line from list
@@ -355,7 +355,7 @@ ErrorCode ASCIIReadVector4(std::deque<std::string>& linelist, real32* v, bool re
 
  // convert parameters
  real32 temp[n] = { 0.0f, 0.0f, 0.0f, 0.0f };
- for(int i = 0; i < parameters.size(); i++) temp[i] = (float)strtod(parameters[0].c_str(), nullptr);
+ for(int i = 0; i < parameters.size(); i++) temp[i] = (float)strtod(parameters[i].c_str(), nullptr);
  if(repeat) for(size_t i = parameters.size(); i < n; i++) temp[i] = temp[parameters.size() - 1];
 
  // assign data and remove line from list
@@ -378,7 +378,7 @@ ErrorCode ASCIIReadVector8(std::deque<std::string>& linelist, real32* v, bool re
 
  // convert parameters
  real32 temp[n] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
- for(int i = 0; i < parameters.size(); i++) temp[i] = (float)strtod(parameters[0].c_str(), nullptr);
+ for(int i = 0; i < parameters.size(); i++) temp[i] = (float)strtod(parameters[i].c_str(), nullptr);
  if(repeat) for(size_t i = parameters.size(); i < n; i++) temp[i] = temp[parameters.size() - 1];
 
  // assign data and remove line from list
@@ -398,6 +398,7 @@ ErrorCode ASCIIReadMatrix3(std::deque<std::string>& linelist, real32* v, bool re
  std::deque<std::string> parameters;
  boost::split(parameters, linelist.front(), boost::is_any_of(" "));
  if(parameters.size() < 1 || parameters.size() > n) return EC_FILE_PARSE;
+ if(!repeat && (parameters.size() != 9)) return EC_FILE_PARSE;
 
  // convert parameters
  real32 temp[n] = {
@@ -405,7 +406,7 @@ ErrorCode ASCIIReadMatrix3(std::deque<std::string>& linelist, real32* v, bool re
   0.0f, 0.0f, 0.0f,
   0.0f, 0.0f, 0.0f
  };
- for(int i = 0; i < parameters.size(); i++) temp[i] = (float)strtod(parameters[0].c_str(), nullptr);
+ for(int i = 0; i < parameters.size(); i++) temp[i] = (float)strtod(parameters[i].c_str(), nullptr);
  if(repeat) for(size_t i = parameters.size(); i < n; i++) temp[i] = temp[parameters.size() - 1];
 
  // assign data and remove line from list
@@ -433,7 +434,7 @@ ErrorCode ASCIIReadMatrix4(std::deque<std::string>& linelist, real32* v, bool re
   0.0f, 0.0f, 0.0f, 0.0f,
   0.0f, 0.0f, 0.0f, 0.0f
  };
- for(int i = 0; i < parameters.size(); i++) temp[i] = (float)strtod(parameters[0].c_str(), nullptr);
+ for(int i = 0; i < parameters.size(); i++) temp[i] = (float)strtod(parameters[i].c_str(), nullptr);
  if(repeat) for(size_t i = parameters.size(); i < n; i++) temp[i] = temp[parameters.size() - 1];
 
  // assign data and remove line from list

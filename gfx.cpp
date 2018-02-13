@@ -148,6 +148,9 @@ ErrorCode ResetD3D(UINT dx, UINT dy)
 
 void FreeD3D(void)
 {
+ // stop any testing
+ if(IsTestActive()) EndTest();
+
  // release default models
  FreeOrbitBox();
  FreeAxesModel();

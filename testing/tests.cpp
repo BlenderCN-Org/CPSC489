@@ -42,8 +42,13 @@ BOOL BeginTest(int cmd)
 
 void EndTest(void)
 {
- if(free_func) (*free_func)();
- if(active_test != -1) CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_UNCHECKED);
+ // free test and uncheck menu
+ if(IsTestActive()) {
+    if(free_func) (*free_func)();
+    CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_UNCHECKED);
+   }
+
+ // reset
  active_test = -1;
  init_func = nullptr;
  free_func = nullptr;
@@ -52,7 +57,7 @@ void EndTest(void)
 
 void RenderTest(void)
 {
- if(draw_func) (*draw_func)();
+ if(IsTestActive() && draw_func) (*draw_func)();
 }
 
 BOOL IsTestActive(void)

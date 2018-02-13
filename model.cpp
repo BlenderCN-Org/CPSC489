@@ -285,15 +285,15 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
  JAXISBUFFER* data = reinterpret_cast<JAXISBUFFER*>(msr.pData);
  for(size_t i = 0; i < n_jnts; i++) {
      data[i].m[0x0] = joints[i].m[0];
-     data[i].m[0x1] = joints[i].m[3];
-     data[i].m[0x2] = joints[i].m[6];
+     data[i].m[0x1] = joints[i].m[1];
+     data[i].m[0x2] = joints[i].m[2];
      data[i].m[0x3] = joints[i].position[0];
-     data[i].m[0x4] = joints[i].m[1];
+     data[i].m[0x4] = joints[i].m[3];
      data[i].m[0x5] = joints[i].m[4];
-     data[i].m[0x6] = joints[i].m[7];
+     data[i].m[0x6] = joints[i].m[5];
      data[i].m[0x7] = joints[i].position[1];
-     data[i].m[0x8] = joints[i].m[2];
-     data[i].m[0x9] = joints[i].m[5];
+     data[i].m[0x8] = joints[i].m[6];
+     data[i].m[0x9] = joints[i].m[7];
      data[i].m[0xA] = joints[i].m[8];
      data[i].m[0xB] = joints[i].position[2];
      data[i].m[0xC] = 0.0f;
@@ -330,6 +330,7 @@ void MeshUTF::FreeModel(void)
 
 ErrorCode MeshUTF::RenderSkeleton(void)
 {
+ if(ja_buffer) RenderAxes(ja_buffer, joints.size());
  return EC_SUCCESS;
 }
 
@@ -340,6 +341,7 @@ ErrorCode MeshUTF::RenderMeshList(void)
 
 ErrorCode MeshUTF::RenderModel(void)
 {
- if(ja_buffer) RenderAxes(ja_buffer, joints.size());
+ SetVertexShaderPerModelBuffer(GetIdentityMatrix());
+ RenderSkeleton();
  return EC_SUCCESS;
 }
