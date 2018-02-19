@@ -117,7 +117,7 @@ ErrorCode InitVertexShaders(void)
  vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_000.cso")), 0));
  vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_001.cso")), 1));
  vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_002.cso")), 2));
- // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_003.cso")), 3));
+ vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_003.cso")), 3));
  // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_004.cso")), 4));
  // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_005.cso")), 5));
  // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_006.cso")), 6));
@@ -189,7 +189,7 @@ ErrorCode InitPixelShaders(void)
  pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_000.cso")), 0));
  pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_001.cso")), 1));
  pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_002.cso")), 2));
- // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_003.cso")), 3));
+ pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_003.cso")), 3));
  // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_004.cso")), 4));
  // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_005.cso")), 5));
  // pslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\PS\\PS_006.cso")), 6));

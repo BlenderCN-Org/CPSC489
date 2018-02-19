@@ -239,7 +239,7 @@ def ExportMesh(file, obj, mesh, armature):
     for vg in obj.vertex_groups:
         vgdict[vg.index] = vg.name
 
-    # initialize index buffer (UVs done later)
+    # initialize vertex buffer (UVs done later)
     vbuffer1 = []
     vbuffer2 = []
     vbuffer3 = []
@@ -295,6 +295,7 @@ def ExportMesh(file, obj, mesh, armature):
         vbuffer8.append([0.0, 0.0, 0.0, 1.0])
         
     # for each polygon
+    facelist = []
     for poly in mesh.polygons:
 
         # must have 3 vertices in polygon loop
@@ -302,9 +303,11 @@ def ExportMesh(file, obj, mesh, armature):
             raise RuntimeError('Mesh geometry contains non-triangles.')
             
         # for each vertex in polygon loop
+        face = []
         for loop_index in poly.loop_indices:
             
             vindex = mesh.loops[loop_index].vertex_index
+            face.append(vindex)
             
             if n_channels > 0:
                 data = mesh.uv_layers[0].data[loop_index]
@@ -325,7 +328,9 @@ def ExportMesh(file, obj, mesh, armature):
                 vbuffer8[vindex][0] = data.color[0]
                 vbuffer8[vindex][1] = data.color[1]
                 vbuffer8[vindex][2] = data.color[2]
-                
+    
+        facelist.append(face)
+                    
     # save vertex buffer
     for i in range(len(vbuffer1)): 
         file.write("{:.4f} {:.4f} {:.4f}\n".format(vbuffer1[i][0], vbuffer1[i][1], vbuffer1[i][2]))
@@ -337,5 +342,11 @@ def ExportMesh(file, obj, mesh, armature):
             file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer6[i][0], vbuffer6[i][1], vbuffer6[i][2], vbuffer6[i][3]))
         if n_colors > 0: file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer7[i][0], vbuffer7[i][1], vbuffer7[i][2], vbuffer7[i][3]))  
         if n_colors > 1: file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer8[i][0], vbuffer8[i][1], vbuffer8[i][2], vbuffer8[i][3]))
+    
+    # save index buffer
+    file.write("{} # of faces\n".format(len(facelist)))
+    for face in facelist:
+        if len(face) == 3:
+            file.write("{} {} {}\n".format(face[0], face[1], face[2]))
         
 MeshExporter()

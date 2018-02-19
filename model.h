@@ -55,22 +55,20 @@ struct MeshUTFTexture {
 struct MeshUTFMesh {
  STDSTRINGW name;
  std::vector<MeshUTFTexture> textures;
- std::vector<std::array<real32, 3>> position;
- std::vector<std::array<real32, 3>> normal;
- std::vector<std::array<real32, 2>> uvs[2];
- std::vector<std::array<uint16, 4>> bi;
- std::vector<std::array<real32, 4>> bw;
- std::vector<std::array<real32, 3>> colors[2];
+ uint32 n_verts;
+ std::unique_ptr<std::array<real32, 3>[]> position;
+ std::unique_ptr<std::array<real32, 3>[]> normal;
+ std::unique_ptr<std::array<real32, 2>[]> uvs[2];
+ std::unique_ptr<std::array<uint16, 4>[]> bi;
+ std::unique_ptr<std::array<real32, 4>[]> bw;
+ std::unique_ptr<std::array<real32, 3>[]> colors[2];
+ uint32 n_faces;
+ std::unique_ptr<uint32[]> facelist;
 };
 
 struct MeshUTFDirect3D {
-  // Joint Buffers
-  ID3D11Buffer* jd_buffer;
-  ID3D11Buffer* jv_buffer;
-  ID3D11Buffer* ji_buffer;
-  ID3D11Buffer* jc_buffer;
-  // Mesh Buffers
-  ID3D11Buffer* mm_buffer;
+  ID3D11Buffer* vbuffer;
+  ID3D11Buffer* ibuffer;
 };
 
 class MeshUTF {
@@ -80,7 +78,8 @@ class MeshUTF {
   std::vector<MeshUTFJoint> joints;
   std::vector<MeshUTFAnimation> animations;
   std::vector<MeshUTFMesh> meshes;
-  std::vector<MeshUTFDirect3D> buffers;
+ private :
+  std::unique_ptr<MeshUTFDirect3D[]> buffers;
   ID3D11Buffer* ja_buffer;
  private :
   ErrorCode ConstructAnimationData(void);
@@ -106,8 +105,14 @@ class MeshUTFInstance {
   real32 time;
   uint32 anim;
  private :
-  DirectX::XMMATRIX m;
+  DirectX::XMMATRIX mv;
   std::unique_ptr<DirectX::XMMATRIX[]> jm;
+ private :
+  ID3D11Buffer* permodel;
+  ID3D11Buffer* perframe;
+ public :
+  ErrorCode InitInstance(void);
+  void FreeInstance(void);
  public :
   uint32 GetAnimation(void)const { return anim; }
   real32 GetTime(void)const { return time; }
@@ -118,7 +123,10 @@ class MeshUTFInstance {
   bool Update(void);
   bool Update(real32 dt);
  public :
+  ErrorCode RenderModel(void);
+ public :
   MeshUTFInstance(const MeshUTF& ptr);
+ ~MeshUTFInstance();
  private :
   MeshUTFInstance(const MeshUTFInstance&) = delete;
   void operator =(const MeshUTFInstance&) = delete;

@@ -6,6 +6,8 @@
 #include "vector3.h"
 #include "matrix4.h"
 #include "gfx.h"
+#include "layouts.h"
+#include "shaders.h"
 #include "axes.h"
 #include "ascii.h"
 #include "model.h"
@@ -405,10 +407,10 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
      if(!meshes[i].name.length()) return EC_MODEL_MESHNAME;
 
      // read number of vertices
-     uint32 n_verts = 0;
-     code = ASCIIReadUint32(linelist, &n_verts);
+     meshes[i].n_verts = 0;
+     code = ASCIIReadUint32(linelist, &meshes[i].n_verts);
      if(Fail(code)) return code;
-     if(!n_verts) return EC_MODEL_VERTICES;
+     if(!meshes[i].n_verts) return EC_MODEL_VERTICES;
 
      // read number of UV channels
      uint32 n_uvs = 0;
@@ -458,19 +460,19 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
         }
 
      // create mesh data
-     meshes[i].position.resize(n_verts);
-     meshes[i].normal.resize(n_verts);
-     meshes[i].uvs[0].resize(n_verts);
-     meshes[i].uvs[1].resize(n_verts);
+     meshes[i].position.reset(new std::array<real32, 3>[meshes[i].n_verts]);
+     meshes[i].normal.reset(new std::array<real32, 3>[meshes[i].n_verts]);
+     meshes[i].uvs[0].reset(new std::array<real32, 2>[meshes[i].n_verts]);
+     meshes[i].uvs[1].reset(new std::array<real32, 2>[meshes[i].n_verts]);
      if(joints.size()) {
-        meshes[i].bi.resize(n_verts);
-        meshes[i].bw.resize(n_verts);
+        meshes[i].bi.reset(new std::array<uint16, 4>[meshes[i].n_verts]);
+        meshes[i].bw.reset(new std::array<real32, 4>[meshes[i].n_verts]);
        }
-     meshes[i].colors[0].resize(n_verts);
-     meshes[i].colors[1].resize(n_verts);
+     meshes[i].colors[0].reset(new std::array<real32, 3>[meshes[i].n_verts]);
+     meshes[i].colors[1].reset(new std::array<real32, 3>[meshes[i].n_verts]);
 
      // read mesh data
-     for(uint32 j = 0; j < n_verts; j++)
+     for(uint32 j = 0; j < meshes[i].n_verts; j++)
         {
          // read position
          code = ASCIIReadVector3(linelist, &meshes[i].position[j][0], false);
@@ -481,8 +483,10 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
          if(Fail(code)) return code;
 
          // read UVs
+         meshes[i].uvs[0][j][0] = meshes[i].uvs[0][j][1] = 0.0f;
+         meshes[i].uvs[1][j][0] = meshes[i].uvs[1][j][1] = 0.0f;
          for(uint32 k = 0; k < n_uvs; k++) {
-             code = ASCIIReadVector2(linelist, &meshes[i].uvs[j][k][0], false);
+             code = ASCIIReadVector2(linelist, &meshes[i].uvs[k][j][0], false);
              if(Fail(code)) return code;
             }
 
@@ -495,11 +499,33 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
            }
 
          // read colors
+         meshes[i].colors[0][j][0] = meshes[i].colors[0][j][1] = meshes[i].colors[0][j][2] = 0.0f;
+         meshes[i].colors[1][j][0] = meshes[i].colors[1][j][1] = meshes[i].colors[1][j][2] = 0.0f;
          for(uint32 k = 0; k < n_colors; k++) {
-             code = ASCIIReadVector3(linelist, &meshes[i].colors[j][k][0], false);
+             code = ASCIIReadVector3(linelist, &meshes[i].colors[k][j][0], false);
              if(Fail(code)) return code;
             }
         }
+
+     // read number of faces
+     code = ASCIIReadUint32(linelist, &meshes[i].n_faces);
+     if(Fail(code)) return code;
+
+     // allocate faces
+     if(meshes[i].n_faces)
+       {
+        // allocate indices
+        uint32 n_indices = meshes[i].n_faces*3;
+        meshes[i].facelist.reset(new uint32[n_indices]);
+
+        // read index buffer
+        size_t curr = 0;
+        for(size_t j = 0; j < meshes[i].n_faces; j++) {
+            code = ASCIIReadVector3(linelist, &meshes[i].facelist[curr], false);
+            if(Fail(code)) return code;
+            curr += 3;
+           }
+       }     
     }
 
  //
@@ -552,6 +578,85 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
     }
  GetD3DDeviceContext()->Unmap(ja_buffer, 0);
 
+ // 
+ // CREATE MESH BUFFERS
+ //
+
+ // prepare mesh buffer
+ struct MESHBUFFER {
+  real32 position[4];
+  real32 normal[4];
+  real32 uv1[2];
+  real32 uv2[2];
+  uint16 bi[4];
+  real32 bw[4];
+  real32 color1[4];
+  real32 color2[4];
+ };
+
+ // initialize mesh buffers
+ buffers.reset(new MeshUTFDirect3D[meshes.size()]);
+ for(size_t i = 0; i < meshes.size(); i++) {
+     buffers[i].vbuffer = nullptr;
+     buffers[i].ibuffer = nullptr;
+    }
+
+ // create mesh buffer
+ for(size_t i = 0; i < meshes.size(); i++)
+    {
+     std::unique_ptr<MESHBUFFER[]> data(new MESHBUFFER[meshes[i].n_verts]);
+     for(size_t j = 0; j < meshes[i].n_verts; j++) {
+         // position
+         data[j].position[0] = meshes[i].position[j][0];
+         data[j].position[1] = meshes[i].position[j][1];
+         data[j].position[2] = meshes[i].position[j][2];
+         data[j].position[3] = 1.0f;
+         // normal
+         data[j].normal[0] = meshes[i].normal[j][0];
+         data[j].normal[1] = meshes[i].normal[j][1];
+         data[j].normal[2] = meshes[i].normal[j][2];
+         data[j].normal[3] = 1.0f;
+         // uvs
+         data[j].uv1[0] = meshes[i].uvs[0][j][0];
+         data[j].uv1[1] = meshes[i].uvs[0][j][1];
+         data[j].uv2[0] = meshes[i].uvs[1][j][0];
+         data[j].uv2[1] = meshes[i].uvs[1][j][1];
+         // blend indices
+         data[j].bi[0] = meshes[i].bi[j][0];
+         data[j].bi[1] = meshes[i].bi[j][1];
+         data[j].bi[2] = meshes[i].bi[j][2];
+         data[j].bi[3] = meshes[i].bi[j][3];
+         // blend weights
+         data[j].bw[0] = meshes[i].bw[j][0];
+         data[j].bw[1] = meshes[i].bw[j][1];
+         data[j].bw[2] = meshes[i].bw[j][2];
+         data[j].bw[3] = meshes[i].bw[j][3];
+         // colors
+         data[j].color1[0] = meshes[i].colors[0][j][0];
+         data[j].color1[1] = meshes[i].colors[0][j][1];
+         data[j].color1[2] = meshes[i].colors[0][j][2];
+         data[j].color1[3] = 1.0f;
+         data[j].color2[0] = meshes[i].colors[1][j][0];
+         data[j].color2[1] = meshes[i].colors[1][j][1];
+         data[j].color2[2] = meshes[i].colors[1][j][2];
+         data[j].color2[3] = 1.0f;
+        }
+
+     // create vertex buffer
+     ID3D11Buffer* vb = nullptr;
+     code = CreateVertexBuffer((LPVOID)data.get(), meshes[i].n_verts, sizeof(MESHBUFFER), &vb);
+     if(Fail(code)) return code;
+
+     // create index buffer
+     ID3D11Buffer* ib = nullptr;
+     code = CreateIndexBuffer((LPVOID)meshes[i].facelist.get(), 3*meshes[i].n_faces, sizeof(uint32), &ib);
+     if(Fail(code)) return code;
+
+     // assign buffers
+     buffers[i].vbuffer = vb;
+     buffers[i].ibuffer = ib;
+    }
+
  return EC_SUCCESS;
 }
 
@@ -560,14 +665,11 @@ void MeshUTF::FreeModel(void)
  if(ja_buffer) ja_buffer->Release();
  ja_buffer = nullptr;
 
- for(size_t i = 0; i < buffers.size(); i++) {
-     buffers[i].jd_buffer->Release(); buffers[i].jd_buffer = nullptr;
-     buffers[i].jv_buffer->Release(); buffers[i].jv_buffer = nullptr;
-     buffers[i].ji_buffer->Release(); buffers[i].ji_buffer = nullptr;
-     buffers[i].jc_buffer->Release(); buffers[i].jc_buffer = nullptr;
-     buffers[i].mm_buffer->Release(); buffers[i].mm_buffer = nullptr;
+ for(size_t i = 0; i < meshes.size(); i++) {
+     if(buffers[i].vbuffer) buffers[i].vbuffer->Release(); buffers[i].vbuffer = nullptr;
+     if(buffers[i].ibuffer) buffers[i].ibuffer->Release(); buffers[i].ibuffer = nullptr;
     }
- buffers.clear();
+
  animations.clear();
  meshes.clear();
  joints.clear();
@@ -588,5 +690,222 @@ ErrorCode MeshUTF::RenderModel(void)
 {
  SetVertexShaderPerModelBuffer(GetIdentityMatrix());
  RenderSkeleton();
+ return EC_SUCCESS;
+}
+
+MeshUTFInstance::MeshUTFInstance(const MeshUTF& ptr)
+{
+ // initialize animation data
+ mesh = &ptr;
+ time = 0.0f;
+ anim = 0xFFFFFFFFul;
+
+ // initialize constant data
+ mv = DirectX::XMMatrixIdentity();
+ jm.reset(new DirectX::XMMATRIX[mesh->joints.size()]);
+
+ // initialize buffers
+ permodel = nullptr;
+ perframe = nullptr;
+}
+
+MeshUTFInstance::~MeshUTFInstance()
+{
+ FreeInstance();
+}
+
+ErrorCode MeshUTFInstance::InitInstance(void)
+{
+ // initialize model matrix
+ permodel = nullptr;
+ ErrorCode code = CreateDynamicMatrixConstBuffer(&permodel);
+ if(Fail(code)) return Error(code, __LINE__, __FILE__);
+ code = UpdateDynamicMatrixConstBuffer(permodel, DirectX::XMMatrixIdentity());
+ if(Fail(code)) return Error(code, __LINE__, __FILE__);
+
+ // initialize 
+ perframe = nullptr;
+ code = CreateDynamicMatrixConstBuffer(&perframe, (UINT)mesh->joints.size());
+ if(Fail(code)) return Error(code, __LINE__, __FILE__);
+
+ return EC_SUCCESS;
+}
+
+void MeshUTFInstance::FreeInstance(void)
+{
+ if(permodel) permodel->Release(); permodel = nullptr;
+ if(perframe) perframe->Release(); perframe = nullptr;
+}
+
+bool MeshUTFInstance::SetAnimation(uint32 index)
+{
+ // stop animating, render in bind pose
+ if(index == 0xFFFFFFFFul) {
+    anim = 0xFFFFFFFFul;
+    ResetAnimation();
+    return true;
+   }
+
+ // set new animation
+ if(!(index < mesh->animations.size())) return false;
+ anim = index;
+ ResetAnimation();
+
+ // success
+ return true;
+}
+
+bool MeshUTFInstance::SetTime(real32 value)
+{
+ // validate
+ if(anim == 0xFFFFFFFFul) return false; // no animation set
+ if(value == time) return true; // no need to update 
+
+ // update time, looping animation if necessary
+ real32 duration = mesh->animations[anim].duration;
+ time = value;
+ if(time < 0.0f) {
+    if(mesh->animations[anim].loop)
+       while(time < 0.0f) time += duration;
+    else
+       time = 0.0f;
+   }
+ else if(time > duration) {
+    if(mesh->animations[anim].loop)
+       while(!(time < duration)) time -= duration;
+    else
+       time = duration;
+   }
+
+ // update model
+ Update();
+
+ return true;
+}
+
+bool MeshUTFInstance::ResetAnimation(void)
+{
+ time = 0.0f;
+ Update();
+ return true;
+}
+
+bool MeshUTFInstance::Update(void)
+{
+ // validate
+ if(anim == 0xFFFFFFFFul) return false; // no animation set
+/*
+ // for each bone that is animated
+ const auto& bonelist = mesh->animations[anim].bonelist;
+ for(size_t i = 0; i < bonelist.size(); i++)
+    {
+     // no interpolation [x, start, end]
+     if(time < bonelist[i].keyframes.front().time)
+       {
+        matrix4D<real32>& m = jm[bonelist[i].bone_index];
+        load_identity(m);
+       }
+     // no interpolation [start, end, x]
+     else if(!(time < bonelist[i].keyframes.back().time))
+       {
+        auto& kf = bonelist[i].keyframes.back();
+
+        // load scaling matrix
+        matrix4D<real32>& m = jm[bonelist[i].bone_index];
+        load_scaling(m, kf.scale[0], kf.scale[1], kf.scale[2]);
+
+        // rotate
+        matrix4D<real32> R;
+        quaternion_to_matrix(R, kf.quaternion);
+        matrix_mul(m, R);
+
+        // translate
+        m.v[0x3] += kf.position[0];
+        m.v[0x7] += kf.position[1];
+        m.v[0xB] += kf.position[2];
+       }
+     // interploate [start, x, end]
+     else
+       {
+        // TODO: implement binary search instead since keyframes are sorted?
+        for(size_t j = 0; j < bonelist[i].keyframes.size() - 1; j++)
+           {
+            auto& kf1 = bonelist[i].keyframes[j];
+            auto& kf2 = bonelist[i].keyframes[j];
+            if((time < kf1.time) || (time > kf2.time)) break;
+
+            real32 ratio = (time - kf1.time)/(kf2.time - kf1.time);
+
+            // interpolate scale
+            real32 S[3];
+            lerp3D(S, kf1.scale, kf2.scale, ratio);
+
+            // interpolate translation
+            real32 T[3];
+            lerp3D(T, kf1.position, kf2.position, ratio);
+
+            // interpolate quaternion
+            real32 Q[4];
+            slerp(Q, kf1.quaternion, kf2.quaternion, ratio);
+
+            // load scaling matrix
+            matrix4D<real32>& m = jm[bonelist[i].bone_index];
+            load_scaling(m, S[0], S[1], S[2]);
+
+            // rotate
+            matrix4D<real32> R;
+            quaternion_to_matrix(R, Q);
+            matrix_mul(m, R);
+
+            // translate
+            m.v[0x3] += T[0];
+            m.v[0x7] += T[1];
+            m.v[0xB] += T[2];
+           }
+       }
+    }
+*/
+ // compute transforms
+ return true;
+}
+
+bool MeshUTFInstance::Update(real32 dt)
+{
+ return SetTime(time + dt);
+}
+
+ErrorCode MeshUTFInstance::RenderModel(void)
+{
+ // set per model vertex shader constants
+ SetVertexShaderPerModelBuffer(permodel);
+ SetVertexShaderPerFrameBuffer(perframe);
+
+ // for each mesh in model
+ for(size_t i = 0; i < mesh->meshes.size(); i++)
+    {
+     // set rasterization state
+
+     // set input layout
+     ErrorCode code = SetInputLayout(IL_P4_N4_T2_T2_I4_W4_C4_C4);
+     if(Fail(code)) return code;
+
+     // set vertex shader
+     code = SetVertexShader(VS_MODEL);
+     if(Fail(code)) return code;
+
+     // set pixel shader
+     code = SetPixelShader(PS_MODEL);
+     if(Fail(code)) return code;
+
+     // set samplers
+
+     // set shader resources
+
+     // set buffers and draw
+     SetVertexBuffer(mesh->buffers[i].vbuffer, 104, 0);
+     SetIndexBuffer(mesh->buffers[i].ibuffer, 0, DXGI_FORMAT_R32_UINT);
+     DrawIndexedTriangleList(mesh->meshes[i].n_faces*3);
+    }
+
  return EC_SUCCESS;
 }

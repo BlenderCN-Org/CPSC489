@@ -5,14 +5,13 @@
 #define VS_DEFAULT      0
 #define VS_VERTEX_COLOR 1
 #define VS_AXES         2
-#define VS_SKELETON     3
-#define VS_MODEL        4
+#define VS_MODEL        3
 
 // Pixel Shader Identifiers
 #define PS_DEFAULT_COLOR 0
 #define PS_CONST_COLOR   1
 #define PS_VERTEX_COLOR  2
-#define PS_MODEL         4
+#define PS_MODEL         3
 
 // Core Structures
 struct VertexShader {

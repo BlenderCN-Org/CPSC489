@@ -40,7 +40,7 @@ ErrorCode InitInputLayouts(void)
  DWORD VS_index = 0xFFFFFFFFul;
 
  // resize list of descriptors
- descriptors.resize(3);
+ descriptors.resize(4);
 
  // INPUT LAYOUT INDEX #0
  // 1: POSITION (real32, real32, real32, real32)
@@ -139,6 +139,77 @@ ErrorCode InitInputLayouts(void)
  descriptors[IL_index][6].AlignedByteOffset = 64;
  descriptors[IL_index][6].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
  descriptors[IL_index][6].InstanceDataStepRate = 1;
+
+ // INPUT LAYOUT INDEX #3
+ // 1: POSITION     float4  0 + 16
+ // 2: NORMAL       float4 16 + 16
+ // 3: TEXCOORD1    float2 32 + 8
+ // 4: TEXCOORD2    float2 40 + 8
+ // 5: BLENDINDICES uint4  48 + 8
+ // 6: BLENDWEIGHT  float4 56 + 16
+ // 7: COLOR1       float4 72 + 16
+ // 8: COLOR2       float4 88
+ IL_index = IL_P4_N4_T2_T2_I4_W4_C4_C4;
+ VS_index = VS_MODEL;
+ input_layout_map.insert(input_layout_map_type::value_type(IL_index, VS_index));
+ descriptors[IL_index] = std::vector<D3D11_INPUT_ELEMENT_DESC>(8);
+ descriptors[IL_index][0].SemanticName = "POSITION";
+ descriptors[IL_index][0].SemanticIndex = 0;
+ descriptors[IL_index][0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+ descriptors[IL_index][0].InputSlot = 0;
+ descriptors[IL_index][0].AlignedByteOffset = 0;
+ descriptors[IL_index][0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+ descriptors[IL_index][0].InstanceDataStepRate = 0;
+ descriptors[IL_index][1].SemanticName = "NORMAL";
+ descriptors[IL_index][1].SemanticIndex = 0;
+ descriptors[IL_index][1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+ descriptors[IL_index][1].InputSlot = 0;
+ descriptors[IL_index][1].AlignedByteOffset = 16;
+ descriptors[IL_index][1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+ descriptors[IL_index][1].InstanceDataStepRate = 0;
+ descriptors[IL_index][2].SemanticName = "TEXCOORD";
+ descriptors[IL_index][2].SemanticIndex = 0;
+ descriptors[IL_index][2].Format = DXGI_FORMAT_R32G32_FLOAT;
+ descriptors[IL_index][2].InputSlot = 0;
+ descriptors[IL_index][2].AlignedByteOffset = 32;
+ descriptors[IL_index][2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+ descriptors[IL_index][2].InstanceDataStepRate = 0;
+ descriptors[IL_index][3].SemanticName = "TEXCOORD";
+ descriptors[IL_index][3].SemanticIndex = 1;
+ descriptors[IL_index][3].Format = DXGI_FORMAT_R32G32_FLOAT;
+ descriptors[IL_index][3].InputSlot = 0;
+ descriptors[IL_index][3].AlignedByteOffset = 40;
+ descriptors[IL_index][3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+ descriptors[IL_index][3].InstanceDataStepRate = 0;
+ descriptors[IL_index][4].SemanticName = "BLENDINDICES";
+ descriptors[IL_index][4].SemanticIndex = 0;
+ descriptors[IL_index][4].Format = DXGI_FORMAT_R16G16B16A16_UINT;
+ descriptors[IL_index][4].InputSlot = 0;
+ descriptors[IL_index][4].AlignedByteOffset = 48;
+ descriptors[IL_index][4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+ descriptors[IL_index][4].InstanceDataStepRate = 0;
+ descriptors[IL_index][5].SemanticName = "BLENDWEIGHTS";
+ descriptors[IL_index][5].SemanticIndex = 0;
+ descriptors[IL_index][5].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+ descriptors[IL_index][5].InputSlot = 0;
+ descriptors[IL_index][5].AlignedByteOffset = 56;
+ descriptors[IL_index][5].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+ descriptors[IL_index][5].InstanceDataStepRate = 0;
+ descriptors[IL_index][6].SemanticName = "COLOR";
+ descriptors[IL_index][6].SemanticIndex = 0;
+ descriptors[IL_index][6].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+ descriptors[IL_index][6].InputSlot = 0;
+ descriptors[IL_index][6].AlignedByteOffset = 72;
+ descriptors[IL_index][6].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+ descriptors[IL_index][6].InstanceDataStepRate = 0;
+ descriptors[IL_index][7].SemanticName = "COLOR";
+ descriptors[IL_index][7].SemanticIndex = 1;
+ descriptors[IL_index][7].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+ descriptors[IL_index][7].InputSlot = 0;
+ descriptors[IL_index][7].AlignedByteOffset = 88;
+ descriptors[IL_index][7].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+ descriptors[IL_index][7].InstanceDataStepRate = 0;
+
 /*
  // INPUT LAYOUT INDEX #3
  // 1: POSITION (real32, real32, real32, real32)

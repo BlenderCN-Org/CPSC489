@@ -67,6 +67,9 @@ inline ErrorCode Success(void) { return EC_SUCCESS; }
 inline bool Fail(const ErrorCode& code) { return (code != EC_SUCCESS); }
 bool Error(ErrorCode code);
 bool Error(ErrorCode code, LanguageCode language);
+bool Error(ErrorCode code, LanguageCode language);
+ErrorCode Error(ErrorCode code, int line, const char* file);
+ErrorCode Error(ErrorCode code, int line, const char* file, LanguageCode language);
 
 // language code functions
 LanguageCode GetLanguageCode(void);

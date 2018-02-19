@@ -43,6 +43,8 @@ ErrorCode CreateDynamicFloat4ConstBuffer(real32* color, ID3D11Buffer** buffer);
 ErrorCode UpdateDynamicFloat4ConstBuffer(ID3D11Buffer* buffer, const real32* color);
 ErrorCode CreateDynamicMatrixConstBuffer(ID3D11Buffer** buffer);
 ErrorCode UpdateDynamicMatrixConstBuffer(ID3D11Buffer* buffer, const DirectX::XMMATRIX& m);
+ErrorCode CreateDynamicMatrixConstBuffer(ID3D11Buffer** buffer, UINT n);
+ErrorCode UpdateDynamicMatrixConstBuffer(ID3D11Buffer* buffer, UINT n, const DirectX::XMMATRIX* m);
 ErrorCode CreateImmutableMatrixConstBuffer(ID3D11Buffer** buffer, const real32* m);
 
 // Shader Functions

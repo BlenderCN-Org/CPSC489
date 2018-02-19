@@ -111,6 +111,28 @@ bool Error(ErrorCode code, LanguageCode language)
  return false;
 }
 
+ErrorCode Error(ErrorCode code, int line, const char* file)
+{
+ STDSTRINGW error = FindError(code, GetLanguageCode());
+ STDSTRINGSTREAMW ss;
+ ss << error << std::endl;
+ ss << L"Line: " << line << std::endl;
+ ss << L"File: " << file << std::ends;
+ ErrorBox(ss.str().c_str());
+ return code;
+}
+
+ErrorCode Error(ErrorCode code, int line, const char* file, LanguageCode language)
+{
+ STDSTRINGW error = FindError(code, language);
+ STDSTRINGSTREAMW ss;
+ ss << error << std::endl;
+ ss << L"Line: " << line << std::endl;
+ ss << L"File: " << file << std::ends;
+ ErrorBox(ss.str().c_str());
+ return code;
+}
+
 LanguageCode GetLanguageCode(void)
 {
  return ::language;

@@ -653,6 +653,38 @@ ErrorCode UpdateDynamicMatrixConstBuffer(ID3D11Buffer* buffer, const DirectX::XM
  return EC_SUCCESS;
 }
 
+ErrorCode CreateDynamicMatrixConstBuffer(ID3D11Buffer** buffer, UINT n)
+{
+ // must have n
+ if(!n) return EC_D3D_CREATE_BUFFER;
+
+ // initialize descriptor
+ D3D11_BUFFER_DESC desc;
+ ZeroMemory(&desc, sizeof(desc));
+ desc.Usage = D3D11_USAGE_DYNAMIC;
+ desc.ByteWidth = n*sizeof(DirectX::XMMATRIX);
+ desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+ // create buffer
+ HRESULT result = lpDevice->CreateBuffer(&desc, NULL, buffer);
+ if(FAILED(result)) return EC_D3D_CREATE_BUFFER;
+ return EC_SUCCESS;
+}
+
+ErrorCode UpdateDynamicMatrixConstBuffer(ID3D11Buffer* buffer, UINT n, const DirectX::XMMATRIX* m)
+{
+ // must have n
+ if(!n) return EC_D3D_CREATE_BUFFER;
+ D3D11_MAPPED_SUBRESOURCE msr;
+ ZeroMemory(&msr, sizeof(msr));
+ if(FAILED(lpDeviceContext->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) return EC_D3D_MAP_RESOURCE;
+ DirectX::XMMATRIX* data = reinterpret_cast<DirectX::XMMATRIX*>(msr.pData);
+ memmove(data, m, n*sizeof(DirectX::XMMATRIX));
+ lpDeviceContext->Unmap(buffer, 0);
+ return EC_SUCCESS;
+}
+
 ErrorCode CreateImmutableMatrixConstBuffer(ID3D11Buffer** buffer, const real32* m)
 {
  // buffer description
@@ -680,17 +712,17 @@ ErrorCode CreateImmutableMatrixConstBuffer(ID3D11Buffer** buffer, const real32* 
 
 void SetVertexShaderPerCameraBuffer(ID3D11Buffer* buffer)
 {
- if(lpDeviceContext) lpDeviceContext->VSSetConstantBuffers(0, 1, &buffer);
+ if(lpDeviceContext && buffer) lpDeviceContext->VSSetConstantBuffers(0, 1, &buffer);
 }
 
 void SetVertexShaderPerModelBuffer(ID3D11Buffer* buffer)
 {
- if(lpDeviceContext) lpDeviceContext->VSSetConstantBuffers(1, 1, &buffer);
+ if(lpDeviceContext && buffer) lpDeviceContext->VSSetConstantBuffers(1, 1, &buffer);
 }
 
 void SetVertexShaderPerFrameBuffer(ID3D11Buffer* buffer)
 {
- if(lpDeviceContext) lpDeviceContext->VSSetConstantBuffers(2, 1, &buffer);
+ if(lpDeviceContext && buffer) lpDeviceContext->VSSetConstantBuffers(2, 1, &buffer);
 }
 
 void SetPixelShaderPerCameraBuffer(ID3D11Buffer* buffer)

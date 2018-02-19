@@ -33,6 +33,11 @@ cbuffer permdl : register(b1)
  matrix mview;
 };
 
+cbuffer perfrm : register(b2)
+{
+ matrix mskin[96];
+};
+ 
 PShaderInput VS(VShaderInput input)
 {
  PShaderInput psi;
