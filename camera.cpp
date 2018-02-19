@@ -3,7 +3,7 @@
 #include "errors.h"
 #include "math.h"
 #include "vector3.h"
-#include "matrix4x4.h"
+#include "matrix4.h"
 #include "ray.h"
 #include "gfx.h"
 #include "camera.h"

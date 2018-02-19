@@ -59,9 +59,6 @@
     <ClCompile Include="stdgfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="matrix4x4.cpp">
-      <Filter>Source Files\Math</Filter>
-    </ClCompile>
     <ClCompile Include="vector3.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
@@ -95,6 +92,9 @@
     <ClCompile Include="model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="matrix4.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -123,9 +123,6 @@
     </ClInclude>
     <ClInclude Include="stdgfx.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="matrix4x4.h">
-      <Filter>Source Files\Math</Filter>
     </ClInclude>
     <ClInclude Include="vector3.h">
       <Filter>Source Files\Math</Filter>
@@ -162,6 +159,9 @@
     </ClInclude>
     <ClInclude Include="model.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix4.h">
+      <Filter>Source Files\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

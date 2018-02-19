@@ -1,6 +1,8 @@
 #ifndef __CPSC489_MATRIX4_H
 #define __CPSC489_MATRIX4_H
 
+class matrix4D;
+
 #pragma region MATRIX4D_CLASS_DEFINITIONS
 
 typedef struct _c_smatrix4D { real32 m[16]; } c_smatrix4D;
@@ -31,6 +33,8 @@ class matrix4D : public c_smatrix4D {
   explicit matrix4D(const real32* m);
   matrix4D(const matrix4D& other);
  public :
+  real32* data(void) { return &(this->m[0]); }
+  const real32* data(void)const { return &(this->m[0]); }
   array_type& get(void) { return this->m; }
   const array_type& get(void)const { return this->m; }
  public :

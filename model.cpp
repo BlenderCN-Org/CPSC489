@@ -2,9 +2,10 @@
 #include "stdgfx.h"
 #include "errors.h"
 #include "win.h"
-#include "gfx.h"
 #include "math.h"
 #include "vector3.h"
+#include "matrix4.h"
+#include "gfx.h"
 #include "axes.h"
 #include "ascii.h"
 #include "model.h"
@@ -16,6 +17,165 @@ MeshUTF::MeshUTF()
 
 MeshUTF::~MeshUTF()
 {
+}
+
+ErrorCode MeshUTF::ConstructAnimationData(void)
+{
+ // number of seconds per frame
+ const real32 SECONDS_PER_FRAME = 1.0f/30.0f;
+
+ // for each animation
+ for(size_t anim = 0; anim < animations.size(); anim++)
+    {
+     // 
+     size_t n_keys = animations[anim].keymap.size();
+     animations[anim].animdata.reset(new MeshUTFAnimationData[n_keys]);
+
+     // compute frame times
+     for(auto iter = animations[anim].keymap.begin(); iter != animations[anim].keymap.end(); iter++) {
+         uint32 frame = iter->first;
+         size_t index = iter->second;
+         animations[anim].animdata[index].frame = frame;
+         animations[anim].animdata[index].delta = SECONDS_PER_FRAME*frame;
+        }
+
+     // create keyframe data
+     for(size_t i = 0; i < n_keys; i++)
+        {
+         // create bone data
+         animations[anim].animdata[i].keyed.reset(new bool[joints.size()]);
+         for(size_t j = 0; j < joints.size(); j++) animations[anim].animdata[i].keyed[j] = false;
+
+         // create bone transform data
+         animations[anim].animdata[i].slist.reset(new std::array<real32, 3>[joints.size()]);
+         animations[anim].animdata[i].tlist.reset(new std::array<real32, 3>[joints.size()]);
+         animations[anim].animdata[i].qlist.reset(new std::array<real32, 4>[joints.size()]);
+         animations[anim].animdata[i].mlist.reset(new matrix4D[joints.size()]);
+        }
+
+     // for each bone that IS keyframed
+     for(size_t i = 0; i < animations[anim].bonelist.size(); i++)
+        {
+         // for each keyframe
+         for(size_t j = 0; j < animations[anim].bonelist[i].keyframes.size(); j++)
+            {
+             // find keyframe index from frame
+             auto iter = animations[anim].keymap.find(animations[anim].bonelist[i].keyframes[j].frame);
+             if(iter == animations[anim].keymap.end()) continue;
+
+             size_t b_index = animations[anim].bonelist[i].bone_index;
+             size_t k_index = iter->second;
+             auto& kf = animations[anim].bonelist[i].keyframes[j];
+
+             // mark as keyed
+             animations[anim].animdata[k_index].keyed[b_index] = true;
+
+             // set scale
+             animations[anim].animdata[k_index].slist[b_index][0] = kf.scale[0];
+             animations[anim].animdata[k_index].slist[b_index][1] = kf.scale[1];
+             animations[anim].animdata[k_index].slist[b_index][2] = kf.scale[2];
+
+             // set translation
+             animations[anim].animdata[k_index].tlist[b_index][0] = kf.translation[0];
+             animations[anim].animdata[k_index].tlist[b_index][1] = kf.translation[1];
+             animations[anim].animdata[k_index].tlist[b_index][2] = kf.translation[2];
+
+             // set quaternion
+             animations[anim].animdata[k_index].qlist[b_index][0] = kf.quaternion[0];
+             animations[anim].animdata[k_index].qlist[b_index][1] = kf.quaternion[1];
+             animations[anim].animdata[k_index].qlist[b_index][2] = kf.quaternion[2];
+             animations[anim].animdata[k_index].qlist[b_index][3] = kf.quaternion[3];
+            }
+        }
+
+     // for each bone that IS NOT keyframed
+     for(size_t i = 0; i < n_keys; i++)
+        {
+         for(size_t j = 0; j < joints.size(); j++)
+            {
+             if(animations[anim].animdata[i].keyed[j]) continue;
+
+             // look for previous key (for this bone j)
+             size_t prev_key = 0xFFFFFFFFul;
+             for(size_t k = 0; k < i; k++) {
+                 size_t k_rev = (i - 1) - k;
+                 if(animations[anim].animdata[k_rev].keyed[j]) {
+                    prev_key = k_rev;
+                    break;
+                   }
+                }
+
+             // look for following key (for this bone j)
+             size_t next_key = 0xFFFFFFFFul;
+             for(size_t k = i + 1; k < n_keys; k++) {
+                 if(animations[anim].animdata[k].keyed[j]) {
+                    next_key = k;
+                    break;
+                   }
+                }
+
+             // no previous key
+             if(prev_key == 0xFFFFFFFFul) {
+                animations[anim].animdata[i].keyed[j] = true;
+                animations[anim].animdata[i].slist[j][0] = 1.0f;
+                animations[anim].animdata[i].slist[j][1] = 1.0f;
+                animations[anim].animdata[i].slist[j][2] = 1.0f;
+                animations[anim].animdata[i].tlist[j][0] = 0.0f;
+                animations[anim].animdata[i].tlist[j][1] = 0.0f;
+                animations[anim].animdata[i].tlist[j][2] = 0.0f;
+                animations[anim].animdata[i].qlist[j][0] = 1.0f;
+                animations[anim].animdata[i].qlist[j][1] = 0.0f;
+                animations[anim].animdata[i].qlist[j][2] = 0.0f;
+                animations[anim].animdata[i].qlist[j][3] = 0.0f;
+               }
+             // no next key
+             else if(next_key == 0xFFFFFFFFul) {
+                animations[anim].animdata[i].keyed[j] = true;
+                animations[anim].animdata[i].slist[j][0] = animations[anim].animdata[prev_key].slist[j][0];
+                animations[anim].animdata[i].slist[j][1] = animations[anim].animdata[prev_key].slist[j][1];
+                animations[anim].animdata[i].slist[j][2] = animations[anim].animdata[prev_key].slist[j][2];
+                animations[anim].animdata[i].tlist[j][0] = animations[anim].animdata[prev_key].tlist[j][0];
+                animations[anim].animdata[i].tlist[j][1] = animations[anim].animdata[prev_key].tlist[j][1];
+                animations[anim].animdata[i].tlist[j][2] = animations[anim].animdata[prev_key].tlist[j][2];
+                animations[anim].animdata[i].qlist[j][0] = animations[anim].animdata[prev_key].qlist[j][0];
+                animations[anim].animdata[i].qlist[j][1] = animations[anim].animdata[prev_key].qlist[j][1];
+                animations[anim].animdata[i].qlist[j][2] = animations[anim].animdata[prev_key].qlist[j][2];
+                animations[anim].animdata[i].qlist[j][3] = animations[anim].animdata[prev_key].qlist[j][3];
+               }
+             // prev and next keys
+             else {
+                animations[anim].animdata[i].keyed[j] = true;
+                real32 ratio = (animations[anim].animdata[i].delta - animations[anim].animdata[prev_key].delta)/(animations[anim].animdata[next_key].delta - animations[anim].animdata[prev_key].delta);
+                lerp3D(animations[anim].animdata[i].slist[j].data(), animations[anim].animdata[prev_key].slist[j].data(), animations[anim].animdata[next_key].slist[j].data(), ratio);
+                lerp3D(animations[anim].animdata[i].tlist[j].data(), animations[anim].animdata[prev_key].tlist[j].data(), animations[anim].animdata[next_key].tlist[j].data(), ratio);
+                qslerp(animations[anim].animdata[i].qlist[j].data(), animations[anim].animdata[prev_key].qlist[j].data(), animations[anim].animdata[next_key].qlist[j].data(), ratio);
+               }
+            }
+        }
+    }
+
+ // for each animation
+ for(size_t anim = 0; anim < animations.size(); anim++)
+    {
+     // number of keyframes
+     size_t n_keys = animations[anim].keymap.size();
+     for(size_t i = 0; i < n_keys; i++)
+        {
+         for(size_t j = 0; j < joints.size(); j++)
+            {
+             animations[anim].animdata[i].mlist[j];
+
+             if(joints[j].parent == 0xFFFFFFFFul)
+               {
+               }
+             else
+               {
+               }
+            }
+        }
+    }
+
+ return EC_SUCCESS;
 }
 
 ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
@@ -63,6 +223,50 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
      code = ASCIIReadMatrix3(linelist, &joints[i].m[0], false);
      if(Fail(code)) return code;
 
+     // save matrix to relative format
+     if(joints[i].parent == 0xFFFFFFFF) {
+        joints[i].m_rel[0x0] = joints[i].m[0x0];
+        joints[i].m_rel[0x1] = joints[i].m[0x1];
+        joints[i].m_rel[0x2] = joints[i].m[0x2];
+        joints[i].m_rel[0x3] = joints[i].position[0];
+        joints[i].m_rel[0x4] = joints[i].m[0x4];
+        joints[i].m_rel[0x5] = joints[i].m[0x5];
+        joints[i].m_rel[0x6] = joints[i].m[0x6];
+        joints[i].m_rel[0x7] = joints[i].position[1];
+        joints[i].m_rel[0x8] = joints[i].m[0x8];
+        joints[i].m_rel[0x9] = joints[i].m[0x9];
+        joints[i].m_rel[0xA] = joints[i].m[0xA];
+        joints[i].m_rel[0xB] = joints[i].position[2];
+        joints[i].m_rel[0xC] = joints[i].m[0xC];
+        joints[i].m_rel[0xD] = joints[i].m[0xD];
+        joints[i].m_rel[0xE] = joints[i].m[0xE];
+        joints[i].m_rel[0xF] = 1.0f;
+        joints[i].m_rel.invert();
+       }
+     else {
+        // R*P = A (relative * parent = absolute)
+        // R = A*inv(P) (relative = absolute * parent inverse)
+        // this is why we store the inverse matrices
+        joints[i].m_rel[0x0] = joints[i].m[0x0];
+        joints[i].m_rel[0x1] = joints[i].m[0x1];
+        joints[i].m_rel[0x2] = joints[i].m[0x2];
+        joints[i].m_rel[0x3] = joints[i].position[0];
+        joints[i].m_rel[0x4] = joints[i].m[0x4];
+        joints[i].m_rel[0x5] = joints[i].m[0x5];
+        joints[i].m_rel[0x6] = joints[i].m[0x6];
+        joints[i].m_rel[0x7] = joints[i].position[1];
+        joints[i].m_rel[0x8] = joints[i].m[0x8];
+        joints[i].m_rel[0x9] = joints[i].m[0x9];
+        joints[i].m_rel[0xA] = joints[i].m[0xA];
+        joints[i].m_rel[0xB] = joints[i].position[2];
+        joints[i].m_rel[0xC] = joints[i].m[0xC];
+        joints[i].m_rel[0xD] = joints[i].m[0xD];
+        joints[i].m_rel[0xE] = joints[i].m[0xE];
+        joints[i].m_rel[0xF] = 1.0f;
+        matrix4D_mul(joints[i].m_rel.data(), joints[joints[i].parent].m_rel.data());
+        joints[i].m_rel.invert();
+       }
+
      // add joint to jointmap
      jointmap.insert(std::map<STDSTRINGW, uint32>::value_type(joints[i].name, i));
     }
@@ -70,6 +274,9 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
  //
  // READ ANIMATIONS
  //
+
+ // number of seconds per frame
+ const real32 SECONDS_PER_FRAME = 1.0f/30.0f;
 
  // read number of animations
  uint32 n_anim = 0;
@@ -89,11 +296,18 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
      animations[i].name = ConvertUTF8ToUTF16(buffer);
      if(!animations[i].name.length()) return EC_MODEL_ANIMATION_NAME;
 
+     // set loop to default value of true
+     animations[i].loop = true;
+
      // read number of keyframed bones
      uint32 n_keyframedbones = 0;
      code = ASCIIReadUint32(linelist, &n_keyframedbones);
      if(Fail(code)) return code;
      if(!n_keyframedbones) return EC_MODEL_KEYFRAMED_BONES;
+
+     // keep track of start and end frames (per-animation)
+     animations[i].minframe = 0xFFFFFFFFul;
+     animations[i].maxframe = 0x00000000ul;
 
      // read keyframed bones
      animations[i].bonelist.resize(n_keyframedbones);
@@ -123,20 +337,49 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
          animations[i].bonelist[j].keyframes.resize(n_keyframes);
          for(size_t k = 0; k < n_keyframes; k++)
             {
+             // read frame number
              code = ASCIIReadUint32(linelist, &animations[i].bonelist[j].keyframes[k].frame);
              if(Fail(code)) return code;
 
-             code = ASCIIReadVector3(linelist, &animations[i].bonelist[j].keyframes[k].position[0]);
+             // save frame number
+             animations[i].keyset.insert(animations[i].bonelist[j].keyframes[k].frame);
+
+             // read translation
+             code = ASCIIReadVector3(linelist, &animations[i].bonelist[j].keyframes[k].translation[0]);
              if(Fail(code)) return code;
 
+             // read rotation
              code = ASCIIReadVector4(linelist, &animations[i].bonelist[j].keyframes[k].quaternion[0]);
              if(Fail(code)) return code;
 
+             // read scale
              code = ASCIIReadVector3(linelist, &animations[i].bonelist[j].keyframes[k].scale[0]);
              if(Fail(code)) return code;
             }
+
+         // set start and end frames (per-bone) (in frames)
+         animations[i].bonelist[j].minframe = animations[i].bonelist[j].keyframes[0].frame;
+         animations[i].bonelist[j].maxframe = animations[i].bonelist[j].keyframes[n_keyframes - 1].frame;
+
+         // adjust per-animation frames
+         if(animations[i].bonelist[j].minframe < animations[i].minframe) animations[i].minframe = animations[i].bonelist[j].minframe;
+         if(animations[i].bonelist[j].maxframe > animations[i].maxframe) animations[i].maxframe = animations[i].bonelist[j].maxframe;
         }
+
+     // create a keymap from the key set
+     // keyset = {0, 10, 20, 30}
+     // keymap = [{0, 0}, {10, 1}, {20, 2}, {30, 3}]
+     size_t index = 0;
+     for(auto iter = animations[i].keyset.begin(); iter != animations[i].keyset.end(); iter++)
+         animations[i].keymap.insert(std::map<uint32, size_t>::value_type(*iter, index++));
+
+     // set animation duration
+     animations[i].duration = SECONDS_PER_FRAME*(animations[i].maxframe + 1);
     }
+
+ // construct animation data
+ code = ConstructAnimationData();
+ if(Fail(code)) return code;
 
  //
  // READ MESHES
