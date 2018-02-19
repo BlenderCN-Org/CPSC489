@@ -53,6 +53,8 @@ enum ErrorCode {
  EC_MODEL_TEXTURE_SEMANTIC,
  EC_MODEL_TEXTURE_CHANNEL,
  EC_MODEL_TEXTURE_FILENAME,
+ // Animation Errors
+ EC_ANIM_INDEX,
 };
 
 enum LanguageCode {

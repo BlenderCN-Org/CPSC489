@@ -748,29 +748,25 @@ void MeshUTFInstance::FreeInstance(void)
  if(perframe) perframe->Release(); perframe = nullptr;
 }
 
-bool MeshUTFInstance::SetAnimation(uint32 index)
+ErrorCode MeshUTFInstance::SetAnimation(uint32 index)
 {
  // stop animating, render in bind pose
  if(index == 0xFFFFFFFFul) {
     anim = 0xFFFFFFFFul;
-    ResetAnimation();
-    return true;
+    return ResetAnimation();
    }
 
  // set new animation
- if(!(index < mesh->animations.size())) return false;
+ if(!(index < mesh->animations.size())) return Error(EC_ANIM_INDEX, __LINE__, __FILE__);;
  anim = index;
- ResetAnimation();
-
- // success
- return true;
+ return ResetAnimation();
 }
 
-bool MeshUTFInstance::SetTime(real32 value)
+ErrorCode MeshUTFInstance::SetTime(real32 value)
 {
  // validate
- if(anim == 0xFFFFFFFFul) return false; // no animation set
- if(value == time) return true; // no need to update 
+ if(anim == 0xFFFFFFFFul) return EC_SUCCESS; // no animation set
+ if(value == time) return EC_SUCCESS; // no need to update 
 
  // update time, looping animation if necessary
  real32 duration = mesh->animations[anim].duration;
@@ -789,22 +785,19 @@ bool MeshUTFInstance::SetTime(real32 value)
    }
 
  // update model
- Update();
-
- return true;
+ return Update();
 }
 
-bool MeshUTFInstance::ResetAnimation(void)
+ErrorCode MeshUTFInstance::ResetAnimation(void)
 {
  time = 0.0f;
- Update();
- return true;
+ return Update();
 }
 
-bool MeshUTFInstance::Update(void)
+ErrorCode MeshUTFInstance::Update(void)
 {
  // validate
- if(anim == 0xFFFFFFFFul) return false; // no animation set
+ if(anim == 0xFFFFFFFFul) return EC_SUCCESS; // no animation set
 /*
  // for each bone that is animated
  const auto& bonelist = mesh->animations[anim].bonelist;
@@ -877,10 +870,10 @@ bool MeshUTFInstance::Update(void)
     }
 */
  // compute transforms
- return true;
+ return EC_SUCCESS;
 }
 
-bool MeshUTFInstance::Update(real32 dt)
+ErrorCode MeshUTFInstance::Update(real32 dt)
 {
  return SetTime(time + dt);
 }

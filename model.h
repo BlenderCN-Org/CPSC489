@@ -117,11 +117,11 @@ class MeshUTFInstance {
   uint32 GetAnimation(void)const { return anim; }
   real32 GetTime(void)const { return time; }
  public :
-  bool SetAnimation(uint32 index);
-  bool SetTime(real32 value);
-  bool ResetAnimation(void);
-  bool Update(void);
-  bool Update(real32 dt);
+  ErrorCode SetAnimation(uint32 index);
+  ErrorCode SetTime(real32 value);
+  ErrorCode ResetAnimation(void);
+  ErrorCode Update(void);
+  ErrorCode Update(real32 dt);
  public :
   ErrorCode RenderModel(void);
  public :

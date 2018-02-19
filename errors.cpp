@@ -77,6 +77,9 @@ void InitErrorStrings(void)
  InsertErrorString(EC_MODEL_TEXTURE_SEMANTIC, LC_ENGLISH, L"Invalid texture semantic (e.g. diffuse, normal).");
  InsertErrorString(EC_MODEL_TEXTURE_CHANNEL, LC_ENGLISH, L"Texture reference out of bounds.");
  InsertErrorString(EC_MODEL_TEXTURE_FILENAME, LC_ENGLISH, L"Invalid texture filename.");
+
+ // Animation Errors
+ InsertErrorString(EC_ANIM_INDEX, LC_ENGLISH, L"Animation index out of bounds.");
 }
 
 void FreeErrorStrings(void)
