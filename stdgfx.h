@@ -12,28 +12,4 @@ inline void NEGATIVE_Z_AXIS(float* ptr) { ptr[0] =  0.0f; ptr[1] =  0.0f; ptr[2]
 
 #pragma endregion AXIS_FUNCTIONS
 
-#pragma region STRUCTURES
-
-template<class T>
-struct vector2D {
- T v[2];
-};
-
-template<class T>
-struct vector3D {
- T v[3];
-};
-
-template<class T>
-struct vector4D {
- T v[4];
-};
-
-template<class T>
-struct matrix4D {
- T v[16];
-};
-
-#pragma endregion STRUCTURES
-
 #endif

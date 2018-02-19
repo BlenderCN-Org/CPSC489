@@ -6,6 +6,7 @@
 
 int Run(void)
 {
+
  // window initialization
  SetLanguageCode(LC_ENGLISH);
  InitErrorStrings();

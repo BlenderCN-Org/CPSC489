@@ -294,7 +294,7 @@ bool OrbitCamera::ScreenToGroundPlane(int x, int y, real32* v)const
  point[0] -= cam_E[0];
  point[1] -= cam_E[1];
  point[2] -= cam_E[2];
- vector3_normalize(point);
+ vector3D_normalize(point);
     
  // intersect with ground plane?
  const real32 plane[4] = { 0.0f, 0.0f, 1.0f, 0.0f };
@@ -377,12 +377,12 @@ bool OrbitCamera::Orbit(int x0, int y0, int x1, int y1)
  // rotation matrices
  real32 R1[16];
  real32 R2[16];
- matrix4x4_rotate(R1, ref_Y, vert_angle);
- matrix4x4_rotate(R2, ref_Z, horz_angle);
+ matrix4D_rotate(R1, ref_Y, vert_angle);
+ matrix4D_rotate(R2, ref_Z, horz_angle);
     
  // multiplied transforms
  real32 R[16];
- matrix4x4_mul(R, R2, R1); // z 1st and y 2nd
+ matrix4D_mul(R, R2, R1); // z 1st and y 2nd
     
  // compute orbit point origin
  real32 orbit_point[3];
@@ -391,9 +391,9 @@ bool OrbitCamera::Orbit(int x0, int y0, int x1, int y1)
  orbit_point[2] = cam_E[2] + orbit_distance*cam_X[2];
     
  // compute new camera axes
- matrix4x4_vector3_mul(cam_X, R, ref_X);
- matrix4x4_vector3_mul(cam_Y, R, ref_Y);
- matrix4x4_vector3_mul(cam_Z, R, ref_Z);
+ matrix4D_vector3_mul(cam_X, R, ref_X);
+ matrix4D_vector3_mul(cam_Y, R, ref_Y);
+ matrix4D_vector3_mul(cam_Z, R, ref_Z);
     
  // compute new camera origin
  cam_E[0] = orbit_point[0] - orbit_distance*cam_X[0];

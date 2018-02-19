@@ -1,17 +1,41 @@
 #ifndef __CPSC489_MATH_H
 #define __CPSC489_MATH_H
 
-#pragma region SPECIAL_FUNCTIONS
+//
+// SPECIAL FUNCTIONS
+//
 
-inline real32 inv(real32 x) { return 1.0f/x; }
+inline real32 inv(real32 x)
+{
+ return 1.0f/x;
+}
 
-#pragma endregion SPECIAL_FUNCTIONS
+//
+// RULE OF SARRUS
+//
 
-#pragma region SPECIAL_NUMBERS
+inline real32 sarrus_2x2(real32 m11, real32 m12, real32 m21, real32 m22)
+{
+ return m11*m22 - m12*m21;
+}
+
+inline real32 sarrus_2x2(const real32* m)
+{
+ return m[0]*m[3] - m[1]*m[2];
+}
+
+//
+// SPECIAL_NUMBERS
+//
 
 inline real32 epsilon(void)
 {
  return 1.0e-7f;
+}
+
+inline bool is_zero(real32 value)
+{
+ return (std::fabs(value) < epsilon());
 }
 
 inline real32 positive_infinity(void)
@@ -28,9 +52,9 @@ inline real32 negative_infinity(void)
  return *reinterpret_cast<real32*>(&x);
 }
 
-#pragma endregion SPECIAL_NUMBERS
-
-#pragma region TRIGNOMETRY
+//
+// TRIGNOMETRY
+//
 
 // Trignometric Constants
 inline real32 pi(void)           { uint32 x = 0x40490FDBul; return *reinterpret_cast<real32*>(&x); } // oeis.org code:A000796
@@ -44,7 +68,5 @@ inline real32 pi_under_180(void) { return 57.2957795131f; } // oeis.org code:A07
 // Trignometric Conversions
 inline real32 radians(real32 d) { return d*pi_over_180(); }
 inline real32 degrees(real32 r) { return r*pi_under_180(); }
-
-#pragma endregion TRIGNOMETRY
 
 #endif

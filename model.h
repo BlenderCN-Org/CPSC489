@@ -35,12 +35,12 @@ struct MeshUTFTexture {
 struct MeshUTFMesh {
  STDSTRINGW name;
  std::vector<MeshUTFTexture> textures;
- std::vector<vector3D<real32>> position;
- std::vector<vector3D<real32>> normal;
- std::vector<vector2D<real32>> uvs[2];
- std::vector<vector4D<uint16>> bi;
- std::vector<vector4D<real32>> bw;
- std::vector<vector3D<real32>> colors[2];
+ std::vector<std::array<real32, 3>> position;
+ std::vector<std::array<real32, 3>> normal;
+ std::vector<std::array<real32, 2>> uvs[2];
+ std::vector<std::array<uint16, 4>> bi;
+ std::vector<std::array<real32, 4>> bw;
+ std::vector<std::array<real32, 3>> colors[2];
 };
 
 struct MeshUTFDirect3D {

@@ -3,6 +3,8 @@
 #include "errors.h"
 #include "win.h"
 #include "gfx.h"
+#include "math.h"
+#include "vector3.h"
 #include "axes.h"
 #include "ascii.h"
 #include "model.h"
@@ -228,30 +230,30 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
      for(uint32 j = 0; j < n_verts; j++)
         {
          // read position
-         code = ASCIIReadVector3(linelist, &meshes[i].position[j].v[0], false);
+         code = ASCIIReadVector3(linelist, &meshes[i].position[j][0], false);
          if(Fail(code)) return code;
 
          // read normal
-         code = ASCIIReadVector3(linelist, &meshes[i].normal[j].v[0], false);
+         code = ASCIIReadVector3(linelist, &meshes[i].normal[j][0], false);
          if(Fail(code)) return code;
 
          // read UVs
          for(uint32 k = 0; k < n_uvs; k++) {
-             code = ASCIIReadVector2(linelist, &meshes[i].uvs[j][k].v[0], false);
+             code = ASCIIReadVector2(linelist, &meshes[i].uvs[j][k][0], false);
              if(Fail(code)) return code;
             }
 
          // read blendindices and blendweights
          if(joints.size()) {
-            code = ASCIIReadVector4(linelist, &meshes[i].bi[j].v[0], false); // set to repeat?
+            code = ASCIIReadVector4(linelist, &meshes[i].bi[j][0], false); // set to repeat?
             if(Fail(code)) return code;
-            code = ASCIIReadVector4(linelist, &meshes[i].bw[j].v[0], false); // set to repeat?
+            code = ASCIIReadVector4(linelist, &meshes[i].bw[j][0], false); // set to repeat?
             if(Fail(code)) return code;
            }
 
          // read colors
          for(uint32 k = 0; k < n_colors; k++) {
-             code = ASCIIReadVector3(linelist, &meshes[i].colors[j][k].v[0], false);
+             code = ASCIIReadVector3(linelist, &meshes[i].colors[j][k][0], false);
              if(Fail(code)) return code;
             }
         }
@@ -330,7 +332,7 @@ void MeshUTF::FreeModel(void)
 
 ErrorCode MeshUTF::RenderSkeleton(void)
 {
- if(ja_buffer) RenderAxes(ja_buffer, joints.size());
+ if(ja_buffer) RenderAxes(ja_buffer, (UINT)joints.size());
  return EC_SUCCESS;
 }
 

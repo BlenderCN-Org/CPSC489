@@ -11,9 +11,9 @@
  */
 inline real32 ray3D_plane_intersect_distance(real32* X, const real32* O, const real32* V, const real32* P)
 {
- real32 denom = dot_product(P, V);
+ real32 denom = vector3D_scalar_product(P, V);
  if(std::abs(denom) < epsilon()) return positive_infinity();
- real32 numer = dot_product(P, O) + P[3];
+ real32 numer = vector3D_scalar_product(P, O) + P[3];
  real32 distance = numer/denom;
  X[0] = O[0] + V[0]*distance;
  X[1] = O[1] + V[1]*distance;
