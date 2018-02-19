@@ -723,10 +723,21 @@ ErrorCode MeshUTFInstance::InitInstance(void)
  code = UpdateDynamicMatrixConstBuffer(permodel, DirectX::XMMatrixIdentity());
  if(Fail(code)) return Error(code, __LINE__, __FILE__);
 
- // initialize 
+ // initialize skinning matrices
  perframe = nullptr;
- code = CreateDynamicMatrixConstBuffer(&perframe, (UINT)mesh->joints.size());
- if(Fail(code)) return Error(code, __LINE__, __FILE__);
+ if(mesh->joints.size()) {
+    code = CreateDynamicMatrixConstBuffer(&perframe, (UINT)mesh->joints.size());
+    if(Fail(code)) return Error(code, __LINE__, __FILE__);
+    code = UpdateDynamicMatrixConstBuffer(perframe, (UINT)mesh->joints.size(), jm.get());
+    if(Fail(code)) return Error(code, __LINE__, __FILE__);
+   }
+ // initialize skinning matrices (no bones, no big deal)
+ else {
+    code = CreateDynamicMatrixConstBuffer(&perframe);
+    if(Fail(code)) return Error(code, __LINE__, __FILE__);
+    code = UpdateDynamicMatrixConstBuffer(perframe, DirectX::XMMatrixIdentity());
+    if(Fail(code)) return Error(code, __LINE__, __FILE__);
+   }
 
  return EC_SUCCESS;
 }
