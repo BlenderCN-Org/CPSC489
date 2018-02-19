@@ -156,11 +156,6 @@ def ExportAnimations(file, armature):
         file.write(i.name + '\n')
         file.write('{}'.format(n_keyable) + ' # number of keyframed bones\n')
 
-        # offset from armature
-        dx = armature.location[0]
-        dy = armature.location[1]
-        dz = armature.location[2]
-        
         # iterate through <bone, keys> dictionary
         for name, keydict in bonemap.items():
             n_keys = len(keydict)
@@ -169,7 +164,7 @@ def ExportAnimations(file, armature):
                 file.write('{}'.format(len(keydict)) + ' # number of keys\n')
                 for frame, transforms in keydict.items():
                     file.write('{}\n'.format(int(frame)))
-                    file.write('{} {} {}\n'.format(transforms[0][0] + dx, transforms[0][1] + dy, transforms[0][2] + dz))
+                    file.write('{} {} {}\n'.format(transforms[0][0], transforms[0][1], transforms[0][2]))
                     file.write('{} {} {} {}\n'.format(transforms[1][0], transforms[1][1], transforms[1][2], transforms[1][3]))
                     file.write('{} {} {}\n'.format(transforms[2][0], transforms[2][1], transforms[2][2]))
 

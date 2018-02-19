@@ -76,4 +76,26 @@ class MeshUTF {
   void operator =(const MeshUTF&) = delete;  
 };
 
+class MeshUTFInstance {
+ private :
+  const MeshUTF* mesh;
+  real32 time;
+  size_t anim;
+ private :
+  DirectX::XMMATRIX m;
+  std::unique_ptr<DirectX::XMMATRIX> jm;
+ public :
+  void update(real32 dt) {
+   time += dt;
+   // compute transforms
+   // if(time > mesh->) // loop animation
+  }
+ public :
+  MeshUTFInstance(const MeshUTF& ptr) {
+   mesh = &ptr;
+   time = 0.0f;
+   m = DirectX::XMMatrixIdentity();
+  }
+};
+
 #endif

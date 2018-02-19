@@ -29,6 +29,11 @@ struct vector4D {
  T v[4];
 };
 
+template<class T>
+struct matrix4D {
+ T v[16];
+};
+
 #pragma endregion STRUCTURES
 
 #endif
