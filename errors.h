@@ -9,16 +9,27 @@ enum ErrorCode {
  EC_FILE_WRITE,
  EC_FILE_EOF,
  EC_FILE_PARSE,
+ EC_FILE_PATHNAME,
+ EC_FILE_FILENAME,
+ EC_FILE_EXTENSION,
+ EC_INVALID_ARG,
  // Windows Errors
  EC_WIN32_REGISTER_WINDOW,
  EC_WIN32_MAIN_WINDOW,
+ // Image Errors
+ EC_IMAGE_FORMAT,
  // Direct3D: General Errors
  EC_D3D_CREATE_DEVICE,
  EC_D3D_DEVICE,
  EC_D3D_DEVICE_CONTEXT,
  EC_D3D_GET_BACKBUFFER,
  EC_D3D_CREATE_RENDER_TARGET_VIEW,
+ EC_D3D_CREATE_SHADER_RESOURCE,
+ EC_D3D_INSERT_SHADER_RESOURCE,
+ EC_D3D_SHADER_RESOURCE_REFERENCE_COUNT,
+ EC_D3D_SHADER_RESOURCE,
  EC_D3D_CREATE_TEXTURE2D,
+ EC_D3D_TEXTURE_DIMENSIONS,
  EC_D3D_CREATE_DEPTH_STENCIL_VIEW,
  EC_D3D_RESIZE_BUFFERS,
  EC_D3D_SET_INPUT_LAYOUT,
@@ -73,8 +84,8 @@ inline bool Fail(const ErrorCode& code) { return (code != EC_SUCCESS); }
 bool Error(ErrorCode code);
 bool Error(ErrorCode code, LanguageCode language);
 bool Error(ErrorCode code, LanguageCode language);
-ErrorCode Error(ErrorCode code, int line, const char* file);
-ErrorCode Error(ErrorCode code, int line, const char* file, LanguageCode language);
+ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file);
+ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file, LanguageCode language);
 
 // language code functions
 LanguageCode GetLanguageCode(void);

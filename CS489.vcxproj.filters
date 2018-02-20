@@ -30,6 +30,9 @@
     <Filter Include="Source Files\Direct3D">
       <UniqueIdentifier>{58106867-a1a0-4f39-8573-596b592b3bbe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Textures">
+      <UniqueIdentifier>{f1a33048-4550-4f64-866e-e9fe71c42a19}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winmain.cpp">
@@ -101,6 +104,9 @@
     <ClCompile Include="rasters.cpp">
       <Filter>Source Files\Direct3D</Filter>
     </ClCompile>
+    <ClCompile Include="texture.cpp">
+      <Filter>Source Files\Direct3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -170,6 +176,9 @@
       <Filter>Source Files\Direct3D</Filter>
     </ClInclude>
     <ClInclude Include="rasters.h">
+      <Filter>Source Files\Direct3D</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.h">
       <Filter>Source Files\Direct3D</Filter>
     </ClInclude>
   </ItemGroup>

@@ -7,6 +7,8 @@ typedef std::map<LanguageCode, STDSTRINGW> language_map_t;
 typedef std::map<ErrorCode, language_map_t> codemap_t;
 static codemap_t codemap;
 static LanguageCode language = LC_ENGLISH;
+static size_t MAXFAILS = 8;
+static std::deque<std::wstring> failinfo;
 
 void InsertErrorString(ErrorCode code, LanguageCode language, LPCWSTR error)
 {
@@ -28,10 +30,17 @@ void InitErrorStrings(void)
  InsertErrorString(EC_FILE_WRITE, LC_ENGLISH, L"Failed to write to file.");
  InsertErrorString(EC_FILE_EOF, LC_ENGLISH, L"Read past EOF (end-of-file).");
  InsertErrorString(EC_FILE_PARSE, LC_ENGLISH, L"Parsed file data is not in the expected or correct format.");
+ InsertErrorString(EC_FILE_PATHNAME, LC_ENGLISH, L"Invalid pathname.");
+ InsertErrorString(EC_FILE_FILENAME, LC_ENGLISH, L"Invalid filename.");
+ InsertErrorString(EC_FILE_EXTENSION, LC_ENGLISH, L"Invalid file extension.");
+ InsertErrorString(EC_INVALID_ARG, LC_ENGLISH, L"Invalid argument(s).");
 
  // Windows Errors
  InsertErrorString(EC_WIN32_REGISTER_WINDOW, LC_ENGLISH, L"Failed to register window class.");
  InsertErrorString(EC_WIN32_MAIN_WINDOW, LC_ENGLISH, L"Invalid main window.");
+
+ // Image Errors
+ InsertErrorString(EC_IMAGE_FORMAT, LC_ENGLISH, L"Unsupported image format.");
 
  // Direct3D: General Errors
  InsertErrorString(EC_D3D_CREATE_DEVICE, LC_ENGLISH, L"Failed to create Direct3D device.");
@@ -39,7 +48,12 @@ void InitErrorStrings(void)
  InsertErrorString(EC_D3D_DEVICE_CONTEXT, LC_ENGLISH, L"Must have a valid Direct3D device context for this operation.");
  InsertErrorString(EC_D3D_GET_BACKBUFFER, LC_ENGLISH, L"IDXGISwapChain::GetBuffer failed.");
  InsertErrorString(EC_D3D_CREATE_RENDER_TARGET_VIEW, LC_ENGLISH, L"ID3D11Device::CreateRenderTargetView failed.");
+ InsertErrorString(EC_D3D_CREATE_SHADER_RESOURCE, LC_ENGLISH, L"Failed to create Direct3D shader resource.");
+ InsertErrorString(EC_D3D_INSERT_SHADER_RESOURCE, LC_ENGLISH, L"Failed to cache shader resource.");
+ InsertErrorString(EC_D3D_SHADER_RESOURCE_REFERENCE_COUNT, LC_ENGLISH, L"Invalid shader resource reference count.");
+ InsertErrorString(EC_D3D_SHADER_RESOURCE, LC_ENGLISH, L"Shader resource lookup failed.");
  InsertErrorString(EC_D3D_CREATE_TEXTURE2D, LC_ENGLISH, L"ID3D11Device::CreateTexture2D failed.");
+ InsertErrorString(EC_D3D_TEXTURE_DIMENSIONS, LC_ENGLISH, L"Invalid Direct3D texture dimensions.");
  InsertErrorString(EC_D3D_CREATE_DEPTH_STENCIL_VIEW, LC_ENGLISH, L"ID3D11Device::CreateDepthStencilView failed.");
  InsertErrorString(EC_D3D_RESIZE_BUFFERS, LC_ENGLISH, L"IDXGISwapChain::ResizeBuffers failed.");
  InsertErrorString(EC_D3D_SET_INPUT_LAYOUT, LC_ENGLISH, L"Direct3D input layout not found."); // failed to set input layout (couldn't find it that's why)
@@ -118,25 +132,27 @@ bool Error(ErrorCode code, LanguageCode language)
  return false;
 }
 
-ErrorCode Error(ErrorCode code, int line, const char* file)
+ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file)
 {
  STDSTRINGW error = FindError(code, GetLanguageCode());
  STDSTRINGSTREAMW ss;
  ss << error << std::endl;
  ss << L"Line: " << line << std::endl;
  ss << L"File: " << file << std::ends;
- ErrorBox(ss.str().c_str());
+ failinfo.push_back(ss.str());
+ if(!(failinfo.size() < MAXFAILS)) failinfo.pop_front();
  return code;
 }
 
-ErrorCode Error(ErrorCode code, int line, const char* file, LanguageCode language)
+ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file, LanguageCode language)
 {
  STDSTRINGW error = FindError(code, language);
  STDSTRINGSTREAMW ss;
  ss << error << std::endl;
  ss << L"Line: " << line << std::endl;
  ss << L"File: " << file << std::ends;
- ErrorBox(ss.str().c_str());
+ failinfo.push_back(ss.str());
+ if(!(failinfo.size() < MAXFAILS)) failinfo.pop_front();
  return code;
 }
 
