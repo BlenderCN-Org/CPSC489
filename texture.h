@@ -15,6 +15,7 @@ struct TextureData {
  DWORD dy;
  DWORD pitch;
  DXGI_FORMAT format;
+ DWORD size;
  std::unique_ptr<BYTE[]> data;
 };
 
