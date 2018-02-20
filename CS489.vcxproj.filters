@@ -107,6 +107,18 @@
     <ClCompile Include="texture.cpp">
       <Filter>Source Files\Direct3D</Filter>
     </ClCompile>
+    <ClCompile Include="bmp.cpp">
+      <Filter>Source Files\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="png.cpp">
+      <Filter>Source Files\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="stc.cpp">
+      <Filter>Source Files\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="tga.cpp">
+      <Filter>Source Files\Textures</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -180,6 +192,18 @@
     </ClInclude>
     <ClInclude Include="texture.h">
       <Filter>Source Files\Direct3D</Filter>
+    </ClInclude>
+    <ClInclude Include="bmp.h">
+      <Filter>Source Files\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="png.h">
+      <Filter>Source Files\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="stc.h">
+      <Filter>Source Files\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="tga.h">
+      <Filter>Source Files\Textures</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
