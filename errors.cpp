@@ -41,6 +41,16 @@ void InitErrorStrings(void)
 
  // Image Errors
  InsertErrorString(EC_IMAGE_FORMAT, LC_ENGLISH, L"Unsupported image format.");
+ InsertErrorString(EC_PNG_COM_INIT, LC_ENGLISH, L"Failed to initialize PNG COM interfaces.");
+ InsertErrorString(EC_PNG_DECODER, LC_ENGLISH, L"Failed to create PNG decoder.");
+ InsertErrorString(EC_PNG_FILE_OPEN, LC_ENGLISH, L"Failed to open PNG file.");
+ InsertErrorString(EC_PNG_DECODER_INIT, LC_ENGLISH, L"Failed to initialize PNG decoder.");
+ InsertErrorString(EC_PNG_NO_FRAMES, LC_ENGLISH, L"PNG file has no frame(s).");
+ InsertErrorString(EC_PNG_GET_FRAMES, LC_ENGLISH, L"Failed to get PNG frame(s).");
+ InsertErrorString(EC_PNG_CONVERTER, LC_ENGLISH, L"Failed to create PNG converter.");
+ InsertErrorString(EC_PNG_CONVERTER_INIT, LC_ENGLISH, L"Failed to initialize PNG converter.");
+ InsertErrorString(EC_PNG_GET_SIZE, LC_ENGLISH, L"Failed to retrieve PNG dimensions.");
+ InsertErrorString(EC_PNG_COPY, LC_ENGLISH, L"Failed to copy PNG data.");
 
  // Direct3D: General Errors
  InsertErrorString(EC_D3D_CREATE_DEVICE, LC_ENGLISH, L"Failed to create Direct3D device.");
