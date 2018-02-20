@@ -3,6 +3,7 @@
 #include "app.h"
 #include "win.h"
 #include "camera.h"
+#include "rasters.h"
 #include "layouts.h"
 #include "shaders.h"
 #include "axes.h"
@@ -70,6 +71,10 @@ ErrorCode InitD3D(void)
  //
  // PHASE 2: INITIALIZE SHADERS
  //
+
+ // create rasterizer states
+ code = InitRasterizerStates();
+ if(Fail(code)) return code;
 
  // create vertex shaders
  code = InitVertexShaders();
@@ -166,6 +171,7 @@ void FreeD3D(void)
  FreeInputLayouts();
  FreePixelShaders();
  FreeVertexShaders();
+ FreeRasterizerStates();
 
  // release framebuffer objects
  FreeRenderTarget();

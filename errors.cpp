@@ -46,6 +46,10 @@ void InitErrorStrings(void)
  InsertErrorString(EC_D3D_CREATE_BUFFER, LC_ENGLISH, L"Failed to create Direct3D buffer.");
  InsertErrorString(EC_D3D_MAP_RESOURCE, LC_ENGLISH, L"Failed to map Direct3D resource.");
 
+ // Direct3D: Rasterizer State Errors
+ InsertErrorString(EC_D3D_CREATE_RASTERIZER_STATE, LC_ENGLISH, L"Failed to create Direct3D rasterizer state.");
+ InsertErrorString(EC_D3D_RASTERIZER_STATE, LC_ENGLISH, L"Invalid rasterizer state index.");
+
  // Direct3D: Input Layout Errors
  InsertErrorString(EC_D3D_INPUT_LAYOUT_INDEX, LC_ENGLISH, L"Input layout index does not exist.");
  InsertErrorString(EC_D3D_INPUT_LAYOUT_SHADER_LOOKUP, LC_ENGLISH, L"Input layout index is not associated with a vertex shader.");

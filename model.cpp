@@ -7,6 +7,7 @@
 #include "matrix4.h"
 #include "gfx.h"
 #include "layouts.h"
+#include "rasters.h"
 #include "shaders.h"
 #include "axes.h"
 #include "ascii.h"
@@ -499,7 +500,7 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
            }
 
          // read colors
-         meshes[i].colors[0][j][0] = meshes[i].colors[0][j][1] = meshes[i].colors[0][j][2] = 0.0f;
+         meshes[i].colors[0][j][0] = meshes[i].colors[0][j][1] = meshes[i].colors[0][j][2] = 0.5f;
          meshes[i].colors[1][j][0] = meshes[i].colors[1][j][1] = meshes[i].colors[1][j][2] = 0.0f;
          for(uint32 k = 0; k < n_colors; k++) {
              code = ASCIIReadVector3(linelist, &meshes[i].colors[k][j][0], false);
@@ -888,18 +889,20 @@ ErrorCode MeshUTFInstance::RenderModel(void)
  for(size_t i = 0; i < mesh->meshes.size(); i++)
     {
      // set rasterization state
+     ErrorCode code = SetRasterizerState(RS_MODEL);
+     if(Fail(code)) return Error(code, __LINE__, __FILE__);
 
      // set input layout
-     ErrorCode code = SetInputLayout(IL_P4_N4_T2_T2_I4_W4_C4_C4);
-     if(Fail(code)) return code;
+     code = SetInputLayout(IL_P4_N4_T2_T2_I4_W4_C4_C4);
+     if(Fail(code)) return Error(code, __LINE__, __FILE__);
 
      // set vertex shader
      code = SetVertexShader(VS_MODEL);
-     if(Fail(code)) return code;
+     if(Fail(code)) return Error(code, __LINE__, __FILE__);
 
      // set pixel shader
      code = SetPixelShader(PS_MODEL);
-     if(Fail(code)) return code;
+     if(Fail(code)) return Error(code, __LINE__, __FILE__);
 
      // set samplers
 

@@ -166,6 +166,7 @@
     <ClCompile Include="matrix4.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="orbit.cpp" />
+    <ClCompile Include="rasters.cpp" />
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="shaders.cpp" />
     <ClCompile Include="stdafx.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="matrix4.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="orbit.h" />
+    <ClInclude Include="rasters.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="shaders.h" />
     <ClInclude Include="stdafx.h" />
