@@ -119,6 +119,15 @@
     <ClCompile Include="tga.cpp">
       <Filter>Source Files\Textures</Filter>
     </ClCompile>
+    <ClCompile Include="blending.cpp">
+      <Filter>Source Files\Direct3D</Filter>
+    </ClCompile>
+    <ClCompile Include="sampler.cpp">
+      <Filter>Source Files\Direct3D</Filter>
+    </ClCompile>
+    <ClCompile Include="stencil.cpp">
+      <Filter>Source Files\Direct3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -204,6 +213,15 @@
     </ClInclude>
     <ClInclude Include="tga.h">
       <Filter>Source Files\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="blending.h">
+      <Filter>Source Files\Direct3D</Filter>
+    </ClInclude>
+    <ClInclude Include="sampler.h">
+      <Filter>Source Files\Direct3D</Filter>
+    </ClInclude>
+    <ClInclude Include="stencil.h">
+      <Filter>Source Files\Direct3D</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

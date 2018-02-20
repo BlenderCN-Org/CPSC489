@@ -16,7 +16,7 @@ BOOL InitSkeletonAxesTest(void)
 {
  auto code = model.LoadModel(L"bl_TestVertexGroups.txt");
  if(Fail(code)) {
-    Error(code, __LINE__, __FILE__);
+    DebugErrorCode(code, __LINE__, __FILE__);
     return TRUE;
    }
  instance = std::make_unique<MeshUTFInstance>(model);

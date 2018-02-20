@@ -16,7 +16,7 @@ ErrorCode InitRasterizerStates(void)
 {
  // must have device
  ID3D11Device* device = GetD3DDevice();
- if(!device) return Error(EC_D3D_DEVICE, __LINE__, __FILE__);
+ if(!device) return DebugErrorCode(EC_D3D_DEVICE, __LINE__, __FILE__);
 
  // delete previous
  FreeRasterizerStates();
@@ -56,7 +56,7 @@ ErrorCode InitRasterizerStates(void)
  for(size_t i = 0; i < rsdlist.size(); i++) {
      ID3D11RasterizerState* lprs = nullptr;
      HRESULT result = device->CreateRasterizerState(&rsdlist[i], &lprs);
-     if(FAILED(result)) return Error(EC_D3D_CREATE_RASTERIZER_STATE, __LINE__, __FILE__);
+     if(FAILED(result)) return DebugErrorCode(EC_D3D_RASTERIZER_STATE_CREATE, __LINE__, __FILE__);
      rslist.push_back(lprs);
     }
 
@@ -84,11 +84,11 @@ ErrorCode SetRasterizerState(DWORD index)
 {
  // must have device context
  ID3D11DeviceContext* context = GetD3DDeviceContext();
- if(!context) return Error(EC_D3D_DEVICE_CONTEXT, __LINE__, __FILE__);
+ if(!context) return DebugErrorCode(EC_D3D_DEVICE_CONTEXT, __LINE__, __FILE__);
 
  // set state
  ID3D11RasterizerState* lprs = GetRasterizerState(index);
- if(!lprs) return Error(EC_D3D_RASTERIZER_STATE, __LINE__, __FILE__);
+ if(!lprs) return DebugErrorCode(EC_D3D_RASTERIZER_STATE, __LINE__, __FILE__);
  context->RSSetState(lprs);
 
  // success

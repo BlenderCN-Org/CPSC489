@@ -3,7 +3,10 @@
 #include "app.h"
 #include "win.h"
 #include "camera.h"
+#include "blending.h"
 #include "rasters.h"
+#include "stencil.h"
+#include "sampler.h"
 #include "layouts.h"
 #include "shaders.h"
 #include "axes.h"
@@ -69,12 +72,28 @@ ErrorCode InitD3D(void)
  if(Fail(code)) return code;
 
  //
- // PHASE 2: INITIALIZE SHADERS
+ // PHASE 2: INITIALIZE RENDERING STATES
  //
+
+ // create rasterizer states
+ code = InitBlendStates();
+ if(Fail(code)) return code;
 
  // create rasterizer states
  code = InitRasterizerStates();
  if(Fail(code)) return code;
+
+ // create sampler states
+ code = InitSamplerStates();
+ if(Fail(code)) return code;
+
+ // create stencil states
+ code = InitStencilStates();
+ if(Fail(code)) return code; 
+
+ //
+ // PHASE 3: INITIALIZE SHADERS
+ //
 
  // create vertex shaders
  code = InitVertexShaders();
@@ -89,7 +108,7 @@ ErrorCode InitD3D(void)
  if(Fail(code)) return code;
 
  //
- // PHASE 3: INITIALIZE CONSTANT BUFFERS
+ // PHASE 4: INITIALIZE CONSTANT BUFFERS
  //
 
  // create identity matrix
@@ -101,7 +120,7 @@ ErrorCode InitD3D(void)
  if(Fail(code)) return code;
 
  //
- // PHASE 4: INITIALIZE DEFAULT MODELS
+ // PHASE 5: INITIALIZE DEFAULT MODELS
  //
 
  // create grid
@@ -117,7 +136,7 @@ ErrorCode InitD3D(void)
  if(Fail(code)) return code;
 
  //
- // PHASE 5: PREPARE FOR RENDERING
+ // PHASE 6: PREPARE FOR RENDERING
  //
 
  // set viewport and update camera before rendering
@@ -171,7 +190,12 @@ void FreeD3D(void)
  FreeInputLayouts();
  FreePixelShaders();
  FreeVertexShaders();
+
+ // release states
+ FreeBlendStates();
  FreeRasterizerStates();
+ FreeSamplerStates();
+ FreeStencilStates();
 
  // release framebuffer objects
  FreeRenderTarget();

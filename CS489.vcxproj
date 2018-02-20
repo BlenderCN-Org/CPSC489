@@ -157,6 +157,7 @@
     <ClCompile Include="app.cpp" />
     <ClCompile Include="ascii.cpp" />
     <ClCompile Include="axes.cpp" />
+    <ClCompile Include="blending.cpp" />
     <ClCompile Include="bmp.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="errors.cpp" />
@@ -170,11 +171,13 @@
     <ClCompile Include="png.cpp" />
     <ClCompile Include="rasters.cpp" />
     <ClCompile Include="ray.cpp" />
+    <ClCompile Include="sampler.cpp" />
     <ClCompile Include="shaders.cpp" />
     <ClCompile Include="stc.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="stdgfx.cpp" />
     <ClCompile Include="stdwin.cpp" />
+    <ClCompile Include="stencil.cpp" />
     <ClCompile Include="testing\sk_axes.cpp" />
     <ClCompile Include="testing\tests.cpp" />
     <ClCompile Include="texture.cpp" />
@@ -187,6 +190,7 @@
     <ClInclude Include="app.h" />
     <ClInclude Include="ascii.h" />
     <ClInclude Include="axes.h" />
+    <ClInclude Include="blending.h" />
     <ClInclude Include="bmp.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="errors.h" />
@@ -200,12 +204,14 @@
     <ClInclude Include="png.h" />
     <ClInclude Include="rasters.h" />
     <ClInclude Include="ray.h" />
+    <ClInclude Include="sampler.h" />
     <ClInclude Include="shaders.h" />
     <ClInclude Include="stc.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="stdgfx.h" />
     <ClInclude Include="stdres.h" />
     <ClInclude Include="stdwin.h" />
+    <ClInclude Include="stencil.h" />
     <ClInclude Include="testing\sk_axes.h" />
     <ClInclude Include="testing\tests.h" />
     <ClInclude Include="texture.h" />

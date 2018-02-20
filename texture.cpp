@@ -3,11 +3,13 @@
 #include "errors.h"
 #include "app.h"
 #include "gfx.h"
+#include "texture.h"
+
+// format includes
 #include "bmp.h"
 #include "png.h"
 #include "tga.h"
 #include "stc.h"
-#include "texture.h"
 
 // texture variables
 struct TextureResource {

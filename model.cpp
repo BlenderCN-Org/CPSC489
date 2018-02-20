@@ -7,7 +7,9 @@
 #include "matrix4.h"
 #include "gfx.h"
 #include "layouts.h"
+#include "blending.h"
 #include "rasters.h"
+#include "sampler.h"
 #include "shaders.h"
 #include "axes.h"
 #include "ascii.h"
@@ -720,24 +722,24 @@ ErrorCode MeshUTFInstance::InitInstance(void)
  // initialize model matrix
  permodel = nullptr;
  ErrorCode code = CreateDynamicMatrixConstBuffer(&permodel);
- if(Fail(code)) return Error(code, __LINE__, __FILE__);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
  code = UpdateDynamicMatrixConstBuffer(permodel, DirectX::XMMatrixIdentity());
- if(Fail(code)) return Error(code, __LINE__, __FILE__);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // initialize skinning matrices
  perframe = nullptr;
  if(mesh->joints.size()) {
     code = CreateDynamicMatrixConstBuffer(&perframe, (UINT)mesh->joints.size());
-    if(Fail(code)) return Error(code, __LINE__, __FILE__);
+    if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
     code = UpdateDynamicMatrixConstBuffer(perframe, (UINT)mesh->joints.size(), jm.get());
-    if(Fail(code)) return Error(code, __LINE__, __FILE__);
+    if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
    }
  // initialize skinning matrices (no bones, no big deal)
  else {
     code = CreateDynamicMatrixConstBuffer(&perframe);
-    if(Fail(code)) return Error(code, __LINE__, __FILE__);
+    if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
     code = UpdateDynamicMatrixConstBuffer(perframe, DirectX::XMMatrixIdentity());
-    if(Fail(code)) return Error(code, __LINE__, __FILE__);
+    if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
    }
 
  return EC_SUCCESS;
@@ -758,7 +760,7 @@ ErrorCode MeshUTFInstance::SetAnimation(uint32 index)
    }
 
  // set new animation
- if(!(index < mesh->animations.size())) return Error(EC_ANIM_INDEX, __LINE__, __FILE__);;
+ if(!(index < mesh->animations.size())) return DebugErrorCode(EC_ANIM_INDEX, __LINE__, __FILE__);;
  anim = index;
  return ResetAnimation();
 }
@@ -890,19 +892,27 @@ ErrorCode MeshUTFInstance::RenderModel(void)
     {
      // set rasterization state
      ErrorCode code = SetRasterizerState(RS_MODEL);
-     if(Fail(code)) return Error(code, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+     // set blend state
+     code = SetBlendState(BS_DEFAULT);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+     // set sampler state
+     code = SetSamplerState(SS_WRAP_LINEAR);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // set input layout
      code = SetInputLayout(IL_P4_N4_T2_T2_I4_W4_C4_C4);
-     if(Fail(code)) return Error(code, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // set vertex shader
      code = SetVertexShader(VS_MODEL);
-     if(Fail(code)) return Error(code, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // set pixel shader
      code = SetPixelShader(PS_MODEL);
-     if(Fail(code)) return Error(code, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // set samplers
 

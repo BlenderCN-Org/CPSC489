@@ -67,19 +67,25 @@ void InitErrorStrings(void)
  InsertErrorString(EC_D3D_TEXTURE_DIMENSIONS, LC_ENGLISH, L"Invalid Direct3D texture dimensions.");
  InsertErrorString(EC_D3D_CREATE_DEPTH_STENCIL_VIEW, LC_ENGLISH, L"ID3D11Device::CreateDepthStencilView failed.");
  InsertErrorString(EC_D3D_RESIZE_BUFFERS, LC_ENGLISH, L"IDXGISwapChain::ResizeBuffers failed.");
- InsertErrorString(EC_D3D_SET_INPUT_LAYOUT, LC_ENGLISH, L"Direct3D input layout not found."); // failed to set input layout (couldn't find it that's why)
  InsertErrorString(EC_D3D_CREATE_BUFFER, LC_ENGLISH, L"Failed to create Direct3D buffer.");
  InsertErrorString(EC_D3D_MAP_RESOURCE, LC_ENGLISH, L"Failed to map Direct3D resource.");
 
- // Direct3D: Rasterizer State Errors
- InsertErrorString(EC_D3D_CREATE_RASTERIZER_STATE, LC_ENGLISH, L"Failed to create Direct3D rasterizer state.");
- InsertErrorString(EC_D3D_RASTERIZER_STATE, LC_ENGLISH, L"Invalid rasterizer state index.");
+ // Direct3D: State Errors
+ InsertErrorString(EC_D3D_BLEND_STATE_CREATE, LC_ENGLISH, L"Failed to create Direct3D blend state.");
+ InsertErrorString(EC_D3D_BLEND_STATE, LC_ENGLISH, L"Failed to set Direct3D blend state.");
+ InsertErrorString(EC_D3D_RASTERIZER_STATE_CREATE, LC_ENGLISH, L"Failed to create Direct3D rasterizer state.");
+ InsertErrorString(EC_D3D_RASTERIZER_STATE, LC_ENGLISH, L"Failed to set Direct3D rasterizer state.");
+ InsertErrorString(EC_D3D_SAMPLER_STATE_CREATE, LC_ENGLISH, L"Failed to create Direct3D sampler state.");
+ InsertErrorString(EC_D3D_SAMPLER_STATE, LC_ENGLISH, L"Failed to set Direct3D sampler state.");
+ InsertErrorString(EC_D3D_STENCIL_STATE_CREATE, LC_ENGLISH, L"Failed to create Direct3D stencil state");
+ InsertErrorString(EC_D3D_STENCIL_STATE, LC_ENGLISH, L"Failed to set Direct3D stencil state.");
 
  // Direct3D: Input Layout Errors
- InsertErrorString(EC_D3D_INPUT_LAYOUT_INDEX, LC_ENGLISH, L"Input layout index does not exist.");
+ InsertErrorString(EC_D3D_INPUT_LAYOUT_CREATE, LC_ENGLISH, L"Failed to create Direct3D input layout object.");
+ InsertErrorString(EC_D3D_INPUT_LAYOUT_LOOKUP, LC_ENGLISH, L"Direct3D input layout index not found.");
  InsertErrorString(EC_D3D_INPUT_LAYOUT_SHADER_LOOKUP, LC_ENGLISH, L"Input layout index is not associated with a vertex shader.");
  InsertErrorString(EC_D3D_INPUT_LAYOUT_SHADER_SIGNATURE, LC_ENGLISH, L"Input layout index is not associated with a compiled vertex shader object.");
- InsertErrorString(EC_D3D_CREATE_INPUT_LAYOUT, LC_ENGLISH, L"Failed to create Direct3D input layout object.");
+ InsertErrorString(EC_D3D_INPUT_LAYOUT, LC_ENGLISH, L"Direct3D input layout index out of bounds.");
 
  // Direct3D: Shader Errors
  InsertErrorString(EC_D3D_VERTEX_SHADER_FILE_NOT_FOUND, LC_ENGLISH, L"Vertex shader file not found.");

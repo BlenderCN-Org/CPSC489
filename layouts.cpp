@@ -244,7 +244,7 @@ ErrorCode InitInputLayouts(void)
      input_layout_map_type::iterator iter = input_layout_map.find(i);
      if(iter == input_layout_map.end()) {
         FreeInputLayouts();
-        return EC_D3D_INPUT_LAYOUT_INDEX;
+        return EC_D3D_INPUT_LAYOUT_LOOKUP;
        }
 
      // input layout is not assigned to a vertex shader
@@ -277,7 +277,7 @@ ErrorCode InitInputLayouts(void)
      HRESULT result = device->CreateInputLayout(&(descriptors[i][0]), (UINT)descriptors[i].size(), shader->code.get(), shader->size, &lpil);
      if(FAILED(result)) {
         FreeInputLayouts();
-        return EC_D3D_CREATE_INPUT_LAYOUT;
+        return EC_D3D_INPUT_LAYOUT_CREATE;
        }
      
      // set input layout
@@ -314,7 +314,7 @@ ErrorCode SetInputLayout(size_t index)
 
  // get input layout
  auto ptr = GetInputLayout(index);
- if(!ptr) return EC_D3D_SET_INPUT_LAYOUT; // index out of bounds
+ if(!ptr) return EC_D3D_INPUT_LAYOUT; // index out of bounds
 
  // set input layout
  context->IASetInputLayout(ptr);
