@@ -35,8 +35,12 @@ ErrorCode ReadTGA_09(std::ifstream& ifile, const TGAHEADER& header, TextureData*
 ErrorCode ReadTGA_10(std::ifstream& ifile, const TGAHEADER& header, TextureData* xid);
 ErrorCode ReadTGA_11(std::ifstream& ifile, const TGAHEADER& header, TextureData* xid);
 
-ErrorCode LoadTGA(LPCWSTR filename, TextureData* xid)
+ErrorCode LoadTGA(LPCWSTR filename, TextureData* data)
 {
+ // validate
+ if(!filename) return DebugErrorCode(EC_INVALID_ARG, __LINE__, __FILE__);
+ if(!data) return DebugErrorCode(EC_INVALID_ARG, __LINE__, __FILE__);
+
  // open file
  using namespace std;
  ifstream ifile(filename, ios::binary);
@@ -66,8 +70,8 @@ ErrorCode LoadTGA(LPCWSTR filename, TextureData* xid)
     case(0x03) : break;
     case(0x09) : break;
     case(0x0A) : break;
-    case(0x20) :  return DebugErrorCode(EC_TGA_IMAGE_TYPE_UNSUPPORTED, __LINE__, __FILE__);
-    case(0x21) :  return DebugErrorCode(EC_TGA_IMAGE_TYPE_UNSUPPORTED, __LINE__, __FILE__);
+    case(0x20) : return DebugErrorCode(EC_TGA_IMAGE_TYPE_UNSUPPORTED, __LINE__, __FILE__);
+    case(0x21) : return DebugErrorCode(EC_TGA_IMAGE_TYPE_UNSUPPORTED, __LINE__, __FILE__);
     default :  return DebugErrorCode(EC_TGA_IMAGE_TYPE_UNSUPPORTED, __LINE__, __FILE__);
    }
  if(!header.dx) return DebugErrorCode(EC_TGA_IMAGE_TYPE_UNSUPPORTED, __LINE__, __FILE__);
@@ -81,12 +85,12 @@ ErrorCode LoadTGA(LPCWSTR filename, TextureData* xid)
 
  // process palette or color image
  switch(header.image_type) {
-    case(0x01) : return ReadTGA_01(ifile, header, xid);
-    case(0x02) : return ReadTGA_02(ifile, header, xid);
-    case(0x03) : return ReadTGA_03(ifile, header, xid);
-    case(0x09) : return ReadTGA_09(ifile, header, xid);
-    case(0x0A) : return ReadTGA_10(ifile, header, xid);
-    case(0x0B) : return ReadTGA_11(ifile, header, xid);
+    case(0x01) : return ReadTGA_01(ifile, header, data);
+    case(0x02) : return ReadTGA_02(ifile, header, data);
+    case(0x03) : return ReadTGA_03(ifile, header, data);
+    case(0x09) : return ReadTGA_09(ifile, header, data);
+    case(0x0A) : return ReadTGA_10(ifile, header, data);
+    case(0x0B) : return ReadTGA_11(ifile, header, data);
     default :  return DebugErrorCode(EC_TGA_IMAGE_TYPE_UNSUPPORTED, __LINE__, __FILE__);
    }
 

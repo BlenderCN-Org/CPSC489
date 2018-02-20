@@ -26,6 +26,7 @@ void InitErrorStrings(void)
  // Common Errors
  InsertErrorString(EC_SUCCESS, LC_ENGLISH, L"");
  InsertErrorString(EC_FILE_OPEN, LC_ENGLISH, L"Failed to open file.");
+ InsertErrorString(EC_FILE_SEEK, LC_ENGLISH, L"Failed to seek file position.");
  InsertErrorString(EC_FILE_READ, LC_ENGLISH, L"Failed to read file.");
  InsertErrorString(EC_FILE_WRITE, LC_ENGLISH, L"Failed to write to file.");
  InsertErrorString(EC_FILE_EOF, LC_ENGLISH, L"Read past EOF (end-of-file).");

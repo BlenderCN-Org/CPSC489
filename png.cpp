@@ -56,8 +56,8 @@ ErrorCode LoadPNG(LPCWSTR filename, TextureData* data)
     return DebugErrorCode(EC_PNG_GET_SIZE, __LINE__, __FILE__);
 
  // copy image
- UINT stride = 4 * dx;
- UINT size = stride * dy;
+ UINT stride = 4*dx;
+ UINT size = stride*dy;
  std::unique_ptr<BYTE[]> buffer(new BYTE[size]);
  if(FAILED(converter->CopyPixels(NULL, stride, size, buffer.get())))
     return DebugErrorCode(EC_PNG_COPY, __LINE__, __FILE__);
@@ -67,6 +67,7 @@ ErrorCode LoadPNG(LPCWSTR filename, TextureData* data)
  data->dy = dy;
  data->pitch = 4 * dx;
  data->format = DXGI_FORMAT_B8G8R8X8_UNORM;
+ data->size = size;
  data->data = std::move(buffer);
 
  return EC_SUCCESS;
