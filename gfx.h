@@ -24,7 +24,7 @@ void FreeIdentityMatrix(void);
 ID3D11Buffer* GetIdentityMatrix(void);
 
 // Rendering Functions
-BOOL RenderFrame(void);
+BOOL RenderFrame(real32 dt);
 
 // Vertex Buffer Functions
 ErrorCode CreateVertexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer, D3D11_USAGE usage);
@@ -39,6 +39,9 @@ ErrorCode CreateDynamicIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buf
 ErrorCode CreateImmutableIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
 
 // Constant Buffer Functions
+ErrorCode CreateDynamicConstBuffer(ID3D11Buffer** buffer, UINT size);
+ErrorCode CreateDynamicConstBuffer(ID3D11Buffer** buffer, UINT size, const void* data);
+ErrorCode UpdateDynamicConstBuffer(ID3D11Buffer* buffer, UINT size, const void* data);
 ErrorCode CreateDynamicFloat4ConstBuffer(real32* color, ID3D11Buffer** buffer);
 ErrorCode UpdateDynamicFloat4ConstBuffer(ID3D11Buffer* buffer, const real32* color);
 ErrorCode CreateDynamicMatrixConstBuffer(ID3D11Buffer** buffer);

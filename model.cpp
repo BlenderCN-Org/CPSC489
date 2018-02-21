@@ -24,6 +24,27 @@ MeshUTF::~MeshUTF()
 {
 }
 
+/** ConstructAnimationData
+ *  -# For each animation, this function collects all the keyframes and orders them. For example, if
+ *     one bone has keyframes at {0, 10}, and another bone has keyframes at {10, 20}, the keyframes
+ *     are collected into one collective and ordered set {0, 10, 20}.
+ *  -# Then for each bone that has a keyframe defined already, those keyframes are assigned to this
+ *     new collective set. For example:
+ *     For b1: {0, 10, 20} = {set, set, unset}
+ *     For b2: {0, 10, 20} = {unset, set, set}
+ *  -# Once the known keyframes are set, the missing keyframes must be set. In these cases, we may
+ *     or may not have to interpolate between known keyframes to compute keyframes for bones that
+ *     did not originally have keyframes. For example:
+ *     b1 has unset keyframe at 20. Since there is a keyframe before 20 but none after, we simply
+ *     just resue the keyframe at 10.
+ *     For b1: {0, 10, 20} = {kf1, kf2, kf2} (reuse kf2 to set missing keyframe at 20)
+ *     For b2: {0, 10, 20} = {kf1, kf1, kf2} (reuse kf1 to set missing keyframe at 0}
+ *  -# The transforms that are computed are defined as follows:
+ *     - animations[anim index].animdata[key index].slist[bone index] (Scale Transform)
+ *     - animations[anim index].animdata[key index].tlist[bone index] (Translation Transform)
+ *     - animations[anim index].animdata[key index].qlist[bone index] (Quaternion Transform)
+ *  -# Once done, every bone will have a keyframe for all keyframes.
+ */
 ErrorCode MeshUTF::ConstructAnimationData(void)
 {
  // number of seconds per frame
@@ -704,8 +725,8 @@ MeshUTFInstance::MeshUTFInstance(const MeshUTF& ptr)
  anim = 0xFFFFFFFFul;
 
  // initialize constant data
- mv = DirectX::XMMatrixIdentity();
- jm.reset(new DirectX::XMMATRIX[mesh->joints.size()]);
+ mv.load_identity();
+ jm.reset(new matrix4D[mesh->joints.size()]);
 
  // initialize buffers
  permodel = nullptr;
@@ -729,9 +750,8 @@ ErrorCode MeshUTFInstance::InitInstance(void)
  // initialize skinning matrices
  perframe = nullptr;
  if(mesh->joints.size()) {
-    code = CreateDynamicMatrixConstBuffer(&perframe, (UINT)mesh->joints.size());
-    if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-    code = UpdateDynamicMatrixConstBuffer(perframe, (UINT)mesh->joints.size(), jm.get());
+    UINT size = (UINT)(mesh->joints.size()*sizeof(matrix4D));
+    code = CreateDynamicConstBuffer(&perframe, size);
     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
    }
  // initialize skinning matrices (no bones, no big deal)
@@ -801,78 +821,65 @@ ErrorCode MeshUTFInstance::Update(void)
 {
  // validate
  if(anim == 0xFFFFFFFFul) return EC_SUCCESS; // no animation set
-/*
+
+ const auto& animation = mesh->animations[anim];
+ const auto& joints = mesh->joints;
+
  // for each bone that is animated
- const auto& bonelist = mesh->animations[anim].bonelist;
- for(size_t i = 0; i < bonelist.size(); i++)
+ for(size_t bi = 0; bi < joints.size(); bi++)
     {
-     // no interpolation [x, start, end]
-     if(time < bonelist[i].keyframes.front().time)
-       {
-        matrix4D<real32>& m = jm[bonelist[i].bone_index];
-        load_identity(m);
-       }
-     // no interpolation [start, end, x]
-     else if(!(time < bonelist[i].keyframes.back().time))
-       {
-        auto& kf = bonelist[i].keyframes.back();
+     // using current time, find keyframes [a, b] that time is inbetween
+     size_t n_keys = animation.keyset.size();
+     for(size_t ki = 0; ki < (n_keys - 1); ki++)
+        {
+         // find [a, b] such that [a, time, b]
+         auto& kf1 = animation.animdata[ki];
+         auto& kf2 = animation.animdata[ki + 1];
+         if((time < kf1.delta) || (time > kf2.delta)) break;
 
-        // load scaling matrix
-        matrix4D<real32>& m = jm[bonelist[i].bone_index];
-        load_scaling(m, kf.scale[0], kf.scale[1], kf.scale[2]);
+         // compute ratio between kf1 (0.0) and kf2 (1.0)
+         real32 ratio = (time - kf1.delta)/(kf2.delta - kf1.delta);
 
-        // rotate
-        matrix4D<real32> R;
-        quaternion_to_matrix(R, kf.quaternion);
-        matrix_mul(m, R);
+         // interpolate scale
+         real32 S[3];
+         lerp3D(S, &kf1.slist[bi][0], &kf2.slist[bi][0], ratio);
 
-        // translate
-        m.v[0x3] += kf.position[0];
-        m.v[0x7] += kf.position[1];
-        m.v[0xB] += kf.position[2];
-       }
-     // interploate [start, x, end]
-     else
-       {
-        // TODO: implement binary search instead since keyframes are sorted?
-        for(size_t j = 0; j < bonelist[i].keyframes.size() - 1; j++)
-           {
-            auto& kf1 = bonelist[i].keyframes[j];
-            auto& kf2 = bonelist[i].keyframes[j];
-            if((time < kf1.time) || (time > kf2.time)) break;
+         // interpolate translation
+         real32 T[3];
+         lerp3D(T, &kf1.tlist[bi][0], &kf2.tlist[bi][0], ratio);
 
-            real32 ratio = (time - kf1.time)/(kf2.time - kf1.time);
+         // interpolate quaternion
+         real32 Q[4];
+         qslerp(Q, &kf1.qlist[bi][0], &kf2.qlist[bi][0], ratio);
 
-            // interpolate scale
-            real32 S[3];
-            lerp3D(S, kf1.scale, kf2.scale, ratio);
+         // load scaling matrix
+         matrix4D m;
+         m.load_scaling(S[0], S[1], S[2]);
 
-            // interpolate translation
-            real32 T[3];
-            lerp3D(T, kf1.position, kf2.position, ratio);
+         // rotate, then scale
+         matrix4D R;
+         R.load_quaternion(Q);
+         m *= R;
 
-            // interpolate quaternion
-            real32 Q[4];
-            slerp(Q, kf1.quaternion, kf2.quaternion, ratio);
+         // translate
+         m[0x3] += T[0];
+         m[0x7] += T[1];
+         m[0xB] += T[2];
 
-            // load scaling matrix
-            matrix4D<real32>& m = jm[bonelist[i].bone_index];
-            load_scaling(m, S[0], S[1], S[2]);
-
-            // rotate
-            matrix4D<real32> R;
-            quaternion_to_matrix(R, Q);
-            matrix_mul(m, R);
-
-            // translate
-            m.v[0x3] += T[0];
-            m.v[0x7] += T[1];
-            m.v[0xB] += T[2];
-           }
-       }
+         // set matrix
+         jm[bi] = m;
+        }
     }
-*/
- // compute transforms
+
+ // for each bone that is animated
+ // these transformation matrices are interpolated in relative space
+ for(size_t bi = 1; bi < joints.size(); bi++) {
+     uint32 parent = mesh->joints[bi].parent;
+     jm[bi] *= jm[parent];
+     jm[bi].premul(matrix4D(mesh->joints[bi].m_rel));
+    }
+
+ // success
  return EC_SUCCESS;
 }
 
@@ -897,6 +904,8 @@ ErrorCode MeshUTFInstance::RenderModel(void)
      // set blend state
      code = SetBlendState(BS_DEFAULT);
      if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+     // set stencil state
 
      // set sampler state
      code = SetSamplerState(SS_WRAP_LINEAR);

@@ -9,7 +9,7 @@
 
 typedef BOOL (*InitFunc)(void);
 typedef void (*FreeFunc)(void);
-typedef void (*DrawFunc)(void);
+typedef void (*DrawFunc)(real32 dt);
 
 static int active_test = -1;
 static InitFunc init_func = nullptr;
@@ -55,9 +55,9 @@ void EndTest(void)
  draw_func = nullptr;
 }
 
-void RenderTest(void)
+void RenderTest(real32 dt)
 {
- if(IsTestActive() && draw_func) (*draw_func)();
+ if(IsTestActive() && draw_func) (*draw_func)(dt);
 }
 
 BOOL IsTestActive(void)

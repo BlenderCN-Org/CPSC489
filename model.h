@@ -105,8 +105,8 @@ class MeshUTFInstance {
   real32 time;
   uint32 anim;
  private :
-  DirectX::XMMATRIX mv;
-  std::unique_ptr<DirectX::XMMATRIX[]> jm;
+  matrix4D mv;
+  std::unique_ptr<matrix4D[]> jm;
  private :
   ID3D11Buffer* permodel;
   ID3D11Buffer* perframe;

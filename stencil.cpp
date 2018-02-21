@@ -95,7 +95,7 @@ ErrorCode InitStencilStates(void)
 
 void FreeStencilStates(void)
 {
- for(uint32 i = 0; i < max_stencils; i++) {
+ for(uint32 i = 0; i < stencils.size(); i++) {
      stencils[i]->Release();
      stencils[i] = nullptr;
     }
@@ -103,7 +103,7 @@ void FreeStencilStates(void)
 
 ID3D11DepthStencilState* GetStencilState(UINT index)
 {
- if(!(index < max_stencils)) return nullptr;
+ if(!(index < stencils.size())) return nullptr;
  return stencils[index];
 }
 
@@ -111,7 +111,7 @@ ErrorCode SetStencilState(UINT index, UINT value)
 {
  ID3D11DeviceContext* context = GetD3DDeviceContext();
  if(!context) return DebugErrorCode(EC_D3D_DEVICE_CONTEXT, __LINE__, __FILE__);
- if(!(index < max_stencils)) return DebugErrorCode(EC_D3D_STENCIL_STATE, __LINE__, __FILE__);
+ if(!(index < stencils.size())) return DebugErrorCode(EC_D3D_STENCIL_STATE, __LINE__, __FILE__);
  context->OMSetDepthStencilState(stencils[index], value);
  return EC_SUCCESS;
 }

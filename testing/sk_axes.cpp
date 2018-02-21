@@ -29,10 +29,11 @@ void FreeSkeletonAxesTest(void)
  model.FreeModel();
 }
 
-void RenderSkeletonAxesTest(void)
+void RenderSkeletonAxesTest(real32 dt)
 {
  model.RenderModel();
  if(instance.get()) {
+    instance->Update(dt);
     ErrorCode code = instance->RenderModel();
     if(Fail(code)) {
        EndTest();

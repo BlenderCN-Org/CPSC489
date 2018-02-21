@@ -7,7 +7,7 @@ HINSTANCE SetInstance(HINSTANCE handle);
 
 // Message Loops
 int MessageLoop(void);
-int MessagePump(BOOL (*function)(void));
+int MessagePump(BOOL (*function)(real32));
 
 // Error and Warning Messages
 BOOL ErrorBox(LPCTSTR message);

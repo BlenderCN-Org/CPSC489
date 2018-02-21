@@ -428,7 +428,7 @@ ID3D11Buffer* GetIdentityMatrix(void)
 
 #pragma region RENDERING_FUNCTIONS
 
-BOOL RenderFrame(void)
+BOOL RenderFrame(real32 dt)
 {
  // validate
  if(!lpDeviceContext) return FALSE;
@@ -445,7 +445,7 @@ BOOL RenderFrame(void)
 
  // render test
  if(GetActiveTest() != -1)
-    RenderTest();
+    RenderTest(dt);
 
  // present
  lpSwapChain->Present(0, 0);
@@ -608,6 +608,61 @@ ErrorCode CreateImmutableIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11B
 #pragma endregion DIRECT3D_INDEX_BUFFER_FUNCTIONS
 
 #pragma region DIRECT3D_CONSTANT_BUFFER_FUNCTIONS
+
+ErrorCode CreateDynamicConstBuffer(ID3D11Buffer** buffer, UINT size)
+{
+ // create buffer
+ D3D11_BUFFER_DESC desc;
+ ZeroMemory(&desc, sizeof(desc));
+ desc.Usage = D3D11_USAGE_DYNAMIC;
+ desc.ByteWidth = size;
+ desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+ HRESULT result = lpDevice->CreateBuffer(&desc, NULL, buffer);
+ if(FAILED(result)) return EC_D3D_CREATE_BUFFER;
+ return EC_SUCCESS;
+}
+
+ErrorCode CreateDynamicConstBuffer(ID3D11Buffer** buffer, UINT size, const void* data)
+{
+ // create buffer
+ D3D11_BUFFER_DESC desc;
+ ZeroMemory(&desc, sizeof(desc));
+ desc.Usage = D3D11_USAGE_DYNAMIC;
+ desc.ByteWidth = size;
+ desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+ HRESULT result = lpDevice->CreateBuffer(&desc, NULL, buffer);
+ if(FAILED(result)) return EC_D3D_CREATE_BUFFER;
+
+ // map data
+ D3D11_MAPPED_SUBRESOURCE msr;
+ ZeroMemory(&msr, sizeof(msr));
+ if(!FAILED(lpDeviceContext->Map(*buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) {
+    void* ptr = msr.pData;
+    memmove(ptr, data, size);
+    lpDeviceContext->Unmap(*buffer, 0);
+   }
+ else {
+    (*buffer)->Release();
+    (*buffer) = NULL;
+    return EC_D3D_MAP_RESOURCE;
+   }
+
+ return EC_SUCCESS;
+}
+
+ErrorCode UpdateDynamicConstBuffer(ID3D11Buffer* buffer, UINT size, const void* data)
+{
+ if(!size || !data) return EC_D3D_CREATE_BUFFER;
+ D3D11_MAPPED_SUBRESOURCE msr;
+ ZeroMemory(&msr, sizeof(msr));
+ if(FAILED(lpDeviceContext->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) return EC_D3D_MAP_RESOURCE;
+ DirectX::XMMATRIX* ptr = reinterpret_cast<DirectX::XMMATRIX*>(msr.pData);
+ memmove(ptr, data, size);
+ lpDeviceContext->Unmap(buffer, 0);
+ return EC_SUCCESS;
+}
 
 ErrorCode CreateDynamicFloat4ConstBuffer(real32* color, ID3D11Buffer** buffer)
 {

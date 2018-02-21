@@ -7,6 +7,7 @@
 // Application Variables
 static HINSTANCE basead = NULL;
 static __int64 n_frames = 0;
+static __int64 last_frame_dt = 0;
 static __int64 dt = 0;
 
 //
@@ -39,7 +40,7 @@ int MessageLoop(void)
  return (int)msg.wParam;
 }
 
-int MessagePump(BOOL (*function)(void))
+int MessagePump(BOOL (*function)(real32))
 {
  PerformanceCounter hpc;
  MSG msg;
@@ -57,10 +58,11 @@ int MessagePump(BOOL (*function)(void))
      else {
         // render frame
         hpc.begin();
-        BOOL result = function();
+        BOOL result = function(static_cast<real32>(hpc.seconds(last_frame_dt)));
         n_frames++;
         hpc.end();
-        dt += hpc.ticks();
+        last_frame_dt = hpc.ticks();
+        dt += last_frame_dt;
         if(result == FALSE) break;
         // track most recent time and reset after one second
         if(double elapsed = hpc.seconds(dt) > 1.0) {

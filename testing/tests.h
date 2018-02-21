@@ -3,7 +3,7 @@
 
 BOOL BeginTest(int cmd);
 void EndTest(void);
-void RenderTest(void);
+void RenderTest(real32 dt);
 BOOL IsTestActive(void);
 int GetActiveTest(void);
 

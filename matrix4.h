@@ -44,6 +44,15 @@ class matrix4D : public c_smatrix4D {
   real32 invert(void);
   void transpose(void);
  public :
+  void load_identity(void);
+  void load_scaling(real32 x, real32 y, real32 z);
+  void load_translation(real32 x, real32 y, real32 z);
+  void load_quaternion(real32 w, real32 x, real32 y, real32 z);
+  void load_quaternion(const real32* q);
+ public :
+  matrix4D& premul(const matrix4D& A);
+  matrix4D& mul(const matrix4D& A);
+ public :
   const real32& operator [](size_t index)const;
   real32& operator [](size_t index);
  public :
@@ -222,6 +231,114 @@ inline void matrix4D::transpose(void)
  temp = this->m[11]; this->m[11] = this->m[14]; this->m[14] = temp;
 }
 
+inline void matrix4D::load_identity(void)
+{
+ this->m[m11] = 1.0f; this->m[m21] = 0.0f; this->m[m31] = 0.0f; this->m[m41] = 0.0f;
+ this->m[m12] = 0.0f; this->m[m22] = 1.0f; this->m[m32] = 0.0f; this->m[m42] = 0.0f;
+ this->m[m13] = 0.0f; this->m[m23] = 0.0f; this->m[m33] = 1.0f; this->m[m43] = 0.0f;
+ this->m[m14] = 0.0f; this->m[m24] = 0.0f; this->m[m34] = 0.0f; this->m[m44] = 1.0f;
+}
+
+inline void matrix4D::load_scaling(real32 x, real32 y, real32 z)
+{
+ this->m[m11] =    x; this->m[m21] = 0.0f; this->m[m31] = 0.0f; this->m[m41] = 0.0f;
+ this->m[m12] = 0.0f; this->m[m22] =    y; this->m[m32] = 0.0f; this->m[m42] = 0.0f;
+ this->m[m13] = 0.0f; this->m[m23] = 0.0f; this->m[m33] =    z; this->m[m43] = 0.0f;
+ this->m[m14] = 0.0f; this->m[m24] = 0.0f; this->m[m34] = 0.0f; this->m[m44] = 1.0f;
+}
+
+inline void matrix4D::load_translation(real32 x, real32 y, real32 z)
+{
+ this->m[m11] = 1.0f; this->m[m21] = 0.0f; this->m[m31] = 0.0f; this->m[m41] = x;
+ this->m[m12] = 0.0f; this->m[m22] = 1.0f; this->m[m32] = 0.0f; this->m[m42] = y;
+ this->m[m13] = 0.0f; this->m[m23] = 0.0f; this->m[m33] = 1.0f; this->m[m43] = z;
+ this->m[m14] = 0.0f; this->m[m24] = 0.0f; this->m[m34] = 0.0f; this->m[m44] = 1.0f;
+}
+
+inline void matrix4D::load_quaternion(real32 w, real32 x, real32 y, real32 z)
+{
+ // constants
+ real32 zer = 0.0f;
+ real32 one = 1.0f;
+
+ // factors
+ real32 a2 = 2*w;
+ real32 b2 = 2*x;
+ real32 c2 = 2*y;
+ real32 d2 = 2*z;
+
+ // factors
+ real32 ab2 = w * b2;
+ real32 ac2 = w * c2;
+ real32 ad2 = w * d2;
+ real32 bb2 = x * b2;
+ real32 bc2 = x * c2;
+ real32 bd2 = x * d2;
+ real32 cc2 = y * c2;
+ real32 cd2 = y * d2;
+ real32 dd2 = z * d2;
+
+ // reinterpret matrix
+ this->m[0x0] = one - cc2 - dd2;
+ this->m[0x1] = bc2 - ad2;
+ this->m[0x2] = bd2 + ac2;
+ this->m[0x3] = zer;
+ this->m[0x4] = bc2 + ad2;
+ this->m[0x5] = one - bb2 - dd2;
+ this->m[0x6] = cd2 - ab2;
+ this->m[0x7] = zer;
+ this->m[0x8] = bd2 - ac2;
+ this->m[0x9] = cd2 + ab2;
+ this->m[0xA] = one - bb2 - cc2;
+ this->m[0xB] = zer;
+ this->m[0xC] = zer;
+ this->m[0xD] = zer;
+ this->m[0xE] = zer;
+ this->m[0xF] = one;
+}
+
+inline void matrix4D::load_quaternion(const real32* q)
+{
+ // constants
+ real32 zer = 0.0f;
+ real32 one = 1.0f;
+
+ // factors
+ real32 a2 = q[0] + q[0];
+ real32 b2 = q[1] + q[1];
+ real32 c2 = q[2] + q[2];
+ real32 d2 = q[3] + q[3];
+
+ // factors
+ real32 ab2 = q[0] * b2;
+ real32 ac2 = q[0] * c2;
+ real32 ad2 = q[0] * d2;
+ real32 bb2 = q[1] * b2;
+ real32 bc2 = q[1] * c2;
+ real32 bd2 = q[1] * d2;
+ real32 cc2 = q[2] * c2;
+ real32 cd2 = q[2] * d2;
+ real32 dd2 = q[3] * d2;
+
+ // reinterpret matrix
+ this->m[0x0] = one - cc2 - dd2;
+ this->m[0x1] = bc2 - ad2;
+ this->m[0x2] = bd2 + ac2;
+ this->m[0x3] = zer;
+ this->m[0x4] = bc2 + ad2;
+ this->m[0x5] = one - bb2 - dd2;
+ this->m[0x6] = cd2 - ab2;
+ this->m[0x7] = zer;
+ this->m[0x8] = bd2 - ac2;
+ this->m[0x9] = cd2 + ab2;
+ this->m[0xA] = one - bb2 - cc2;
+ this->m[0xB] = zer;
+ this->m[0xC] = zer;
+ this->m[0xD] = zer;
+ this->m[0xE] = zer;
+ this->m[0xF] = one;
+}
+
 inline const real32& matrix4D::operator [](size_t index)const
 {
  return this->m[index];
@@ -387,7 +504,56 @@ inline matrix4D& matrix4D::operator *=(const matrix4D& other)
  return *this;
 }
 
+inline matrix4D& matrix4D::premul(const matrix4D& A)
+{
+ // computes (*this) = A x (*this)
+ real32 X[16] = {
+  A[0x0]*this->m[0x0] + A[0x1]*this->m[0x4] + A[0x2]*this->m[0x8] + A[0x3]*this->m[0xC],
+  A[0x0]*this->m[0x1] + A[0x1]*this->m[0x5] + A[0x2]*this->m[0x9] + A[0x3]*this->m[0xD],
+  A[0x0]*this->m[0x2] + A[0x1]*this->m[0x6] + A[0x2]*this->m[0xA] + A[0x3]*this->m[0xE],
+  A[0x0]*this->m[0x3] + A[0x1]*this->m[0x7] + A[0x2]*this->m[0xB] + A[0x3]*this->m[0xF],
+  A[0x4]*this->m[0x0] + A[0x5]*this->m[0x4] + A[0x6]*this->m[0x8] + A[0x7]*this->m[0xC],
+  A[0x4]*this->m[0x1] + A[0x5]*this->m[0x5] + A[0x6]*this->m[0x9] + A[0x7]*this->m[0xD],
+  A[0x4]*this->m[0x2] + A[0x5]*this->m[0x6] + A[0x6]*this->m[0xA] + A[0x7]*this->m[0xE],
+  A[0x4]*this->m[0x3] + A[0x5]*this->m[0x7] + A[0x6]*this->m[0xB] + A[0x7]*this->m[0xF],
+  A[0x8]*this->m[0x0] + A[0x9]*this->m[0x4] + A[0xA]*this->m[0x8] + A[0xB]*this->m[0xC],
+  A[0x8]*this->m[0x1] + A[0x9]*this->m[0x5] + A[0xA]*this->m[0x9] + A[0xB]*this->m[0xD],
+  A[0x8]*this->m[0x2] + A[0x9]*this->m[0x6] + A[0xA]*this->m[0xA] + A[0xB]*this->m[0xE],
+  A[0x8]*this->m[0x3] + A[0x9]*this->m[0x7] + A[0xA]*this->m[0xB] + A[0xB]*this->m[0xF],
+  A[0xC]*this->m[0x0] + A[0xD]*this->m[0x4] + A[0xE]*this->m[0x8] + A[0xF]*this->m[0xC],
+  A[0xC]*this->m[0x1] + A[0xD]*this->m[0x5] + A[0xE]*this->m[0x9] + A[0xF]*this->m[0xD],
+  A[0xC]*this->m[0x2] + A[0xD]*this->m[0x6] + A[0xE]*this->m[0xA] + A[0xF]*this->m[0xE],
+  A[0xC]*this->m[0x3] + A[0xD]*this->m[0x7] + A[0xE]*this->m[0xB] + A[0xF]*this->m[0xF]
+ };
+ this->m[0x0] = X[0x0];
+ this->m[0x1] = X[0x1];
+ this->m[0x2] = X[0x2];
+ this->m[0x3] = X[0x3];
+ this->m[0x4] = X[0x4];
+ this->m[0x5] = X[0x5];
+ this->m[0x6] = X[0x6];
+ this->m[0x7] = X[0x7];
+ this->m[0x8] = X[0x8];
+ this->m[0x9] = X[0x9];
+ this->m[0xA] = X[0xA];
+ this->m[0xB] = X[0xB];
+ this->m[0xC] = X[0xC];
+ this->m[0xD] = X[0xD];
+ this->m[0xE] = X[0xE];
+ this->m[0xF] = X[0xF];
+}
+
+inline matrix4D& matrix4D::mul(const matrix4D& A)
+{
+ // computes (*this) = (*this) x A
+ return ((*this) *= A);
+}
+
 #pragma endregion MATRIX4D_CLASS_DEFINITIONS
+
+#pragma region MATRIX4D_OPERATORS
+
+#pragma endregion MATRIX4D_OPERATORS
 
 #pragma region MATRIX4D_ARRAY_FUNCTIONS
 

@@ -33,6 +33,9 @@
     <Filter Include="Source Files\Textures">
       <UniqueIdentifier>{f1a33048-4550-4f64-866e-e9fe71c42a19}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Game">
+      <UniqueIdentifier>{834185c6-d36e-446f-8c81-f428a9e11983}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winmain.cpp">
@@ -128,6 +131,9 @@
     <ClCompile Include="stencil.cpp">
       <Filter>Source Files\Direct3D</Filter>
     </ClCompile>
+    <ClCompile Include="player.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -222,6 +228,9 @@
     </ClInclude>
     <ClInclude Include="stencil.h">
       <Filter>Source Files\Direct3D</Filter>
+    </ClInclude>
+    <ClInclude Include="player.h">
+      <Filter>Source Files\Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
