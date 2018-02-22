@@ -39,6 +39,8 @@ def MeshExporter():
     # export animations
     if has_skeleton == True:
         ExportAnimations(file, armature)
+    else:
+        file.write('0 # number of animations\n')
 
     # save number of meshes
     file.write("{} # number of meshes\n".format(len(bpy.data.meshes)))
@@ -240,12 +242,15 @@ def ExportMesh(file, obj, mesh, armature):
                     file.write(slot.name + "\n" + str(channel) + "\n" + slot.texture.image.filepath + "\n")
                 else:
                     file.write(slot.name + "\n" + str(channel) + "\n" + "default.bmp" + "\n")
-                    
+
+    # do we have bones?
+    has_bones = ((armature != None) and (len(armature.data.bones) > 0))
+                        
     # associate each bone name with an index
     # this is used to map vertex groups to bones
     bonemap = {}
-    for index, bone in enumerate(armature.data.bones): bonemap[bone.name] = index
-    has_bones = ((armature != None) and (len(armature.data.bones) > 0))
+    if has_bones == True:
+        for index, bone in enumerate(armature.data.bones): bonemap[bone.name] = index
     
     # dictionary<vertex group index, vertex group name>
     vgdict = {}

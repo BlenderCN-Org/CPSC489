@@ -5,7 +5,7 @@ struct MeshUTFJoint {
  STDSTRINGW name;
  uint32 parent;
  real32 position[3];
- real32 m[16];
+ matrix4D m;
  matrix4D m_rel;
  matrix4D m_abs;
 };
@@ -80,6 +80,7 @@ class MeshUTF {
   std::vector<MeshUTFJoint> joints;
   std::vector<MeshUTFAnimation> animations;
   std::vector<MeshUTFMesh> meshes;
+  bool has_weights;
  private :
   std::unique_ptr<MeshUTFDirect3D[]> buffers;
   ID3D11Buffer* ja_buffer;

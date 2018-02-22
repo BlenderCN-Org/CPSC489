@@ -14,7 +14,8 @@ static std::unique_ptr<MeshUTFInstance> instance;
 
 BOOL InitSkeletonAxesTest(void)
 {
- auto code = model.LoadModel(L"untitled3.txt");
+ auto code = model.LoadModel(L"room.txt");
+ //auto code = model.LoadModel(L"untitled3.txt");
  if(Fail(code)) {
     DebugErrorCode(code, __LINE__, __FILE__);
     Error(code);

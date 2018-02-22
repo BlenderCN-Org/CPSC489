@@ -20,6 +20,7 @@
 
 MeshUTF::MeshUTF()
 {
+ has_weights = false;
  ja_buffer = 0;
 }
 
@@ -206,80 +207,122 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
  code = ASCIIReadUint32(linelist, &n_jnts);
  if(Fail(code)) return code;
 
+
  // read joints
- if(n_jnts) joints.resize(n_jnts);
- for(uint32 i = 0; i < n_jnts; i++)
-    {
-     // read name
-     char buffer[1024];
-     code = ASCIIReadString(linelist, buffer);
-     if(Fail(code)) return code;
+ if(n_jnts)
+   {
+    // allocate joints
+    has_weights = true;
+    joints.resize(n_jnts);
 
-     // name must be valid
-     joints[i].name = ConvertUTF8ToUTF16(buffer);
-     if(!joints[i].name.length()) return EC_MODEL_BONENAME;
+    // read joints
+    for(uint32 i = 0; i < n_jnts; i++)
+       {
+        // read name
+        char buffer[1024];
+        code = ASCIIReadString(linelist, buffer);
+        if(Fail(code)) return code;
 
-     // read parent
-     code = ASCIIReadUint32(linelist, &joints[i].parent);
-     if(Fail(code)) return code;
+        // name must be valid
+        joints[i].name = ConvertUTF8ToUTF16(buffer);
+        if(!joints[i].name.length()) return EC_MODEL_BONENAME;
 
-     // read position
-     code = ASCIIReadVector3(linelist, &joints[i].position[0], false);
-     if(Fail(code)) return code;
+        // read parent
+        code = ASCIIReadUint32(linelist, &joints[i].parent);
+        if(Fail(code)) return code;
 
-     // read matrix
-     code = ASCIIReadMatrix4(linelist, &joints[i].m[0], false);
-     if(Fail(code)) return code;
+        // read position
+        code = ASCIIReadVector3(linelist, &joints[i].position[0], false);
+        if(Fail(code)) return code;
 
-     // save matrix to absolute format
-     joints[i].m_abs[0x0] = joints[i].m[0x0];
-     joints[i].m_abs[0x1] = joints[i].m[0x1];
-     joints[i].m_abs[0x2] = joints[i].m[0x2];
-     joints[i].m_abs[0x3] = joints[i].m[0x3];
-     joints[i].m_abs[0x4] = joints[i].m[0x4];
-     joints[i].m_abs[0x5] = joints[i].m[0x5];
-     joints[i].m_abs[0x6] = joints[i].m[0x6];
-     joints[i].m_abs[0x7] = joints[i].m[0x7];
-     joints[i].m_abs[0x8] = joints[i].m[0x8];
-     joints[i].m_abs[0x9] = joints[i].m[0x9];
-     joints[i].m_abs[0xA] = joints[i].m[0xA];
-     joints[i].m_abs[0xB] = joints[i].m[0xB];
-     joints[i].m_abs[0xC] = joints[i].m[0xC];
-     joints[i].m_abs[0xD] = joints[i].m[0xD];
-     joints[i].m_abs[0xE] = joints[i].m[0xE];
-     joints[i].m_abs[0xF] = joints[i].m[0xF];
+        // read matrix
+        code = ASCIIReadMatrix4(linelist, &joints[i].m[0], false);
+        if(Fail(code)) return code;
 
-     // save matrix to relative format
-     if(joints[i].parent == 0xFFFFFFFF) {
-        joints[i].m_rel[0x0] = joints[i].m_abs[0x0];
-        joints[i].m_rel[0x1] = joints[i].m_abs[0x1];
-        joints[i].m_rel[0x2] = joints[i].m_abs[0x2];
-        joints[i].m_rel[0x3] = joints[i].m_abs[0x3];
-        joints[i].m_rel[0x4] = joints[i].m_abs[0x4];
-        joints[i].m_rel[0x5] = joints[i].m_abs[0x5];
-        joints[i].m_rel[0x6] = joints[i].m_abs[0x6];
-        joints[i].m_rel[0x7] = joints[i].m_abs[0x7];
-        joints[i].m_rel[0x8] = joints[i].m_abs[0x8];
-        joints[i].m_rel[0x9] = joints[i].m_abs[0x9];
-        joints[i].m_rel[0xA] = joints[i].m_abs[0xA];
-        joints[i].m_rel[0xB] = joints[i].m_abs[0xB];
-        joints[i].m_rel[0xC] = joints[i].m_abs[0xC];
-        joints[i].m_rel[0xD] = joints[i].m_abs[0xD];
-        joints[i].m_rel[0xE] = joints[i].m_abs[0xE];
-        joints[i].m_rel[0xF] = joints[i].m_abs[0xF];
+        // save matrix to absolute format
+        joints[i].m_abs[0x0] = joints[i].m[0x0];
+        joints[i].m_abs[0x1] = joints[i].m[0x1];
+        joints[i].m_abs[0x2] = joints[i].m[0x2];
+        joints[i].m_abs[0x3] = joints[i].m[0x3];
+        joints[i].m_abs[0x4] = joints[i].m[0x4];
+        joints[i].m_abs[0x5] = joints[i].m[0x5];
+        joints[i].m_abs[0x6] = joints[i].m[0x6];
+        joints[i].m_abs[0x7] = joints[i].m[0x7];
+        joints[i].m_abs[0x8] = joints[i].m[0x8];
+        joints[i].m_abs[0x9] = joints[i].m[0x9];
+        joints[i].m_abs[0xA] = joints[i].m[0xA];
+        joints[i].m_abs[0xB] = joints[i].m[0xB];
+        joints[i].m_abs[0xC] = joints[i].m[0xC];
+        joints[i].m_abs[0xD] = joints[i].m[0xD];
+        joints[i].m_abs[0xE] = joints[i].m[0xE];
+        joints[i].m_abs[0xF] = joints[i].m[0xF];
+
+        // save matrix to relative format
+        if(joints[i].parent == 0xFFFFFFFF) {
+           joints[i].m_rel[0x0] = joints[i].m_abs[0x0];
+           joints[i].m_rel[0x1] = joints[i].m_abs[0x1];
+           joints[i].m_rel[0x2] = joints[i].m_abs[0x2];
+           joints[i].m_rel[0x3] = joints[i].m_abs[0x3];
+           joints[i].m_rel[0x4] = joints[i].m_abs[0x4];
+           joints[i].m_rel[0x5] = joints[i].m_abs[0x5];
+           joints[i].m_rel[0x6] = joints[i].m_abs[0x6];
+           joints[i].m_rel[0x7] = joints[i].m_abs[0x7];
+           joints[i].m_rel[0x8] = joints[i].m_abs[0x8];
+           joints[i].m_rel[0x9] = joints[i].m_abs[0x9];
+           joints[i].m_rel[0xA] = joints[i].m_abs[0xA];
+           joints[i].m_rel[0xB] = joints[i].m_abs[0xB];
+           joints[i].m_rel[0xC] = joints[i].m_abs[0xC];
+           joints[i].m_rel[0xD] = joints[i].m_abs[0xD];
+           joints[i].m_rel[0xE] = joints[i].m_abs[0xE];
+           joints[i].m_rel[0xF] = joints[i].m_abs[0xF];
+          }
+        else {
+           // R*P = A (relative * parent = absolute)
+           // R = A*inv(P) (relative = absolute * parent inverse)
+           // this is why we store the inverse matrices
+           matrix4D Pinv = joints[joints[i].parent].m_rel;
+           Pinv.invert();
+           joints[i].m_rel = joints[i].m_abs * Pinv;
+          }
+
+        // add joint to jointmap
+        jointmap.insert(std::map<STDSTRINGW, uint32>::value_type(joints[i].name, i));
        }
-     else {
-        // R*P = A (relative * parent = absolute)
-        // R = A*inv(P) (relative = absolute * parent inverse)
-        // this is why we store the inverse matrices
-        matrix4D Pinv = joints[joints[i].parent].m_rel;
-        Pinv.invert();
-        joints[i].m_rel = joints[i].m_abs * Pinv;
-       }
+   }
+ // auto-generate joint
+ else
+   {
+    // allocate default joint
+    has_weights = false;
+    n_jnts = 1;
+    joints.resize(n_jnts);
 
-     // add joint to jointmap
-     jointmap.insert(std::map<STDSTRINGW, uint32>::value_type(joints[i].name, i));
-    }
+    // create default joint
+    joints[0].name = L"default";
+    joints[0].parent = 0xFFFFFFFFul;
+    joints[0].position[0] = 0.0f;
+    joints[0].position[1] = 0.0f;
+    joints[0].position[2] = 0.0f;
+    joints[0].m.load_identity();
+
+    // save matrices
+    joints[0].m_abs[0x0] = joints[0].m_rel[0x0] = joints[0].m[0x0];
+    joints[0].m_abs[0x1] = joints[0].m_rel[0x1] = joints[0].m[0x1];
+    joints[0].m_abs[0x2] = joints[0].m_rel[0x2] = joints[0].m[0x2];
+    joints[0].m_abs[0x3] = joints[0].m_rel[0x3] = joints[0].m[0x3];
+    joints[0].m_abs[0x4] = joints[0].m_rel[0x4] = joints[0].m[0x4];
+    joints[0].m_abs[0x5] = joints[0].m_rel[0x5] = joints[0].m[0x5];
+    joints[0].m_abs[0x6] = joints[0].m_rel[0x6] = joints[0].m[0x6];
+    joints[0].m_abs[0x7] = joints[0].m_rel[0x7] = joints[0].m[0x7];
+    joints[0].m_abs[0x8] = joints[0].m_rel[0x8] = joints[0].m[0x8];
+    joints[0].m_abs[0x9] = joints[0].m_rel[0x9] = joints[0].m[0x9];
+    joints[0].m_abs[0xA] = joints[0].m_rel[0xA] = joints[0].m[0xA];
+    joints[0].m_abs[0xB] = joints[0].m_rel[0xB] = joints[0].m[0xB];
+    joints[0].m_abs[0xC] = joints[0].m_rel[0xC] = joints[0].m[0xC];
+    joints[0].m_abs[0xD] = joints[0].m_rel[0xD] = joints[0].m[0xD];
+    joints[0].m_abs[0xE] = joints[0].m_rel[0xE] = joints[0].m[0xE];
+    joints[0].m_abs[0xF] = joints[0].m_rel[0xF] = joints[0].m[0xF];
+   }
 
  //
  // READ ANIMATIONS
@@ -439,7 +482,7 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
      if(n_textures > 8) return EC_MODEL_TEXTURES;
 
      // read textures
-     meshes[i].textures.resize(n_textures);
+     if(n_textures) meshes[i].textures.resize(n_textures);
      for(uint32 j = 0; j < n_textures; j++)
         {
          // read semantic
@@ -498,8 +541,19 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
              if(Fail(code)) return code;
             }
 
+         // initialize blendindices and blendweights just in case we only have one auto-generated bone
+         meshes[i].bi[j][0] = 0;
+         meshes[i].bi[j][1] = 0;
+         meshes[i].bi[j][2] = 0;
+         meshes[i].bi[j][3] = 0;
+         meshes[i].bw[j][0] = 1.0f;
+         meshes[i].bw[j][1] = 0.0f;
+         meshes[i].bw[j][2] = 0.0f;
+         meshes[i].bw[j][3] = 0.0f;
+
          // read blendindices and blendweights
-         if(joints.size()) {
+         // only read if actual has a skeleton defined, if autogenerated, there are no weights
+         if(has_weights) {
             code = ASCIIReadVector4(linelist, &meshes[i].bi[j][0], false); // set to repeat?
             if(Fail(code)) return code;
             code = ASCIIReadVector4(linelist, &meshes[i].bw[j][0], false); // set to repeat?
