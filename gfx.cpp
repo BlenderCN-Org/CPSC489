@@ -658,8 +658,7 @@ ErrorCode UpdateDynamicConstBuffer(ID3D11Buffer* buffer, UINT size, const void* 
  D3D11_MAPPED_SUBRESOURCE msr;
  ZeroMemory(&msr, sizeof(msr));
  if(FAILED(lpDeviceContext->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) return EC_D3D_MAP_RESOURCE;
- DirectX::XMMATRIX* ptr = reinterpret_cast<DirectX::XMMATRIX*>(msr.pData);
- memmove(ptr, data, size);
+ memmove(msr.pData, data, size);
  lpDeviceContext->Unmap(buffer, 0);
  return EC_SUCCESS;
 }

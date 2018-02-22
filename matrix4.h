@@ -223,12 +223,12 @@ inline real32 matrix4D::invert(void)
 inline void matrix4D::transpose(void)
 {
  real32 temp;
- temp = this->m[ 1]; this->m[ 1] = this->m[ 4]; this->m[ 4] = temp;
- temp = this->m[ 2]; this->m[ 2] = this->m[ 8]; this->m[ 8] = temp;
- temp = this->m[ 3]; this->m[ 3] = this->m[12]; this->m[12] = temp;
- temp = this->m[ 6]; this->m[ 6] = this->m[ 9]; this->m[ 9] = temp;
- temp = this->m[ 7]; this->m[ 7] = this->m[13]; this->m[13] = temp;
- temp = this->m[11]; this->m[11] = this->m[14]; this->m[14] = temp;
+ temp = this->m[m12]; this->m[m12] = this->m[m21]; this->m[m21] = temp;
+ temp = this->m[m13]; this->m[m13] = this->m[m31]; this->m[m31] = temp;
+ temp = this->m[m14]; this->m[m14] = this->m[m41]; this->m[m41] = temp;
+ temp = this->m[m23]; this->m[m23] = this->m[m32]; this->m[m32] = temp;
+ temp = this->m[m24]; this->m[m24] = this->m[m42]; this->m[m42] = temp;
+ temp = this->m[m34]; this->m[m34] = this->m[m43]; this->m[m43] = temp;
 }
 
 inline void matrix4D::load_identity(void)
@@ -279,9 +279,9 @@ inline void matrix4D::load_quaternion(real32 w, real32 x, real32 y, real32 z)
  real32 dd2 = z * d2;
 
  // reinterpret matrix
- this->m[0x0] = one - cc2 - dd2;
- this->m[0x1] = bc2 - ad2;
- this->m[0x2] = bd2 + ac2;
+ this->m[0x0] = one - cc2 - dd2; // 1 - 2yy - 2zz
+ this->m[0x1] = bc2 - ad2;       // 2xy - 2wz
+ this->m[0x2] = bd2 + ac2;       // 2xz + 2wy
  this->m[0x3] = zer;
  this->m[0x4] = bc2 + ad2;
  this->m[0x5] = one - bb2 - dd2;
@@ -337,6 +337,53 @@ inline void matrix4D::load_quaternion(const real32* q)
  this->m[0xD] = zer;
  this->m[0xE] = zer;
  this->m[0xF] = one;
+}
+
+inline matrix4D& matrix4D::premul(const matrix4D& A)
+{
+ // computes (*this) = A x (*this)
+ real32 X[16] = {
+  A[0x0]*this->m[0x0] + A[0x1]*this->m[0x4] + A[0x2]*this->m[0x8] + A[0x3]*this->m[0xC],
+  A[0x0]*this->m[0x1] + A[0x1]*this->m[0x5] + A[0x2]*this->m[0x9] + A[0x3]*this->m[0xD],
+  A[0x0]*this->m[0x2] + A[0x1]*this->m[0x6] + A[0x2]*this->m[0xA] + A[0x3]*this->m[0xE],
+  A[0x0]*this->m[0x3] + A[0x1]*this->m[0x7] + A[0x2]*this->m[0xB] + A[0x3]*this->m[0xF],
+  A[0x4]*this->m[0x0] + A[0x5]*this->m[0x4] + A[0x6]*this->m[0x8] + A[0x7]*this->m[0xC],
+  A[0x4]*this->m[0x1] + A[0x5]*this->m[0x5] + A[0x6]*this->m[0x9] + A[0x7]*this->m[0xD],
+  A[0x4]*this->m[0x2] + A[0x5]*this->m[0x6] + A[0x6]*this->m[0xA] + A[0x7]*this->m[0xE],
+  A[0x4]*this->m[0x3] + A[0x5]*this->m[0x7] + A[0x6]*this->m[0xB] + A[0x7]*this->m[0xF],
+  A[0x8]*this->m[0x0] + A[0x9]*this->m[0x4] + A[0xA]*this->m[0x8] + A[0xB]*this->m[0xC],
+  A[0x8]*this->m[0x1] + A[0x9]*this->m[0x5] + A[0xA]*this->m[0x9] + A[0xB]*this->m[0xD],
+  A[0x8]*this->m[0x2] + A[0x9]*this->m[0x6] + A[0xA]*this->m[0xA] + A[0xB]*this->m[0xE],
+  A[0x8]*this->m[0x3] + A[0x9]*this->m[0x7] + A[0xA]*this->m[0xB] + A[0xB]*this->m[0xF],
+  A[0xC]*this->m[0x0] + A[0xD]*this->m[0x4] + A[0xE]*this->m[0x8] + A[0xF]*this->m[0xC],
+  A[0xC]*this->m[0x1] + A[0xD]*this->m[0x5] + A[0xE]*this->m[0x9] + A[0xF]*this->m[0xD],
+  A[0xC]*this->m[0x2] + A[0xD]*this->m[0x6] + A[0xE]*this->m[0xA] + A[0xF]*this->m[0xE],
+  A[0xC]*this->m[0x3] + A[0xD]*this->m[0x7] + A[0xE]*this->m[0xB] + A[0xF]*this->m[0xF]
+ };
+ this->m[0x0] = X[0x0];
+ this->m[0x1] = X[0x1];
+ this->m[0x2] = X[0x2];
+ this->m[0x3] = X[0x3];
+ this->m[0x4] = X[0x4];
+ this->m[0x5] = X[0x5];
+ this->m[0x6] = X[0x6];
+ this->m[0x7] = X[0x7];
+ this->m[0x8] = X[0x8];
+ this->m[0x9] = X[0x9];
+ this->m[0xA] = X[0xA];
+ this->m[0xB] = X[0xB];
+ this->m[0xC] = X[0xC];
+ this->m[0xD] = X[0xD];
+ this->m[0xE] = X[0xE];
+ this->m[0xF] = X[0xF];
+
+ return *this;
+}
+
+inline matrix4D& matrix4D::mul(const matrix4D& A)
+{
+ // computes (*this) = (*this) x A
+ return ((*this) *= A);
 }
 
 inline const real32& matrix4D::operator [](size_t index)const
@@ -504,54 +551,177 @@ inline matrix4D& matrix4D::operator *=(const matrix4D& other)
  return *this;
 }
 
-inline matrix4D& matrix4D::premul(const matrix4D& A)
-{
- // computes (*this) = A x (*this)
- real32 X[16] = {
-  A[0x0]*this->m[0x0] + A[0x1]*this->m[0x4] + A[0x2]*this->m[0x8] + A[0x3]*this->m[0xC],
-  A[0x0]*this->m[0x1] + A[0x1]*this->m[0x5] + A[0x2]*this->m[0x9] + A[0x3]*this->m[0xD],
-  A[0x0]*this->m[0x2] + A[0x1]*this->m[0x6] + A[0x2]*this->m[0xA] + A[0x3]*this->m[0xE],
-  A[0x0]*this->m[0x3] + A[0x1]*this->m[0x7] + A[0x2]*this->m[0xB] + A[0x3]*this->m[0xF],
-  A[0x4]*this->m[0x0] + A[0x5]*this->m[0x4] + A[0x6]*this->m[0x8] + A[0x7]*this->m[0xC],
-  A[0x4]*this->m[0x1] + A[0x5]*this->m[0x5] + A[0x6]*this->m[0x9] + A[0x7]*this->m[0xD],
-  A[0x4]*this->m[0x2] + A[0x5]*this->m[0x6] + A[0x6]*this->m[0xA] + A[0x7]*this->m[0xE],
-  A[0x4]*this->m[0x3] + A[0x5]*this->m[0x7] + A[0x6]*this->m[0xB] + A[0x7]*this->m[0xF],
-  A[0x8]*this->m[0x0] + A[0x9]*this->m[0x4] + A[0xA]*this->m[0x8] + A[0xB]*this->m[0xC],
-  A[0x8]*this->m[0x1] + A[0x9]*this->m[0x5] + A[0xA]*this->m[0x9] + A[0xB]*this->m[0xD],
-  A[0x8]*this->m[0x2] + A[0x9]*this->m[0x6] + A[0xA]*this->m[0xA] + A[0xB]*this->m[0xE],
-  A[0x8]*this->m[0x3] + A[0x9]*this->m[0x7] + A[0xA]*this->m[0xB] + A[0xB]*this->m[0xF],
-  A[0xC]*this->m[0x0] + A[0xD]*this->m[0x4] + A[0xE]*this->m[0x8] + A[0xF]*this->m[0xC],
-  A[0xC]*this->m[0x1] + A[0xD]*this->m[0x5] + A[0xE]*this->m[0x9] + A[0xF]*this->m[0xD],
-  A[0xC]*this->m[0x2] + A[0xD]*this->m[0x6] + A[0xE]*this->m[0xA] + A[0xF]*this->m[0xE],
-  A[0xC]*this->m[0x3] + A[0xD]*this->m[0x7] + A[0xE]*this->m[0xB] + A[0xF]*this->m[0xF]
- };
- this->m[0x0] = X[0x0];
- this->m[0x1] = X[0x1];
- this->m[0x2] = X[0x2];
- this->m[0x3] = X[0x3];
- this->m[0x4] = X[0x4];
- this->m[0x5] = X[0x5];
- this->m[0x6] = X[0x6];
- this->m[0x7] = X[0x7];
- this->m[0x8] = X[0x8];
- this->m[0x9] = X[0x9];
- this->m[0xA] = X[0xA];
- this->m[0xB] = X[0xB];
- this->m[0xC] = X[0xC];
- this->m[0xD] = X[0xD];
- this->m[0xE] = X[0xE];
- this->m[0xF] = X[0xF];
-}
-
-inline matrix4D& matrix4D::mul(const matrix4D& A)
-{
- // computes (*this) = (*this) x A
- return ((*this) *= A);
-}
-
 #pragma endregion MATRIX4D_CLASS_DEFINITIONS
 
 #pragma region MATRIX4D_OPERATORS
+
+inline matrix4D operator +(const matrix4D& lhs, const matrix4D& rhs)
+{
+ matrix4D r;
+ r.m[ 0] = lhs.m[ 0] + rhs.m[ 0];
+ r.m[ 1] = lhs.m[ 1] + rhs.m[ 1];
+ r.m[ 2] = lhs.m[ 2] + rhs.m[ 2];
+ r.m[ 3] = lhs.m[ 3] + rhs.m[ 3];
+ r.m[ 4] = lhs.m[ 4] + rhs.m[ 4];
+ r.m[ 5] = lhs.m[ 5] + rhs.m[ 5];
+ r.m[ 6] = lhs.m[ 6] + rhs.m[ 6];
+ r.m[ 7] = lhs.m[ 7] + rhs.m[ 7];
+ r.m[ 8] = lhs.m[ 8] + rhs.m[ 8];
+ r.m[ 9] = lhs.m[ 9] + rhs.m[ 9];
+ r.m[10] = lhs.m[10] + rhs.m[10];
+ r.m[11] = lhs.m[11] + rhs.m[11];
+ r.m[12] = lhs.m[12] + rhs.m[12];
+ r.m[13] = lhs.m[13] + rhs.m[13];
+ r.m[14] = lhs.m[14] + rhs.m[14];
+ r.m[15] = lhs.m[15] + rhs.m[15];
+ return r;
+}
+
+inline matrix4D operator -(const matrix4D& lhs, const matrix4D& rhs)
+{
+ matrix4D r;
+ r.m[ 0] = lhs.m[ 0] - rhs.m[ 0];
+ r.m[ 1] = lhs.m[ 1] - rhs.m[ 1];
+ r.m[ 2] = lhs.m[ 2] - rhs.m[ 2];
+ r.m[ 3] = lhs.m[ 3] - rhs.m[ 3];
+ r.m[ 4] = lhs.m[ 4] - rhs.m[ 4];
+ r.m[ 5] = lhs.m[ 5] - rhs.m[ 5];
+ r.m[ 6] = lhs.m[ 6] - rhs.m[ 6];
+ r.m[ 7] = lhs.m[ 7] - rhs.m[ 7];
+ r.m[ 8] = lhs.m[ 8] - rhs.m[ 8];
+ r.m[ 9] = lhs.m[ 9] - rhs.m[ 9];
+ r.m[10] = lhs.m[10] - rhs.m[10];
+ r.m[11] = lhs.m[11] - rhs.m[11];
+ r.m[12] = lhs.m[12] - rhs.m[12];
+ r.m[13] = lhs.m[13] - rhs.m[13];
+ r.m[14] = lhs.m[14] - rhs.m[14];
+ r.m[15] = lhs.m[15] - rhs.m[15];
+ return r;
+}
+
+inline matrix4D operator *(const matrix4D& lhs, const matrix4D& rhs)
+{
+ matrix4D r;
+ r.m[ 0] = lhs.m[ 0]*rhs.m[ 0] + lhs.m[ 1]*rhs.m[ 4] + lhs.m[ 2]*rhs.m[ 8] + lhs.m[ 3]*rhs.m[12];
+ r.m[ 1] = lhs.m[ 0]*rhs.m[ 1] + lhs.m[ 1]*rhs.m[ 5] + lhs.m[ 2]*rhs.m[ 9] + lhs.m[ 3]*rhs.m[13];
+ r.m[ 2] = lhs.m[ 0]*rhs.m[ 2] + lhs.m[ 1]*rhs.m[ 6] + lhs.m[ 2]*rhs.m[10] + lhs.m[ 3]*rhs.m[14];
+ r.m[ 3] = lhs.m[ 0]*rhs.m[ 3] + lhs.m[ 1]*rhs.m[ 7] + lhs.m[ 2]*rhs.m[11] + lhs.m[ 3]*rhs.m[15];
+ r.m[ 4] = lhs.m[ 4]*rhs.m[ 0] + lhs.m[ 5]*rhs.m[ 4] + lhs.m[ 6]*rhs.m[ 8] + lhs.m[ 7]*rhs.m[12];
+ r.m[ 5] = lhs.m[ 4]*rhs.m[ 1] + lhs.m[ 5]*rhs.m[ 5] + lhs.m[ 6]*rhs.m[ 9] + lhs.m[ 7]*rhs.m[13];
+ r.m[ 6] = lhs.m[ 4]*rhs.m[ 2] + lhs.m[ 5]*rhs.m[ 6] + lhs.m[ 6]*rhs.m[10] + lhs.m[ 7]*rhs.m[14];
+ r.m[ 7] = lhs.m[ 4]*rhs.m[ 3] + lhs.m[ 5]*rhs.m[ 7] + lhs.m[ 6]*rhs.m[11] + lhs.m[ 7]*rhs.m[15];
+ r.m[ 8] = lhs.m[ 8]*rhs.m[ 0] + lhs.m[ 9]*rhs.m[ 4] + lhs.m[10]*rhs.m[ 8] + lhs.m[11]*rhs.m[12];
+ r.m[ 9] = lhs.m[ 8]*rhs.m[ 1] + lhs.m[ 9]*rhs.m[ 5] + lhs.m[10]*rhs.m[ 9] + lhs.m[11]*rhs.m[13];
+ r.m[10] = lhs.m[ 8]*rhs.m[ 2] + lhs.m[ 9]*rhs.m[ 6] + lhs.m[10]*rhs.m[10] + lhs.m[11]*rhs.m[14];
+ r.m[11] = lhs.m[ 8]*rhs.m[ 3] + lhs.m[ 9]*rhs.m[ 7] + lhs.m[10]*rhs.m[11] + lhs.m[11]*rhs.m[15];
+ r.m[12] = lhs.m[12]*rhs.m[ 0] + lhs.m[13]*rhs.m[ 4] + lhs.m[14]*rhs.m[ 8] + lhs.m[15]*rhs.m[12];
+ r.m[13] = lhs.m[12]*rhs.m[ 1] + lhs.m[13]*rhs.m[ 5] + lhs.m[14]*rhs.m[ 9] + lhs.m[15]*rhs.m[13];
+ r.m[14] = lhs.m[12]*rhs.m[ 2] + lhs.m[13]*rhs.m[ 6] + lhs.m[14]*rhs.m[10] + lhs.m[15]*rhs.m[14];
+ r.m[15] = lhs.m[12]*rhs.m[ 3] + lhs.m[13]*rhs.m[ 7] + lhs.m[14]*rhs.m[11] + lhs.m[15]*rhs.m[15];
+ return r;
+}
+
+inline matrix4D operator *(const matrix4D& lhs, const real32& rhs)
+{
+ matrix4D r;
+ r.m[ 0] = lhs.m[ 0] * rhs;
+ r.m[ 1] = lhs.m[ 1] * rhs;
+ r.m[ 2] = lhs.m[ 2] * rhs;
+ r.m[ 3] = lhs.m[ 3] * rhs;
+ r.m[ 4] = lhs.m[ 4] * rhs;
+ r.m[ 5] = lhs.m[ 5] * rhs;
+ r.m[ 6] = lhs.m[ 6] * rhs;
+ r.m[ 7] = lhs.m[ 7] * rhs;
+ r.m[ 8] = lhs.m[ 8] * rhs;
+ r.m[ 9] = lhs.m[ 9] * rhs;
+ r.m[10] = lhs.m[10] * rhs;
+ r.m[11] = lhs.m[11] * rhs;
+ r.m[12] = lhs.m[12] * rhs;
+ r.m[13] = lhs.m[13] * rhs;
+ r.m[14] = lhs.m[14] * rhs;
+ r.m[15] = lhs.m[15] * rhs;
+ return r;
+}
+
+inline matrix4D operator *(const real32& lhs, const matrix4D& rhs)
+{
+ matrix4D r;
+ r.m[ 0] = rhs.m[ 0] * lhs;
+ r.m[ 1] = rhs.m[ 1] * lhs;
+ r.m[ 2] = rhs.m[ 2] * lhs;
+ r.m[ 3] = rhs.m[ 3] * lhs;
+ r.m[ 4] = rhs.m[ 4] * lhs;
+ r.m[ 5] = rhs.m[ 5] * lhs;
+ r.m[ 6] = rhs.m[ 6] * lhs;
+ r.m[ 7] = rhs.m[ 7] * lhs;
+ r.m[ 8] = rhs.m[ 8] * lhs;
+ r.m[ 9] = rhs.m[ 9] * lhs;
+ r.m[10] = rhs.m[10] * lhs;
+ r.m[11] = rhs.m[11] * lhs;
+ r.m[12] = rhs.m[12] * lhs;
+ r.m[13] = rhs.m[13] * lhs;
+ r.m[14] = rhs.m[14] * lhs;
+ r.m[15] = rhs.m[15] * lhs;
+ return r;
+}
+
+inline matrix4D operator /(const matrix4D& lhs, const real32& rhs)
+{
+ matrix4D r;
+ r.m[ 0] = lhs.m[ 0] / rhs;
+ r.m[ 1] = lhs.m[ 1] / rhs;
+ r.m[ 2] = lhs.m[ 2] / rhs;
+ r.m[ 3] = lhs.m[ 3] / rhs;
+ r.m[ 4] = lhs.m[ 4] / rhs;
+ r.m[ 5] = lhs.m[ 5] / rhs;
+ r.m[ 6] = lhs.m[ 6] / rhs;
+ r.m[ 7] = lhs.m[ 7] / rhs;
+ r.m[ 8] = lhs.m[ 8] / rhs;
+ r.m[ 9] = lhs.m[ 9] / rhs;
+ r.m[10] = lhs.m[10] / rhs;
+ r.m[11] = lhs.m[11] / rhs;
+ r.m[12] = lhs.m[12] / rhs;
+ r.m[13] = lhs.m[13] / rhs;
+ r.m[14] = lhs.m[14] / rhs;
+ r.m[15] = lhs.m[15] / rhs;
+ return r;
+}
+
+inline matrix4D operator +(const matrix4D& rhs)
+{
+ return rhs;
+}
+
+inline matrix4D operator -(const matrix4D& rhs)
+{
+ matrix4D r;
+ r.m[ 0] = -rhs.m[ 0];
+ r.m[ 1] = -rhs.m[ 1];
+ r.m[ 2] = -rhs.m[ 2];
+ r.m[ 3] = -rhs.m[ 3];
+ r.m[ 4] = -rhs.m[ 4];
+ r.m[ 5] = -rhs.m[ 5];
+ r.m[ 6] = -rhs.m[ 6];
+ r.m[ 7] = -rhs.m[ 7];
+ r.m[ 8] = -rhs.m[ 8];
+ r.m[ 9] = -rhs.m[ 9];
+ r.m[10] = -rhs.m[10];
+ r.m[11] = -rhs.m[11];
+ r.m[12] = -rhs.m[12];
+ r.m[13] = -rhs.m[13];
+ r.m[14] = -rhs.m[14];
+ r.m[15] = -rhs.m[15];
+ return r;
+}
+
+inline vector3D operator *(const matrix4D& lhs, const vector3D& rhs)
+{
+ return vector3D(
+  lhs.m[0]*rhs[0] + lhs.m[1]*rhs[1] + lhs.m[ 2]*rhs[2] + lhs.m[ 3],
+  lhs.m[4]*rhs[0] + lhs.m[5]*rhs[1] + lhs.m[ 6]*rhs[2] + lhs.m[ 7],
+  lhs.m[8]*rhs[0] + lhs.m[9]*rhs[1] + lhs.m[10]*rhs[2] + lhs.m[11]
+ );
+}
 
 #pragma endregion MATRIX4D_OPERATORS
 

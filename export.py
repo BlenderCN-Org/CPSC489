@@ -63,6 +63,10 @@ def ExportArmature(file, armature, skeleton):
         indexmap = {}
         for index, bone in enumerate(skeleton.bones):
             indexmap[bone.name] = index
+
+        dx = 0 #armature.location[0]
+        dy = 0 #armature.location[1]
+        dz = 0 #armature.location[2]
         
         # PHASE 2
         # construct bonelist
@@ -73,24 +77,28 @@ def ExportArmature(file, armature, skeleton):
             bonelist[index].parent = -1
             if bone.parent != None: bonelist[index].parent = indexmap[bone.parent.name]
             bonelist[index].position = [
-                armature.location[0] + bone.head_local[0],
-                armature.location[1] + bone.head_local[1],
-                armature.location[2] + bone.head_local[2]]
+                dx + bone.head_local[0],
+                dy + bone.head_local[1],
+                dz + bone.head_local[2]]
             bonelist[index].matrix = [
-                [bone.matrix_local[0][0], bone.matrix_local[0][1], bone.matrix_local[0][2]],
-                [bone.matrix_local[1][0], bone.matrix_local[1][1], bone.matrix_local[1][2]],
-                [bone.matrix_local[2][0], bone.matrix_local[2][1], bone.matrix_local[2][2]]]
-                            
+                [bone.matrix_local[0][0], bone.matrix_local[1][0], bone.matrix_local[2][0]],
+                [bone.matrix_local[0][1], bone.matrix_local[1][1], bone.matrix_local[2][1]],
+                [bone.matrix_local[0][2], bone.matrix_local[1][2], bone.matrix_local[2][2]]]
+
+            print(bone.matrix_local)
+            print(bone.matrix)
+                
         # PHASE 3
         # save bone data
         for bone in bonelist:
             file.write(bone.name + "\n")
             file.write("{}\n".format(bone.parent))
             file.write("{} {} {}\n".format(bone.position[0], bone.position[1], bone.position[2]))
-            file.write("{} {} {} {} {} {} {} {} {}\n".format(
-                bone.matrix[0][0], bone.matrix[0][1], bone.matrix[0][2],
-                bone.matrix[1][0], bone.matrix[1][1], bone.matrix[1][2],
-                bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2]))   
+            file.write("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
+                bone.matrix[0][0], bone.matrix[0][1], bone.matrix[0][2], 0.0,
+                bone.matrix[1][0], bone.matrix[1][1], bone.matrix[1][2], 0.0,
+                bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2], 0.0,
+                0.0, 0.0, 0.0, 1.0))   
 
 def ExportAnimations(file, armature):
 
@@ -112,6 +120,7 @@ def ExportAnimations(file, armature):
             # extract bone name and key type
             pattern = r'pose\.bones\[\"(.*)\"\]\.(.*)'
             str = fcu.data_path
+            print(fcu.data_path)
             m = re.match(pattern, str)
             g1 = m.group(1)
             g2 = m.group(2)
@@ -156,6 +165,10 @@ def ExportAnimations(file, armature):
         file.write(i.name + '\n')
         file.write('{}'.format(n_keyable) + ' # number of keyframed bones\n')
 
+        dx = 0 #armature.location[0]
+        dy = 0 #armature.location[1]
+        dz = 0 #armature.location[2]
+
         # iterate through <bone, keys> dictionary
         for name, keydict in bonemap.items():
             n_keys = len(keydict)
@@ -164,7 +177,7 @@ def ExportAnimations(file, armature):
                 file.write('{}'.format(len(keydict)) + ' # number of keys\n')
                 for frame, transforms in keydict.items():
                     file.write('{}\n'.format(int(frame)))
-                    file.write('{} {} {}\n'.format(transforms[0][0], transforms[0][1], transforms[0][2]))
+                    file.write('{} {} {}\n'.format(transforms[0][0] + dx, transforms[0][1] + dy, transforms[0][2] + dz))
                     file.write('{} {} {} {}\n'.format(transforms[1][0], transforms[1][1], transforms[1][2], transforms[1][3]))
                     file.write('{} {} {}\n'.format(transforms[2][0], transforms[2][1], transforms[2][2]))
 
@@ -253,9 +266,9 @@ def ExportMesh(file, obj, mesh, armature):
         # add the mesh object's location, even if it is usually <0, 0, 0>
         v = mesh.vertices[i]
         temp = [0.0, 0.0, 0.0]
-        temp[0] = v.co[0] + obj.location[0]
-        temp[1] = v.co[1] + obj.location[1]
-        temp[2] = v.co[2] + obj.location[2]
+        temp[0] = v.co[0] + 0 #obj.location[0]
+        temp[1] = v.co[1] + 0 #obj.location[1]
+        temp[2] = v.co[2] + 0 #obj.location[2]
         vbuffer1.append(temp)
         
         # normal

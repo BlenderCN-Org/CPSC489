@@ -5,8 +5,9 @@ struct MeshUTFJoint {
  STDSTRINGW name;
  uint32 parent;
  real32 position[3];
- real32 m[9];
+ real32 m[16];
  matrix4D m_rel;
+ matrix4D m_abs;
 };
 
 struct MeshUTFKeyFrame {
@@ -69,6 +70,7 @@ struct MeshUTFMesh {
 struct MeshUTFDirect3D {
   ID3D11Buffer* vbuffer;
   ID3D11Buffer* ibuffer;
+  std::unique_ptr<ID3D11ShaderResourceView*[]> rvlist;
 };
 
 class MeshUTF {

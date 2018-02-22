@@ -1,6 +1,8 @@
 #include "stdafx.h"
+#include "stdwin.h"
 #include "stdgfx.h"
 #include "errors.h"
+#include "app.h"
 #include "win.h"
 #include "math.h"
 #include "vector3.h"
@@ -102,9 +104,9 @@ ErrorCode MeshUTF::ConstructAnimationData(void)
              animations[anim].animdata[k_index].slist[b_index][2] = kf.scale[2];
 
              // set translation
-             animations[anim].animdata[k_index].tlist[b_index][0] = kf.translation[0];
-             animations[anim].animdata[k_index].tlist[b_index][1] = kf.translation[1];
-             animations[anim].animdata[k_index].tlist[b_index][2] = kf.translation[2];
+             animations[anim].animdata[k_index].tlist[b_index][0] = kf.translation[0] + joints[b_index].position[0];
+             animations[anim].animdata[k_index].tlist[b_index][1] = kf.translation[1] + joints[b_index].position[1];
+             animations[anim].animdata[k_index].tlist[b_index][2] = kf.translation[2] + joints[b_index].position[2];
 
              // set quaternion
              animations[anim].animdata[k_index].qlist[b_index][0] = kf.quaternion[0];
@@ -180,27 +182,6 @@ ErrorCode MeshUTF::ConstructAnimationData(void)
         }
     }
 
- // for each animation
- for(size_t anim = 0; anim < animations.size(); anim++)
-    {
-     // number of keyframes
-     size_t n_keys = animations[anim].keymap.size();
-     for(size_t i = 0; i < n_keys; i++)
-        {
-         for(size_t j = 0; j < joints.size(); j++)
-            {
-             animations[anim].animdata[i].mlist[j];
-
-             if(joints[j].parent == 0xFFFFFFFFul)
-               {
-               }
-             else
-               {
-               }
-            }
-        }
-    }
-
  return EC_SUCCESS;
 }
 
@@ -246,51 +227,53 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
      if(Fail(code)) return code;
 
      // read matrix
-     code = ASCIIReadMatrix3(linelist, &joints[i].m[0], false);
+     code = ASCIIReadMatrix4(linelist, &joints[i].m[0], false);
      if(Fail(code)) return code;
+
+     // save matrix to absolute format
+     joints[i].m_abs[0x0] = joints[i].m[0x0];
+     joints[i].m_abs[0x1] = joints[i].m[0x1];
+     joints[i].m_abs[0x2] = joints[i].m[0x2];
+     joints[i].m_abs[0x3] = joints[i].m[0x3];
+     joints[i].m_abs[0x4] = joints[i].m[0x4];
+     joints[i].m_abs[0x5] = joints[i].m[0x5];
+     joints[i].m_abs[0x6] = joints[i].m[0x6];
+     joints[i].m_abs[0x7] = joints[i].m[0x7];
+     joints[i].m_abs[0x8] = joints[i].m[0x8];
+     joints[i].m_abs[0x9] = joints[i].m[0x9];
+     joints[i].m_abs[0xA] = joints[i].m[0xA];
+     joints[i].m_abs[0xB] = joints[i].m[0xB];
+     joints[i].m_abs[0xC] = joints[i].m[0xC];
+     joints[i].m_abs[0xD] = joints[i].m[0xD];
+     joints[i].m_abs[0xE] = joints[i].m[0xE];
+     joints[i].m_abs[0xF] = joints[i].m[0xF];
 
      // save matrix to relative format
      if(joints[i].parent == 0xFFFFFFFF) {
-        joints[i].m_rel[0x0] = joints[i].m[0x0];
-        joints[i].m_rel[0x1] = joints[i].m[0x1];
-        joints[i].m_rel[0x2] = joints[i].m[0x2];
-        joints[i].m_rel[0x3] = joints[i].position[0];
-        joints[i].m_rel[0x4] = joints[i].m[0x4];
-        joints[i].m_rel[0x5] = joints[i].m[0x5];
-        joints[i].m_rel[0x6] = joints[i].m[0x6];
-        joints[i].m_rel[0x7] = joints[i].position[1];
-        joints[i].m_rel[0x8] = joints[i].m[0x8];
-        joints[i].m_rel[0x9] = joints[i].m[0x9];
-        joints[i].m_rel[0xA] = joints[i].m[0xA];
-        joints[i].m_rel[0xB] = joints[i].position[2];
-        joints[i].m_rel[0xC] = joints[i].m[0xC];
-        joints[i].m_rel[0xD] = joints[i].m[0xD];
-        joints[i].m_rel[0xE] = joints[i].m[0xE];
-        joints[i].m_rel[0xF] = 1.0f;
-        joints[i].m_rel.invert();
+        joints[i].m_rel[0x0] = joints[i].m_abs[0x0];
+        joints[i].m_rel[0x1] = joints[i].m_abs[0x1];
+        joints[i].m_rel[0x2] = joints[i].m_abs[0x2];
+        joints[i].m_rel[0x3] = joints[i].m_abs[0x3];
+        joints[i].m_rel[0x4] = joints[i].m_abs[0x4];
+        joints[i].m_rel[0x5] = joints[i].m_abs[0x5];
+        joints[i].m_rel[0x6] = joints[i].m_abs[0x6];
+        joints[i].m_rel[0x7] = joints[i].m_abs[0x7];
+        joints[i].m_rel[0x8] = joints[i].m_abs[0x8];
+        joints[i].m_rel[0x9] = joints[i].m_abs[0x9];
+        joints[i].m_rel[0xA] = joints[i].m_abs[0xA];
+        joints[i].m_rel[0xB] = joints[i].m_abs[0xB];
+        joints[i].m_rel[0xC] = joints[i].m_abs[0xC];
+        joints[i].m_rel[0xD] = joints[i].m_abs[0xD];
+        joints[i].m_rel[0xE] = joints[i].m_abs[0xE];
+        joints[i].m_rel[0xF] = joints[i].m_abs[0xF];
        }
      else {
         // R*P = A (relative * parent = absolute)
         // R = A*inv(P) (relative = absolute * parent inverse)
         // this is why we store the inverse matrices
-        joints[i].m_rel[0x0] = joints[i].m[0x0];
-        joints[i].m_rel[0x1] = joints[i].m[0x1];
-        joints[i].m_rel[0x2] = joints[i].m[0x2];
-        joints[i].m_rel[0x3] = joints[i].position[0];
-        joints[i].m_rel[0x4] = joints[i].m[0x4];
-        joints[i].m_rel[0x5] = joints[i].m[0x5];
-        joints[i].m_rel[0x6] = joints[i].m[0x6];
-        joints[i].m_rel[0x7] = joints[i].position[1];
-        joints[i].m_rel[0x8] = joints[i].m[0x8];
-        joints[i].m_rel[0x9] = joints[i].m[0x9];
-        joints[i].m_rel[0xA] = joints[i].m[0xA];
-        joints[i].m_rel[0xB] = joints[i].position[2];
-        joints[i].m_rel[0xC] = joints[i].m[0xC];
-        joints[i].m_rel[0xD] = joints[i].m[0xD];
-        joints[i].m_rel[0xE] = joints[i].m[0xE];
-        joints[i].m_rel[0xF] = 1.0f;
-        matrix4D_mul(joints[i].m_rel.data(), joints[joints[i].parent].m_rel.data());
-        joints[i].m_rel.invert();
+        matrix4D Pinv = joints[joints[i].parent].m_rel;
+        Pinv.invert();
+        joints[i].m_rel = joints[i].m_abs * Pinv;
        }
 
      // add joint to jointmap
@@ -579,17 +562,17 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
  if(FAILED(GetD3DDeviceContext()->Map(ja_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) return EC_D3D_MAP_RESOURCE;
  JAXISBUFFER* data = reinterpret_cast<JAXISBUFFER*>(msr.pData);
  for(size_t i = 0; i < n_jnts; i++) {
-     data[i].m[0x0] = joints[i].m[0];
-     data[i].m[0x1] = joints[i].m[1];
-     data[i].m[0x2] = joints[i].m[2];
+     data[i].m[0x0] = joints[i].m[0x0];
+     data[i].m[0x1] = joints[i].m[0x1];
+     data[i].m[0x2] = joints[i].m[0x2];
      data[i].m[0x3] = joints[i].position[0];
-     data[i].m[0x4] = joints[i].m[3];
-     data[i].m[0x5] = joints[i].m[4];
-     data[i].m[0x6] = joints[i].m[5];
+     data[i].m[0x4] = joints[i].m[0x4];
+     data[i].m[0x5] = joints[i].m[0x5];
+     data[i].m[0x6] = joints[i].m[0x6];
      data[i].m[0x7] = joints[i].position[1];
-     data[i].m[0x8] = joints[i].m[6];
-     data[i].m[0x9] = joints[i].m[7];
-     data[i].m[0xA] = joints[i].m[8];
+     data[i].m[0x8] = joints[i].m[0x8];
+     data[i].m[0x9] = joints[i].m[0x9];
+     data[i].m[0xA] = joints[i].m[0xA];
      data[i].m[0xB] = joints[i].position[2];
      data[i].m[0xC] = 0.0f;
      data[i].m[0xD] = 0.0f;
@@ -620,12 +603,13 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
 
  // initialize mesh buffers
  buffers.reset(new MeshUTFDirect3D[meshes.size()]);
- for(size_t i = 0; i < meshes.size(); i++) {
+ for(size_t i = 0; i < meshes.size(); i++)
+    {
      buffers[i].vbuffer = nullptr;
      buffers[i].ibuffer = nullptr;
     }
 
- // create mesh buffer
+ // create mesh buffers
  for(size_t i = 0; i < meshes.size(); i++)
     {
      std::unique_ptr<MESHBUFFER[]> data(new MESHBUFFER[meshes[i].n_verts]);
@@ -681,6 +665,24 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
      buffers[i].ibuffer = ib;
     }
 
+ // create shader resource views (shared textures)
+ for(size_t i = 0; i < meshes.size(); i++)
+    {
+     // allocate space for resource views
+     size_t n_tex = meshes[i].textures.size();
+     if(n_tex) {
+        buffers[i].rvlist.reset(new ID3D11ShaderResourceView*[n_tex]);
+        for(size_t j = 0; j < n_tex; j++) buffers[i].rvlist[j] = nullptr;
+       }
+
+     // create resource views
+     for(size_t j = 0; j < n_tex; j++)
+        {
+         auto pathname = GetPathnameFromFilenameW(meshes[i].textures[j].filename.c_str());
+         ErrorBox(pathname.c_str());
+        }
+    }
+
  return EC_SUCCESS;
 }
 
@@ -689,6 +691,16 @@ void MeshUTF::FreeModel(void)
  if(ja_buffer) ja_buffer->Release();
  ja_buffer = nullptr;
 
+ // delete Direct3D shader resource views
+ for(size_t i = 0; i < meshes.size(); i++) {
+     size_t n_tex = meshes[i].textures.size();
+     for(size_t j = 0; j < n_tex; j++) {
+         if(buffers[i].rvlist[j]) buffers[i].rvlist[j]->Release();
+          buffers[i].rvlist[j] = nullptr;
+        }
+    }
+
+ // delete Direct3D buffers
  for(size_t i = 0; i < meshes.size(); i++) {
      if(buffers[i].vbuffer) buffers[i].vbuffer->Release(); buffers[i].vbuffer = nullptr;
      if(buffers[i].ibuffer) buffers[i].ibuffer->Release(); buffers[i].ibuffer = nullptr;
@@ -835,39 +847,42 @@ ErrorCode MeshUTFInstance::Update(void)
          // find [a, b] such that [a, time, b]
          auto& kf1 = animation.animdata[ki];
          auto& kf2 = animation.animdata[ki + 1];
-         if((time < kf1.delta) || (time > kf2.delta)) break;
+         if((time >= kf1.delta) && (time <= kf2.delta))
+           {
+            // compute ratio between kf1 (0.0) and kf2 (1.0)
+            real32 ratio = (time - kf1.delta)/(kf2.delta - kf1.delta);
 
-         // compute ratio between kf1 (0.0) and kf2 (1.0)
-         real32 ratio = (time - kf1.delta)/(kf2.delta - kf1.delta);
+            // interpolate scale
+            // real32 S[3];
+            // lerp3D(S, &kf1.slist[bi][0], &kf2.slist[bi][0], ratio);
 
-         // interpolate scale
-         real32 S[3];
-         lerp3D(S, &kf1.slist[bi][0], &kf2.slist[bi][0], ratio);
+            // interpolate translation
+            real32 T[3];
+            lerp3D(T, &kf1.tlist[bi][0], &kf2.tlist[bi][0], ratio);
 
-         // interpolate translation
-         real32 T[3];
-         lerp3D(T, &kf1.tlist[bi][0], &kf2.tlist[bi][0], ratio);
+            // interpolate quaternion
+            real32 Q[4];
+            qslerp(Q, &kf1.qlist[bi][0], &kf2.qlist[bi][0], ratio);
 
-         // interpolate quaternion
-         real32 Q[4];
-         qslerp(Q, &kf1.qlist[bi][0], &kf2.qlist[bi][0], ratio);
+            // load scaling matrix
+            matrix4D m;
+            //m.load_scaling(S[0], S[1], S[2]);
+            m.load_identity();
 
-         // load scaling matrix
-         matrix4D m;
-         m.load_scaling(S[0], S[1], S[2]);
+            // rotate, then scale
+            matrix4D R;
+            R.load_quaternion(Q);
+            m = m * R;
 
-         // rotate, then scale
-         matrix4D R;
-         R.load_quaternion(Q);
-         m *= R;
+            // translate
+            m[0x3] += T[0];
+            m[0x7] += T[1];
+            m[0xB] += T[2];
 
-         // translate
-         m[0x3] += T[0];
-         m[0x7] += T[1];
-         m[0xB] += T[2];
-
-         // set matrix
-         jm[bi] = m;
+            // set matrix
+            jm[bi] = m;
+            break;
+           }
         }
     }
 
@@ -875,9 +890,18 @@ ErrorCode MeshUTFInstance::Update(void)
  // these transformation matrices are interpolated in relative space
  for(size_t bi = 1; bi < joints.size(); bi++) {
      uint32 parent = mesh->joints[bi].parent;
-     jm[bi] *= jm[parent];
-     jm[bi].premul(matrix4D(mesh->joints[bi].m_rel));
+     jm[bi] = jm[bi] * jm[parent];
     }
+ for(size_t bi = 0; bi < joints.size(); bi++)
+     jm[bi] = mesh->joints[bi].m_abs * jm[bi];
+
+ for(size_t bi = 0; bi < joints.size(); bi++)
+     jm[bi].transpose();
+
+ // copy matrices to Direct3D
+ UINT size = (UINT)(mesh->joints.size()*sizeof(matrix4D));
+ ErrorCode code = UpdateDynamicConstBuffer(perframe, size, (const void*)jm.get());
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // success
  return EC_SUCCESS;
@@ -924,8 +948,11 @@ ErrorCode MeshUTFInstance::RenderModel(void)
      if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // set samplers
+     SetSamplerState(SS_WRAP_LINEAR); // wrap UVs, linear mapping
 
      // set shader resources
+     UINT n_tex = (UINT)mesh->meshes[i].textures.size();
+     SetShaderResources(n_tex, mesh->buffers[i].rvlist.get());
 
      // set buffers and draw
      SetVertexBuffer(mesh->buffers[i].vbuffer, 104, 0);

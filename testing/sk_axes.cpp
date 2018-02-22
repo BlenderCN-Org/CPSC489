@@ -14,18 +14,21 @@ static std::unique_ptr<MeshUTFInstance> instance;
 
 BOOL InitSkeletonAxesTest(void)
 {
- auto code = model.LoadModel(L"bl_TestVertexGroups.txt");
+ auto code = model.LoadModel(L"untitled3.txt");
  if(Fail(code)) {
     DebugErrorCode(code, __LINE__, __FILE__);
     return TRUE;
    }
  instance = std::make_unique<MeshUTFInstance>(model);
+ instance->InitInstance();
+ instance->SetAnimation(0);
  return TRUE;
 }
 
 void FreeSkeletonAxesTest(void)
 {
- instance.release();
+ instance->SetAnimation(0xFFFFFFFFul);
+ instance->FreeInstance();
  model.FreeModel();
 }
 

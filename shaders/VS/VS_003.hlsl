@@ -35,13 +35,24 @@ cbuffer permdl : register(b1)
 
 cbuffer perfrm : register(b2)
 {
- matrix mskin[96];
+ matrix mskin[512];
 };
  
 PShaderInput VS(VShaderInput input)
 {
+ float weights[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+ weights[0] = input.bw.x;
+ weights[1] = input.bw.y;
+ weights[2] = input.bw.z;
+ weights[3] = input.bw.w; // 1.0f - weights[0] - weights[1] - weights[2];
+
+ float3 pos = float3(0.0f, 0.0f, 0.0f);
+ for(int i = 0; i < 4; ++i)	{
+     pos += weights[i]*mul(input.position, mskin[input.bi[i]]).xyz;
+	}
+
  PShaderInput psi;
- psi.position = input.position;
+ psi.position = float4(pos, 1.0f);
  psi.position = mul(psi.position, mview);
  psi.position = mul(psi.position, cview);
  psi.normal = input.normal;
