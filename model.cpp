@@ -105,9 +105,9 @@ ErrorCode MeshUTF::ConstructAnimationData(void)
              animations[anim].animdata[k_index].slist[b_index][2] = kf.scale[2];
 
              // set translation
-             animations[anim].animdata[k_index].tlist[b_index][0] = kf.translation[0] + joints[b_index].position[0];
-             animations[anim].animdata[k_index].tlist[b_index][1] = kf.translation[1] + joints[b_index].position[1];
-             animations[anim].animdata[k_index].tlist[b_index][2] = kf.translation[2] + joints[b_index].position[2];
+             animations[anim].animdata[k_index].tlist[b_index][0] = kf.translation[0];
+             animations[anim].animdata[k_index].tlist[b_index][1] = kf.translation[1];
+             animations[anim].animdata[k_index].tlist[b_index][2] = kf.translation[2];
 
              // set quaternion
              animations[anim].animdata[k_index].qlist[b_index][0] = kf.quaternion[0];
@@ -740,6 +740,7 @@ MeshUTFInstance::MeshUTFInstance(const MeshUTF& ptr)
  // initialize constant data
  mv.load_identity();
  jm.reset(new matrix4D[mesh->joints.size()]);
+ for(size_t bi = 0; bi < mesh->joints.size(); bi++) jm[bi].load_identity();
 
  // initialize buffers
  permodel = nullptr;
@@ -764,7 +765,7 @@ ErrorCode MeshUTFInstance::InitInstance(void)
  perframe = nullptr;
  if(mesh->joints.size()) {
     UINT size = (UINT)(mesh->joints.size()*sizeof(matrix4D));
-    code = CreateDynamicConstBuffer(&perframe, size);
+    code = CreateDynamicConstBuffer(&perframe, size, jm.get());
     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
    }
  // initialize skinning matrices (no bones, no big deal)
