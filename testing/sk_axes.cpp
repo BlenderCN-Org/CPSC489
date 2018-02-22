@@ -17,6 +17,7 @@ BOOL InitSkeletonAxesTest(void)
  auto code = model.LoadModel(L"untitled3.txt");
  if(Fail(code)) {
     DebugErrorCode(code, __LINE__, __FILE__);
+    Error(code);
     return TRUE;
    }
  instance = std::make_unique<MeshUTFInstance>(model);

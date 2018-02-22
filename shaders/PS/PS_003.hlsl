@@ -1,5 +1,5 @@
-// PS_MODEL: 2
-// Renders using vertex colors.
+Texture2D t2d;
+SamplerState ss;
 
 struct PixelShaderInput
 {
@@ -13,5 +13,6 @@ struct PixelShaderInput
 
 float4 PS(PixelShaderInput input) : SV_TARGET
 {
- return input.color1;
+ float4 color = t2d.Sample(ss, input.tex1);
+ return color;
 }

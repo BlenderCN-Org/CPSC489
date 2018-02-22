@@ -13,6 +13,7 @@
 #include "rasters.h"
 #include "sampler.h"
 #include "shaders.h"
+#include "texture.h"
 #include "axes.h"
 #include "ascii.h"
 #include "model.h"
@@ -603,8 +604,7 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
 
  // initialize mesh buffers
  buffers.reset(new MeshUTFDirect3D[meshes.size()]);
- for(size_t i = 0; i < meshes.size(); i++)
-    {
+ for(size_t i = 0; i < meshes.size(); i++) {
      buffers[i].vbuffer = nullptr;
      buffers[i].ibuffer = nullptr;
     }
@@ -676,10 +676,11 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
        }
 
      // create resource views
-     for(size_t j = 0; j < n_tex; j++)
-        {
-         auto pathname = GetPathnameFromFilenameW(meshes[i].textures[j].filename.c_str());
-         ErrorBox(pathname.c_str());
+     for(size_t j = 0; j < n_tex; j++) {
+         ID3D11ShaderResourceView* resource = NULL;
+         auto code = LoadTexture(meshes[i].textures[j].filename.c_str(), &resource);         
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+         buffers[i].rvlist[j] = resource;
         }
     }
 
@@ -931,10 +932,6 @@ ErrorCode MeshUTFInstance::RenderModel(void)
 
      // set stencil state
 
-     // set sampler state
-     code = SetSamplerState(SS_WRAP_LINEAR);
-     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
      // set input layout
      code = SetInputLayout(IL_P4_N4_T2_T2_I4_W4_C4_C4);
      if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
@@ -947,8 +944,9 @@ ErrorCode MeshUTFInstance::RenderModel(void)
      code = SetPixelShader(PS_MODEL);
      if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-     // set samplers
-     SetSamplerState(SS_WRAP_LINEAR); // wrap UVs, linear mapping
+     // set sampler state
+     code = SetSamplerState(SS_WRAP_LINEAR);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // set shader resources
      UINT n_tex = (UINT)mesh->meshes[i].textures.size();

@@ -29,7 +29,6 @@ ErrorCode LoadImage(LPCWSTR filename, TextureData* xlid)
  auto pathname = GetPathnameFromFilenameW(filename);
  auto shrtname = GetShortFilenameWithoutExtensionW(filename);
  auto xtension = GetExtensionFromFilenameW(filename);
- if(!pathname.length()) return DebugErrorCode(EC_FILE_PATHNAME, __LINE__, __FILE__);
  if(!shrtname.length()) return DebugErrorCode(EC_FILE_FILENAME, __LINE__, __FILE__);
  if(!xtension.length()) return DebugErrorCode(EC_FILE_EXTENSION, __LINE__, __FILE__);
 

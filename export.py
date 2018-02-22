@@ -265,10 +265,10 @@ def ExportMesh(file, obj, mesh, armature):
         
         # add the mesh object's location, even if it is usually <0, 0, 0>
         v = mesh.vertices[i]
-        temp = [0.0, 0.0, 0.0]
-        temp[0] = v.co[0] + 0 #obj.location[0]
-        temp[1] = v.co[1] + 0 #obj.location[1]
-        temp[2] = v.co[2] + 0 #obj.location[2]
+        temp = obj.matrix_world * v.co
+        temp[0] = temp[0] + 0 #obj.location[0]
+        temp[1] = temp[1] + 0 #obj.location[1]
+        temp[2] = temp[2] + 0 #obj.location[2]
         vbuffer1.append(temp)
         
         # normal

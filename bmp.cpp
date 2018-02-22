@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "errors.h"
+#include "app.h"
 #include "texture.h"
 #include "bmp.h"
 
@@ -56,20 +57,39 @@ ErrorCode LoadBMP(LPCWSTR filename, TextureData* data)
    }
  else if(bih.biBitCount == 24)
    {
-    // read image data
+    // image properties
     if(bih.biClrUsed) return DebugErrorCode(EC_BMP_OPTIMIZED, __LINE__, __FILE__);
-    DWORD pitch = ((0x3*dx + 0x3) & (~0x3));
-    DWORD size = pitch*dy;
-    unique_ptr<BYTE[]> buffer(new BYTE[size]);
-    ifile.read((char*)buffer.get(), size);
+    DWORD src_pitch = ((24*dx + 0x1F) & (~0x1F))/8;
+    DWORD src_total = src_pitch*dy;
+
+    // read image data
+    unique_ptr<BYTE[]> buffer(new BYTE[src_total]);
+    ifile.read((char*)buffer.get(), src_total);
     if(ifile.fail()) return DebugErrorCode(EC_FILE_READ, __LINE__, __FILE__);
+
+    // convert to 32-bit since Direct3D doesn't support DXGI_FORMAT_B8G8R8_UNORM
+    // also, BMP data is upside-down and must be reversed
+    DWORD dst_pitch = 4*dx;
+    DWORD dst_total = dst_pitch*dy;
+    unique_ptr<BYTE[]> dst(new BYTE[dst_total]);
+    for(size_t r = 0; r < dy; r++) {
+        for(size_t c = 0; c < dx; c++) {
+            size_t src_index = r*src_pitch + 3*c;
+            size_t dst_index = (dy - 1 - r)*dst_pitch + 4*c;
+            dst[dst_index + 0] = buffer[src_index + 0];
+            dst[dst_index + 1] = buffer[src_index + 1];
+            dst[dst_index + 2] = buffer[src_index + 2];
+            dst[dst_index + 3] = 0;
+           }
+       }
+
     // transfer information
     data->dx = dx;
     data->dy = dy;
-    data->pitch = pitch;
+    data->pitch = dst_pitch;
     data->format = DXGI_FORMAT_B8G8R8X8_UNORM;
-    data->size = size;
-    data->data = std::move(buffer);
+    data->size = dst_total;
+    data->data = std::move(dst);
    }
  else if(bih.biBitCount == 32)
    {
