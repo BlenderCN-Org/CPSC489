@@ -263,12 +263,12 @@ def ExportMesh(file, obj, mesh, armature):
     vbuffer8 = []
     for i in range(len(mesh.vertices)):
         
-        # add the mesh object's location, even if it is usually <0, 0, 0>
+        # multiply vertices by matrix_world to get them in world coordinates
         v = mesh.vertices[i]
         temp = obj.matrix_world * v.co
-        temp[0] = temp[0] + 0 #obj.location[0]
-        temp[1] = temp[1] + 0 #obj.location[1]
-        temp[2] = temp[2] + 0 #obj.location[2]
+        temp[0] = temp[0]
+        temp[1] = temp[1]
+        temp[2] = temp[2]
         vbuffer1.append(temp)
         
         # normal
