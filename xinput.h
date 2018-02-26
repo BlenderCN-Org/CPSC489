@@ -2,7 +2,12 @@
 #define __CPSC489_XINPUT_H
 
 struct XBOX_CONTROLLER_STATE {
- // current state
+ // current joystick states
+ real32 JS_L[2];
+ real32 JS_R[2];
+ real32 JS_L_NORM;
+ real32 JS_R_NORM;
+ // current button states
  bool DPAD_U;
  bool DPAD_D;
  bool DPAD_L;
@@ -19,7 +24,7 @@ struct XBOX_CONTROLLER_STATE {
  bool GPAD_Y;
  bool GPAD_LTRIGGER;
  bool GPAD_RTRIGGER;
- // repeat counts
+ // button repeat counts
  uint32 DPAD_U_REPEAT_COUNT;
  uint32 DPAD_D_REPEAT_COUNT;
  uint32 DPAD_L_REPEAT_COUNT;
@@ -40,6 +45,7 @@ struct XBOX_CONTROLLER_STATE {
 
 ErrorCode InitControllers(void);
 void FreeControllers(void);
+void UpdateControllers(real32 dt);
 
 // Dead Zone Functions
 void SetDeadZonePercent(uint32 index, real32 value);

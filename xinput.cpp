@@ -23,6 +23,10 @@ ErrorCode InitControllers(void)
 
 void FreeControllers(void)
 {
+ for(int i = 0; i < MAX_CONTROLLERS; i++) {
+     statelist[i].connected = false;
+     statelist[i].dead_zone_percent = 0.24f;
+    }
 }
 
 void QueryControllers(void)
@@ -34,7 +38,7 @@ void QueryControllers(void)
     }
 }
 
-void ControllerFrame(real32 dt)
+void UpdateControllers(real32 dt)
 {
  QueryControllers();
 
@@ -46,17 +50,32 @@ void ControllerFrame(real32 dt)
 
  for(int i = 0; i < MAX_CONTROLLERS; i++)
     {
+     // skip if not connected
+     if(!statelist[i].connected) continue;
+
      // determine direction and magnitude that L controller is pushed
      float vl[2] = { (float)statelist[i].state.Gamepad.sThumbLX, (float)statelist[i].state.Gamepad.sThumbLY };
      float ml = std::sqrt(vl[0]*vl[0] + vl[1]*vl[1]); // magnitude
-     vl[0] /= ml; // this is a 2D unit vector
-     vl[1] /= ml; // this is a 2D unit vector
+     if(ml) {
+        vl[0] /= ml; // this is a 2D unit vector
+        vl[1] /= ml; // this is a 2D unit vector
+       }
+     else {
+        vl[0] = 0.0f;
+        vl[1] = 0.0f;
+       }
 
      // determine direction and magnitude that R controller is pushed
      float vr[2] = { (float)statelist[i].state.Gamepad.sThumbRX, (float)statelist[i].state.Gamepad.sThumbRY };
      float mr = std::sqrt(vr[0]*vr[0] + vr[1]*vr[1]); // magnitude
-     vr[0] /= mr; // this is a 2D unit vector
-     vr[1] /= mr; // this is a 2D unit vector
+     if(mr) {
+        vr[0] /= mr; // this is a 2D unit vector
+        vr[1] /= mr; // this is a 2D unit vector
+       }
+     else {
+        vr[0] = 0.0f;
+        vr[1] = 0.0f;
+       }
 
      // deadzone constant
      float INPUT_DEADZONE = statelist[i].dead_zone_percent*32767.0f;
@@ -85,26 +104,75 @@ void ControllerFrame(real32 dt)
         mr = mr/(32767.0f - INPUT_DEADZONE);
        }
 
-     // what buttons are pressed?
-     WORD wButtons = statelist[i].state.Gamepad.wButtons;
+     // set JS_L
+     statelist[i].keys.JS_L[0] = vl[0];
+     statelist[i].keys.JS_L[1] = vl[1];
+     statelist[i].keys.JS_L_NORM = ml;
 
-     bool DPAD_U = (wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0;
-     bool DPAD_D = (wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0;
-     bool DPAD_L = (wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
-     bool DPAD_R = (wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
+     // set JS_R
+     statelist[i].keys.JS_R[0] = vr[0];
+     statelist[i].keys.JS_R[1] = vr[1];
+     statelist[i].keys.JS_R_NORM = mr;
 
-     bool GPAD_START = (wButtons & XINPUT_GAMEPAD_START) != 0;
-     bool GPAD_BACK  = (wButtons & XINPUT_GAMEPAD_BACK) != 0;
-     bool GPAD_LTHUMB = (wButtons & XINPUT_GAMEPAD_LEFT_THUMB) != 0;
-     bool GPAD_RTHUMB = (wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0;
-     bool GPAD_LSHOULDER = (wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0;
-     bool GPAD_RSHOULDER = (wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0;
-     bool GPAD_A = (wButtons & XINPUT_GAMEPAD_A) != 0;
-     bool GPAD_B = (wButtons & XINPUT_GAMEPAD_B) != 0;
-     bool GPAD_X = (wButtons & XINPUT_GAMEPAD_X) != 0;
-     bool GPAD_Y = (wButtons & XINPUT_GAMEPAD_Y) != 0;
-     bool GPAD_LTRIGGER = (statelist[i].state.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
-     bool GPAD_RTRIGGER = (statelist[i].state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+     // button state
+     WORD buttons = statelist[i].state.Gamepad.wButtons;
+     auto padupdate = [](bool ps, bool cs, uint32& rc) { if(cs) { if(ps) { if(rc < 0xFFFFFFFFul) rc++; } else rc = 1; } else rc = 0; };
+
+     // set DPAD
+     bool DPAD_U_PREV = statelist[i].keys.DPAD_U;
+     bool DPAD_D_PREV = statelist[i].keys.DPAD_D;
+     bool DPAD_L_PREV = statelist[i].keys.DPAD_L;
+     bool DPAD_R_PREV = statelist[i].keys.DPAD_R;
+     statelist[i].keys.DPAD_U = (buttons & XINPUT_GAMEPAD_DPAD_UP) != 0;
+     statelist[i].keys.DPAD_D = (buttons & XINPUT_GAMEPAD_DPAD_DOWN) != 0;
+     statelist[i].keys.DPAD_L = (buttons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
+     statelist[i].keys.DPAD_R = (buttons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
+
+     // set DPAD repeat counts
+     padupdate(DPAD_U_PREV, statelist[i].keys.DPAD_U, statelist[i].keys.DPAD_U_REPEAT_COUNT);
+     padupdate(DPAD_D_PREV, statelist[i].keys.DPAD_D, statelist[i].keys.DPAD_D_REPEAT_COUNT);
+     padupdate(DPAD_L_PREV, statelist[i].keys.DPAD_L, statelist[i].keys.DPAD_L_REPEAT_COUNT);
+     padupdate(DPAD_R_PREV, statelist[i].keys.DPAD_R, statelist[i].keys.DPAD_R_REPEAT_COUNT);
+
+     // set GPAD
+     bool GPAD_START_PREV = statelist[i].keys.GPAD_START;
+     bool GPAD_BACK_PREV = statelist[i].keys.GPAD_BACK;
+     bool GPAD_LTHUMB_PREV = statelist[i].keys.GPAD_LTHUMB;
+     bool GPAD_RTHUMB_PREV = statelist[i].keys.GPAD_RTHUMB;
+     bool GPAD_LSHOULDER_PREV = statelist[i].keys.GPAD_LSHOULDER;
+     bool GPAD_RSHOULDER_PREV = statelist[i].keys.GPAD_RSHOULDER;
+     bool GPAD_A_PREV = statelist[i].keys.GPAD_A;
+     bool GPAD_B_PREV = statelist[i].keys.GPAD_B;
+     bool GPAD_X_PREV = statelist[i].keys.GPAD_X;
+     bool GPAD_Y_PREV = statelist[i].keys.GPAD_Y;
+     bool GPAD_LTRIGGER_PREV = statelist[i].keys.GPAD_LTRIGGER;
+     bool GPAD_RTRIGGER_PREV = statelist[i].keys.GPAD_RTRIGGER;
+     statelist[i].keys.GPAD_START = (buttons & XINPUT_GAMEPAD_START) != 0;
+     statelist[i].keys.GPAD_BACK  = (buttons & XINPUT_GAMEPAD_BACK) != 0;
+     statelist[i].keys.GPAD_LTHUMB = (buttons & XINPUT_GAMEPAD_LEFT_THUMB) != 0;
+     statelist[i].keys.GPAD_RTHUMB = (buttons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0;
+     statelist[i].keys.GPAD_LSHOULDER = (buttons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0;
+     statelist[i].keys.GPAD_RSHOULDER = (buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0;
+     statelist[i].keys.GPAD_A = (buttons & XINPUT_GAMEPAD_A) != 0;
+     statelist[i].keys.GPAD_B = (buttons & XINPUT_GAMEPAD_B) != 0;
+     statelist[i].keys.GPAD_X = (buttons & XINPUT_GAMEPAD_X) != 0;
+     statelist[i].keys.GPAD_Y = (buttons & XINPUT_GAMEPAD_Y) != 0;
+     statelist[i].keys.GPAD_LTRIGGER = (statelist[i].state.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+     statelist[i].keys.GPAD_RTRIGGER = (statelist[i].state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+
+     // set GPAD repeat counts
+     padupdate(GPAD_START_PREV, statelist[i].keys.GPAD_START, statelist[i].keys.GPAD_START_REPEAT_COUNT);
+     padupdate(GPAD_BACK_PREV, statelist[i].keys.GPAD_BACK, statelist[i].keys.DPAD_U_REPEAT_COUNT);
+     padupdate(GPAD_LTHUMB_PREV, statelist[i].keys.GPAD_LTHUMB, statelist[i].keys.DPAD_U_REPEAT_COUNT);
+     padupdate(GPAD_RTHUMB_PREV, statelist[i].keys.GPAD_RTHUMB, statelist[i].keys.DPAD_U_REPEAT_COUNT);
+     padupdate(GPAD_LSHOULDER_PREV, statelist[i].keys.GPAD_LSHOULDER, statelist[i].keys.DPAD_U_REPEAT_COUNT);
+     padupdate(GPAD_RSHOULDER_PREV, statelist[i].keys.GPAD_RSHOULDER, statelist[i].keys.DPAD_U_REPEAT_COUNT);
+     padupdate(GPAD_A_PREV, statelist[i].keys.GPAD_A, statelist[i].keys.DPAD_U_REPEAT_COUNT);
+     padupdate(GPAD_B_PREV, statelist[i].keys.GPAD_B, statelist[i].keys.DPAD_U_REPEAT_COUNT);
+     padupdate(GPAD_X_PREV, statelist[i].keys.GPAD_X, statelist[i].keys.DPAD_U_REPEAT_COUNT);
+     padupdate(GPAD_Y_PREV, statelist[i].keys.GPAD_Y, statelist[i].keys.DPAD_U_REPEAT_COUNT);
+     padupdate(GPAD_LTRIGGER_PREV, statelist[i].keys.GPAD_LTRIGGER, statelist[i].keys.DPAD_U_REPEAT_COUNT);
+     padupdate(GPAD_RTRIGGER_PREV, statelist[i].keys.GPAD_RTRIGGER, statelist[i].keys.DPAD_U_REPEAT_COUNT);
     }
 }
 
