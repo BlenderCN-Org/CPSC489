@@ -6,6 +6,7 @@ struct CONTROLLER_STATE {
  XBOX_CONTROLLER_STATE keys;
  XINPUT_STATE state;
  bool connected;
+ bool reserved;
  float dead_zone_percent;
 };
 
@@ -18,9 +19,11 @@ ErrorCode InitControllers(void)
 {
  for(int i = 0; i < MAX_CONTROLLERS; i++) {
      statelist[i].connected = false;
+     statelist[i].reserved = false;
      statelist[i].dead_zone_percent = 0.24f;
+     ZeroMemory(&statelist[i].keys, sizeof(statelist[i].keys));
+     ZeroMemory(&statelist[i].state, sizeof(statelist[i].state));
     }
- // set polltime
  polltime = 0.0f;
  return EC_SUCCESS;
 }
@@ -30,7 +33,10 @@ void FreeControllers(void)
  polltime = 0.0f;
  for(int i = 0; i < MAX_CONTROLLERS; i++) {
      statelist[i].connected = false;
+     statelist[i].reserved = false;
      statelist[i].dead_zone_percent = 0.24f;
+     ZeroMemory(&statelist[i].keys, sizeof(statelist[i].keys));
+     ZeroMemory(&statelist[i].state, sizeof(statelist[i].state));
     }
 }
 
@@ -190,6 +196,36 @@ void UpdateControllers(real32 dt)
      padupdate(GPAD_RTRIGGER_PREV, statelist[i].keys.GPAD_RTRIGGER, statelist[i].keys.DPAD_U_REPEAT_COUNT);
     }
 }
+
+#pragma region CONTROLLER_ACCESS_FUNCTIONS
+
+bool IsControllerConnected(uint32 index)
+{
+ if(!(index < MAX_CONTROLLERS)) return false;
+ return statelist[index].connected;
+}
+
+bool IsControllerReserved(uint32 index)
+{
+ if(!(index < MAX_CONTROLLERS)) return false;
+ return statelist[index].reserved;
+}
+
+bool ReserveController(uint32 index)
+{
+ if(!(index < MAX_CONTROLLERS) || statelist[index].reserved) return false;
+ statelist[index].reserved = true;
+ return true;
+}
+
+bool ReleaseController(uint32 index)
+{
+ if(!(index < MAX_CONTROLLERS) || !statelist[index].reserved) return false;
+ statelist[index].reserved = false;
+ return true;
+}
+
+#pragma endregion CONTROLLER_ACCESS_FUNCTIONS
 
 /**
  * /brief   Dead zone functions.

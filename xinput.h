@@ -43,13 +43,19 @@ struct XBOX_CONTROLLER_STATE {
  uint32 GPAD_RTRIGGER_REPEAT_COUNT;
 };
 
+// Controller Functions
 ErrorCode InitControllers(void);
 void FreeControllers(void);
 void UpdateControllers(real32 dt);
 
+// Controller Access Functions
+bool IsControllerConnected(uint32 index);
+bool IsControllerReserved(uint32 index);
+bool ReserveController(uint32 index);
+bool ReleaseController(uint32 index);
+
 // Dead Zone Functions
 void SetDeadZonePercent(uint32 index, real32 value);
 real32 GetDeadZonePercent(uint32 index);
-
 
 #endif
