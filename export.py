@@ -39,6 +39,8 @@ def MeshExporter():
     # export animations
     if has_skeleton == True:
         ExportAnimations(file, armature)
+    else:
+        file.write('0 # number of animations\n')
 
     # save number of meshes
     file.write("{} # number of meshes\n".format(len(bpy.data.meshes)))
@@ -80,11 +82,10 @@ def ExportArmature(file, armature, skeleton):
                 dx + bone.head_local[0],
                 dy + bone.head_local[1],
                 dz + bone.head_local[2]]
-            m = bone.matrix_local 
             bonelist[index].matrix = [
-                [m[0][0], m[1][0], m[2][0]],
-                [m[0][1], m[1][1], m[2][1]],
-                [m[0][2], m[1][2], m[2][2]]]
+                [bone.matrix_local[0][0], bone.matrix_local[1][0], bone.matrix_local[2][0]],
+                [bone.matrix_local[0][1], bone.matrix_local[1][1], bone.matrix_local[2][1]],
+                [bone.matrix_local[0][2], bone.matrix_local[1][2], bone.matrix_local[2][2]]]
 
             print(bone.matrix_local)
             print(bone.matrix)
@@ -96,10 +97,10 @@ def ExportArmature(file, armature, skeleton):
             file.write("{}\n".format(bone.parent))
             file.write("{} {} {}\n".format(bone.position[0], bone.position[1], bone.position[2]))
             file.write("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
-                bone.matrix[0][0], bone.matrix[1][0], bone.matrix[2][0], 0.0,
-                bone.matrix[0][1], bone.matrix[1][1], bone.matrix[2][1], 0.0,
-                bone.matrix[0][2], bone.matrix[1][2], bone.matrix[2][2], 0.0,
-                0.0, 0.0, 0.0, 1.0))
+                bone.matrix[0][0], bone.matrix[0][1], bone.matrix[0][2], 0.0,
+                bone.matrix[1][0], bone.matrix[1][1], bone.matrix[1][2], 0.0,
+                bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2], 0.0,
+                0.0, 0.0, 0.0, 1.0))   
 
 def ExportAnimations(file, armature):
 
@@ -241,12 +242,15 @@ def ExportMesh(file, obj, mesh, armature):
                     file.write(slot.name + "\n" + str(channel) + "\n" + slot.texture.image.filepath + "\n")
                 else:
                     file.write(slot.name + "\n" + str(channel) + "\n" + "default.bmp" + "\n")
-                    
+
+    # do we have bones?
+    has_bones = ((armature != None) and (len(armature.data.bones) > 0))
+                        
     # associate each bone name with an index
     # this is used to map vertex groups to bones
     bonemap = {}
-    for index, bone in enumerate(armature.data.bones): bonemap[bone.name] = index
-    has_bones = ((armature != None) and (len(armature.data.bones) > 0))
+    if has_bones == True:
+        for index, bone in enumerate(armature.data.bones): bonemap[bone.name] = index
     
     # dictionary<vertex group index, vertex group name>
     vgdict = {}
@@ -264,12 +268,12 @@ def ExportMesh(file, obj, mesh, armature):
     vbuffer8 = []
     for i in range(len(mesh.vertices)):
         
-        # add the mesh object's location, even if it is usually <0, 0, 0>
+        # multiply vertices by matrix_world to get them in world coordinates
         v = mesh.vertices[i]
         temp = obj.matrix_world * v.co
-        temp[0] = temp[0] + 0 #obj.location[0]
-        temp[1] = temp[1] + 0 #obj.location[1]
-        temp[2] = temp[2] + 0 #obj.location[2]
+        temp[0] = temp[0]
+        temp[1] = temp[1]
+        temp[2] = temp[2]
         vbuffer1.append(temp)
         
         # normal

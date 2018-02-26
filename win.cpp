@@ -49,6 +49,7 @@ static WINDOW_MESSAGE(EvCommand);
 
 // Window Commands
 static WINDOW_COMMAND(CmFlybyTest);
+static WINDOW_COMMAND(CmPortalTest);
 static WINDOW_COMMAND(CmSkeletonAxesTest);
 
 #pragma region WINDOW_FUNCTIONS
@@ -358,6 +359,7 @@ WINDOW_MESSAGE(EvCommand)
 {
  BEGIN_COMMAND_HANDLER
   WINDOW_COMMAND_HANDLER(CM_FLYBY_TEST, CmFlybyTest);
+  WINDOW_COMMAND_HANDLER(CM_PORTAL_TEST, CmPortalTest);
   WINDOW_COMMAND_HANDLER(CM_SKELETON_AXES_TEST, CmSkeletonAxesTest);
   WINDOW_COMMAND_DEFAULT;
  END_COMMAND_HANDLER
@@ -375,6 +377,14 @@ WINDOW_COMMAND(CmFlybyTest)
  // camera flyby test
  if(GetActiveTest() != CM_FLYBY_TEST) BeginTest(CM_FLYBY_TEST);
  else if(GetActiveTest() == CM_FLYBY_TEST) EndTest();
+ return 0;
+}
+
+WINDOW_COMMAND(CmPortalTest)
+{
+ // camera flyby test
+ if(GetActiveTest() != CM_PORTAL_TEST) BeginTest(CM_PORTAL_TEST);
+ else if(GetActiveTest() == CM_PORTAL_TEST) EndTest();
  return 0;
 }
 

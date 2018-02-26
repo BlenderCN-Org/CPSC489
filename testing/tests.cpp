@@ -7,6 +7,7 @@
 
 // tests
 #include "flyby.h"
+#include "t_portal.h"
 #include "sk_axes.h"
 
 typedef BOOL (*InitFunc)(void);
@@ -28,6 +29,21 @@ BOOL BeginTest(int cmd)
     init_func = InitFlybyTest;
     free_func = FreeFlybyTest;
     draw_func = RenderFlybyTest;
+    if((*init_func)()) {
+       active_test = cmd;
+       CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);
+       return TRUE;
+      }
+    else {
+       (*free_func)();
+       return FALSE;
+      }
+   }
+ // set test
+ else if(cmd == CM_PORTAL_TEST) {
+    init_func = InitPortalTest;
+    free_func = FreePortalTest;
+    draw_func = RenderPortalTest;
     if((*init_func)()) {
        active_test = cmd;
        CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);

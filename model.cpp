@@ -551,6 +551,7 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
          for(uint32 k = 0; k < n_uvs; k++) {
              code = ASCIIReadVector2(linelist, &meshes[i].uvs[k][j][0], false);
              if(Fail(code)) return code;
+             meshes[i].uvs[k][j][1] = 1.0f - meshes[i].uvs[k][j][1]; // TODO: have Blender do this instead
             }
 
          // initialize blendindices and blendweights just in case we only have one auto-generated bone
@@ -955,13 +956,12 @@ ErrorCode MeshUTFInstance::Update(void)
 
  // for each bone that is animated
  // these transformation matrices are interpolated in relative space
- jm[0] = mesh->joints[0].m_rel * jm[0];
  for(size_t bi = 1; bi < joints.size(); bi++) {
      uint32 parent = mesh->joints[bi].parent;
-     jm[bi] = mesh->joints[bi].m_rel * jm[bi] * jm[parent];
+     jm[bi] = jm[bi] * jm[parent];
     }
- // for(size_t bi = 0; bi < joints.size(); bi++)
- //     jm[bi] = mesh->joints[bi].m_abs * jm[bi];
+ for(size_t bi = 0; bi < joints.size(); bi++)
+     jm[bi] = mesh->joints[bi].m_abs * jm[bi];
 
  for(size_t bi = 0; bi < joints.size(); bi++)
      jm[bi].transpose();
