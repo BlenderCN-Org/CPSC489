@@ -1,0 +1,4 @@
+1 # number of room models
+cube_room.txt
+1 # number of portals
+room_001
