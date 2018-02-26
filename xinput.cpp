@@ -11,6 +11,8 @@ struct CONTROLLER_STATE {
 
 static const int MAX_CONTROLLERS = 4;
 static CONTROLLER_STATE statelist[MAX_CONTROLLERS];
+static const real32 MAX_POLLTIME = 5.0f;
+static real32 polltime = 0.0f;
 
 ErrorCode InitControllers(void)
 {
@@ -18,29 +20,42 @@ ErrorCode InitControllers(void)
      statelist[i].connected = false;
      statelist[i].dead_zone_percent = 0.24f;
     }
+ // set polltime
+ polltime = 0.0f;
  return EC_SUCCESS;
 }
 
 void FreeControllers(void)
 {
+ polltime = 0.0f;
  for(int i = 0; i < MAX_CONTROLLERS; i++) {
      statelist[i].connected = false;
      statelist[i].dead_zone_percent = 0.24f;
     }
 }
 
-void QueryControllers(void)
+void QueryControllers(bool queryEmptyUsers)
 {
  for(int i = 0; i < MAX_CONTROLLERS; i++) {
-     DWORD result = XInputGetState(i, &statelist[i].state);
-     if(result == ERROR_SUCCESS) statelist[i].connected = true;
-     else statelist[i].connected = false;
+     if(statelist[i].connected || queryEmptyUsers) {
+        DWORD result = XInputGetState(i, &statelist[i].state);
+        if(result == ERROR_SUCCESS) statelist[i].connected = true;
+        else statelist[i].connected = false;
+       }
     }
 }
 
 void UpdateControllers(real32 dt)
 {
- QueryControllers();
+ // For performance reasons, only query empty slots every five seconds. Calling XInputGetState four
+ // times every frame when there are no controllers or only one controller is overkill.
+ bool queryEmptyUsers = false;
+ polltime += dt;
+ if(polltime > MAX_POLLTIME) {
+    polltime = 0.0f;
+    queryEmptyUsers = true;
+   }
+ QueryControllers(queryEmptyUsers);
 
  // When computing the magnitude and direction of the thumbstick, the deadzone
  // is a small portion of the inner circle that prevents movement as the game

@@ -3,10 +3,10 @@
 #include "app.h"
 #include "win.h"
 #include "gfx.h"
+#include "xinput.h"
 
 int Run(void)
 {
-
  // window initialization
  SetLanguageCode(LC_ENGLISH);
  InitErrorStrings();
@@ -20,8 +20,11 @@ int Run(void)
     return -1;
    }
 
- // run program
- return MessagePump(RenderFrame);
+ // initialize controllers and run program
+ InitControllers();
+ int retval = MessagePump(RenderFrame);
+ FreeControllers();
+ return retval;
 }
 
 int WINAPI WinMain(HINSTANCE basead, HINSTANCE unused, LPSTR cmdline, int cmdshow)
