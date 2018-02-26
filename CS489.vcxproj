@@ -172,6 +172,7 @@
     <ClCompile Include="orbit.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="png.cpp" />
+    <ClCompile Include="portal.cpp" />
     <ClCompile Include="rasters.cpp" />
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="sampler.cpp" />
@@ -181,6 +182,7 @@
     <ClCompile Include="stdgfx.cpp" />
     <ClCompile Include="stdwin.cpp" />
     <ClCompile Include="stencil.cpp" />
+    <ClCompile Include="testing\flyby.cpp" />
     <ClCompile Include="testing\sk_axes.cpp" />
     <ClCompile Include="testing\tests.cpp" />
     <ClCompile Include="texture.cpp" />
@@ -209,6 +211,7 @@
     <ClInclude Include="orbit.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="png.h" />
+    <ClInclude Include="portal.h" />
     <ClInclude Include="rasters.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="sampler.h" />
@@ -219,6 +222,7 @@
     <ClInclude Include="stdres.h" />
     <ClInclude Include="stdwin.h" />
     <ClInclude Include="stencil.h" />
+    <ClInclude Include="testing\flyby.h" />
     <ClInclude Include="testing\sk_axes.h" />
     <ClInclude Include="testing\tests.h" />
     <ClInclude Include="texture.h" />

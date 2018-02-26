@@ -5,6 +5,8 @@
 #include "../gfx.h"
 #include "tests.h"
 
+// tests
+#include "flyby.h"
 #include "sk_axes.h"
 
 typedef BOOL (*InitFunc)(void);
@@ -22,7 +24,22 @@ BOOL BeginTest(int cmd)
  EndTest();
 
  // set test
- if(cmd == CM_SKELETON_AXES_TEST) {
+ if(cmd == CM_FLYBY_TEST) {
+    init_func = InitFlybyTest;
+    free_func = FreeFlybyTest;
+    draw_func = RenderFlybyTest;
+    if((*init_func)()) {
+       active_test = cmd;
+       CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);
+       return TRUE;
+      }
+    else {
+       (*free_func)();
+       return FALSE;
+      }
+   }
+ // set test
+ else if(cmd == CM_SKELETON_AXES_TEST) {
     init_func = InitSkeletonAxesTest;
     free_func = FreeSkeletonAxesTest;
     draw_func = RenderSkeletonAxesTest;

@@ -9,7 +9,7 @@
 #include "../xinput.h"
 #include "../gfx.h"
 #include "tests.h"
-#include "sk_axes.h"
+#include "flyby.h"
 
 static MeshUTF model;
 static std::unique_ptr<MeshUTFInstance> instance;
@@ -17,9 +17,9 @@ static std::unique_ptr<MeshUTFInstance> instance;
 // controller variables
 static uint32 controllerIndex = 0xFFFFFFFFul;
 
-BOOL InitSkeletonAxesTest(void)
+BOOL InitFlybyTest(void)
 {
- auto code = model.LoadModel(L"untitled3.txt");
+ auto code = model.LoadModel(L"room.txt");
  if(Fail(code)) {
     DebugErrorCode(code, __LINE__, __FILE__);
     Error(code);
@@ -31,7 +31,7 @@ BOOL InitSkeletonAxesTest(void)
  return TRUE;
 }
 
-void FreeSkeletonAxesTest(void)
+void FreeFlybyTest(void)
 {
  // release controller
  ReleaseController(controllerIndex);
@@ -42,7 +42,7 @@ void FreeSkeletonAxesTest(void)
  model.FreeModel();
 }
 
-void RenderSkeletonAxesTest(real32 dt)
+void RenderFlybyTest(real32 dt)
 {
  // TODO: periodically check for controller instead
  if(controllerIndex == 0xFFFFFFFFul) {
