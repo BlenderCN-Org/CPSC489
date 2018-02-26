@@ -186,6 +186,7 @@
     <ClCompile Include="vector3.cpp" />
     <ClCompile Include="win.cpp" />
     <ClCompile Include="winmain.cpp" />
+    <ClCompile Include="xinput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h" />
@@ -220,6 +221,7 @@
     <ClInclude Include="tga.h" />
     <ClInclude Include="vector3.h" />
     <ClInclude Include="win.h" />
+    <ClInclude Include="xinput.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="stdres.rc" />
