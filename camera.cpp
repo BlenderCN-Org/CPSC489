@@ -432,3 +432,21 @@ bool OrbitCamera::Dolly(int unit)
 }
 
 #pragma endregion MOUSE_TRACKING_FUNCTIONS
+
+#pragma region MOVING_FUNCTIONS
+
+void OrbitCamera::Move(real32 dx, real32 dy, real32 dz)
+{
+ cam_E[0] += dx;
+ cam_E[1] += dy;
+ cam_E[2] += dz;
+}
+
+void OrbitCamera::Move(const real32* v, real32 t)
+{
+ cam_E[0] += v[0]*t*cam_X[0] + v[1]*t*cam_Y[0] + v[2]*t*cam_Z[0];
+ cam_E[1] += v[0]*t*cam_X[1] + v[1]*t*cam_Y[1] + v[2]*t*cam_Z[1];
+ cam_E[2] += v[0]*t*cam_X[2] + v[1]*t*cam_Y[2] + v[2]*t*cam_Z[2];
+}
+
+#pragma endregion MOVING_FUNCTIONS

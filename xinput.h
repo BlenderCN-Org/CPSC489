@@ -50,9 +50,10 @@ void UpdateControllers(real32 dt);
 
 // Controller Access Functions
 bool IsControllerConnected(uint32 index);
-bool IsControllerReserved(uint32 index);
-bool ReserveController(uint32 index);
+bool IsControllerAvailable(void);
+uint32 ReserveController(void);
 bool ReleaseController(uint32 index);
+const XBOX_CONTROLLER_STATE* GetControllerState(uint32 index);
 
 // Dead Zone Functions
 void SetDeadZonePercent(uint32 index, real32 value);
