@@ -449,4 +449,42 @@ void OrbitCamera::Move(const real32* v, real32 t)
  cam_E[2] += v[0]*t*cam_X[2] + v[1]*t*cam_Y[2] + v[2]*t*cam_Z[2];
 }
 
+void OrbitCamera::ThumbstickOrbit(const real32* axis, real32 t)
+{
+ // add to global angles (how much we are going to turn our turntable)
+ horz_angle += radians(t*axis[0]);
+ vert_angle += radians(t*axis[1]);
+
+ // clamp vertical rotation to (-90, +90) degrees (avoid poles)
+ const real32 max_vert = radians(89.9999f);
+ if(vert_angle < -max_vert) vert_angle = -max_vert;
+ else if(vert_angle > max_vert) vert_angle = max_vert;
+    
+ // rotation matrices
+ real32 R1[16];
+ real32 R2[16];
+ matrix4D_rotate(R1, ref_Y, vert_angle);
+ matrix4D_rotate(R2, ref_Z, horz_angle);
+    
+ // multiplied transforms
+ real32 R[16];
+ matrix4D_mul(R, R2, R1); // z 1st and y 2nd
+    
+ // compute orbit point origin
+ real32 orbit_point[3];
+ orbit_point[0] = cam_E[0] + orbit_distance*cam_X[0];
+ orbit_point[1] = cam_E[1] + orbit_distance*cam_X[1];
+ orbit_point[2] = cam_E[2] + orbit_distance*cam_X[2];
+    
+ // compute new camera axes
+ matrix4D_vector3_mul(cam_X, R, ref_X);
+ matrix4D_vector3_mul(cam_Y, R, ref_Y);
+ matrix4D_vector3_mul(cam_Z, R, ref_Z);
+    
+ // compute new camera origin
+ cam_E[0] = orbit_point[0] - orbit_distance*cam_X[0];
+ cam_E[1] = orbit_point[1] - orbit_distance*cam_X[1];
+ cam_E[2] = orbit_point[2] - orbit_distance*cam_X[2];
+}
+
 #pragma endregion MOVING_FUNCTIONS

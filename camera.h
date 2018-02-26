@@ -91,10 +91,11 @@ class OrbitCamera {
   bool Pan(int dx, int dy);
   bool Orbit(int x0, int y0, int x1, int y1);
   bool Dolly(int unit);
- // Moving Functions
+ // Thumbstick Functions
  public :
   void Move(real32 dx, real32 dy, real32 dz);
   void Move(const real32* v, real32 t);
+  void ThumbstickOrbit(const real32* axis, real32 t);
  // Constructors/Destructors
  public :
   OrbitCamera();

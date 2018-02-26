@@ -19,8 +19,8 @@ static uint32 controllerIndex = 0xFFFFFFFFul;
 
 BOOL InitSkeletonAxesTest(void)
 {
- //auto code = model.LoadModel(L"room.txt");
- auto code = model.LoadModel(L"untitled3.txt");
+ auto code = model.LoadModel(L"room.txt");
+ //auto code = model.LoadModel(L"untitled3.txt");
  if(Fail(code)) {
     DebugErrorCode(code, __LINE__, __FILE__);
     Error(code);
@@ -61,18 +61,26 @@ void RenderSkeletonAxesTest(real32 dt)
        if(lpcs)
          {
           // move at 5 m/s
-          real32 distance = lpcs->JS_L_NORM*5.0f*dt;
-          if(distance)
+          real32 dL = lpcs->JS_L_NORM*5.0f*dt;
+          real32 dR = lpcs->JS_R_NORM*90.0f*dt;
+          if(dL)
             {
-             if(distance > 0.01f) distance = 0.01f;
-             real32 v[3] = {
+             //if(dL > 0.01f) dL = 0.01f;
+             real32 vL[3] = {
                 lpcs->JS_L[1],
                -lpcs->JS_L[0],
                0.0f
              };
-             GetOrbitCamera()->Move(v, distance);
-             UpdateCamera();
+             GetOrbitCamera()->Move(vL, dL);
             }
+          if(dR) {
+             real32 vR[2] = {
+               -lpcs->JS_R[0], // Z-axis rotation
+               -lpcs->JS_R[1], // Y-axis rotation
+             };
+             GetOrbitCamera()->ThumbstickOrbit(vR, dR);
+            }
+          UpdateCamera();
          }
       }
    }
