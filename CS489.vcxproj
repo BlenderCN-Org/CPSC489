@@ -163,7 +163,9 @@
     <ClCompile Include="errors.cpp" />
     <ClCompile Include="gfx.cpp" />
     <ClCompile Include="grid.cpp" />
+    <ClCompile Include="hudtex.cpp" />
     <ClCompile Include="layouts.cpp" />
+    <ClCompile Include="map.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="matrix4.cpp" />
     <ClCompile Include="model.cpp" />
@@ -198,7 +200,9 @@
     <ClInclude Include="errors.h" />
     <ClInclude Include="gfx.h" />
     <ClInclude Include="grid.h" />
+    <ClInclude Include="hudtex.h" />
     <ClInclude Include="layouts.h" />
+    <ClInclude Include="map.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="matrix4.h" />
     <ClInclude Include="model.h" />

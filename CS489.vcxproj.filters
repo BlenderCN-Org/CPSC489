@@ -137,6 +137,12 @@
     <ClCompile Include="xinput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hudtex.cpp">
+      <Filter>Source Files\Direct3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -237,6 +243,12 @@
     </ClInclude>
     <ClInclude Include="xinput.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="map.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hudtex.h">
+      <Filter>Source Files\Direct3D</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
