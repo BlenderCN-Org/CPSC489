@@ -5,6 +5,7 @@ struct MeshUTFJoint {
  STDSTRINGW name;
  uint32 parent;
  real32 position[3];
+ real32 p_rel[3];
  matrix4D m;
  matrix4D m_rel;
  matrix4D m_abs;

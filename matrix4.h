@@ -602,22 +602,23 @@ inline matrix4D operator -(const matrix4D& lhs, const matrix4D& rhs)
 inline matrix4D operator *(const matrix4D& lhs, const matrix4D& rhs)
 {
  matrix4D r;
- r.m[ 0] = lhs.m[ 0]*rhs.m[ 0] + lhs.m[ 1]*rhs.m[ 4] + lhs.m[ 2]*rhs.m[ 8] + lhs.m[ 3]*rhs.m[12];
- r.m[ 1] = lhs.m[ 0]*rhs.m[ 1] + lhs.m[ 1]*rhs.m[ 5] + lhs.m[ 2]*rhs.m[ 9] + lhs.m[ 3]*rhs.m[13];
- r.m[ 2] = lhs.m[ 0]*rhs.m[ 2] + lhs.m[ 1]*rhs.m[ 6] + lhs.m[ 2]*rhs.m[10] + lhs.m[ 3]*rhs.m[14];
- r.m[ 3] = lhs.m[ 0]*rhs.m[ 3] + lhs.m[ 1]*rhs.m[ 7] + lhs.m[ 2]*rhs.m[11] + lhs.m[ 3]*rhs.m[15];
- r.m[ 4] = lhs.m[ 4]*rhs.m[ 0] + lhs.m[ 5]*rhs.m[ 4] + lhs.m[ 6]*rhs.m[ 8] + lhs.m[ 7]*rhs.m[12];
- r.m[ 5] = lhs.m[ 4]*rhs.m[ 1] + lhs.m[ 5]*rhs.m[ 5] + lhs.m[ 6]*rhs.m[ 9] + lhs.m[ 7]*rhs.m[13];
- r.m[ 6] = lhs.m[ 4]*rhs.m[ 2] + lhs.m[ 5]*rhs.m[ 6] + lhs.m[ 6]*rhs.m[10] + lhs.m[ 7]*rhs.m[14];
- r.m[ 7] = lhs.m[ 4]*rhs.m[ 3] + lhs.m[ 5]*rhs.m[ 7] + lhs.m[ 6]*rhs.m[11] + lhs.m[ 7]*rhs.m[15];
- r.m[ 8] = lhs.m[ 8]*rhs.m[ 0] + lhs.m[ 9]*rhs.m[ 4] + lhs.m[10]*rhs.m[ 8] + lhs.m[11]*rhs.m[12];
- r.m[ 9] = lhs.m[ 8]*rhs.m[ 1] + lhs.m[ 9]*rhs.m[ 5] + lhs.m[10]*rhs.m[ 9] + lhs.m[11]*rhs.m[13];
- r.m[10] = lhs.m[ 8]*rhs.m[ 2] + lhs.m[ 9]*rhs.m[ 6] + lhs.m[10]*rhs.m[10] + lhs.m[11]*rhs.m[14];
- r.m[11] = lhs.m[ 8]*rhs.m[ 3] + lhs.m[ 9]*rhs.m[ 7] + lhs.m[10]*rhs.m[11] + lhs.m[11]*rhs.m[15];
- r.m[12] = lhs.m[12]*rhs.m[ 0] + lhs.m[13]*rhs.m[ 4] + lhs.m[14]*rhs.m[ 8] + lhs.m[15]*rhs.m[12];
- r.m[13] = lhs.m[12]*rhs.m[ 1] + lhs.m[13]*rhs.m[ 5] + lhs.m[14]*rhs.m[ 9] + lhs.m[15]*rhs.m[13];
- r.m[14] = lhs.m[12]*rhs.m[ 2] + lhs.m[13]*rhs.m[ 6] + lhs.m[14]*rhs.m[10] + lhs.m[15]*rhs.m[14];
- r.m[15] = lhs.m[12]*rhs.m[ 3] + lhs.m[13]*rhs.m[ 7] + lhs.m[14]*rhs.m[11] + lhs.m[15]*rhs.m[15];
+ r.m[0x0] = lhs.m[ 0]*rhs.m[ 0] + lhs.m[ 1]*rhs.m[ 4] + lhs.m[ 2]*rhs.m[ 8] + lhs.m[ 3]*rhs.m[12];
+ r.m[0x1] = lhs.m[ 0]*rhs.m[ 1] + lhs.m[ 1]*rhs.m[ 5] + lhs.m[ 2]*rhs.m[ 9] + lhs.m[ 3]*rhs.m[13];
+ r.m[0x2] = lhs.m[ 0]*rhs.m[ 2] + lhs.m[ 1]*rhs.m[ 6] + lhs.m[ 2]*rhs.m[10] + lhs.m[ 3]*rhs.m[14];
+ r.m[0x3] = lhs.m[ 0]*rhs.m[ 3] + lhs.m[ 1]*rhs.m[ 7] + lhs.m[ 2]*rhs.m[11] + lhs.m[ 3]*rhs.m[15];
+ r.m[0x4] = lhs.m[ 4]*rhs.m[ 0] + lhs.m[ 5]*rhs.m[ 4] + lhs.m[ 6]*rhs.m[ 8] + lhs.m[ 7]*rhs.m[12];
+ r.m[0x5] = lhs.m[ 4]*rhs.m[ 1] + lhs.m[ 5]*rhs.m[ 5] + lhs.m[ 6]*rhs.m[ 9] + lhs.m[ 7]*rhs.m[13];
+ r.m[0x6] = lhs.m[ 4]*rhs.m[ 2] + lhs.m[ 5]*rhs.m[ 6] + lhs.m[ 6]*rhs.m[10] + lhs.m[ 7]*rhs.m[14];
+ r.m[0x7] = lhs.m[ 4]*rhs.m[ 3] + lhs.m[ 5]*rhs.m[ 7] + lhs.m[ 6]*rhs.m[11] + lhs.m[ 7]*rhs.m[15];
+ r.m[0x8] = lhs.m[ 8]*rhs.m[ 0] + lhs.m[ 9]*rhs.m[ 4] + lhs.m[10]*rhs.m[ 8] + lhs.m[11]*rhs.m[12];
+ r.m[0x9] = lhs.m[ 8]*rhs.m[ 1] + lhs.m[ 9]*rhs.m[ 5] + lhs.m[10]*rhs.m[ 9] + lhs.m[11]*rhs.m[13];
+ r.m[0xA] = lhs.m[ 8]*rhs.m[ 2] + lhs.m[ 9]*rhs.m[ 6] + lhs.m[10]*rhs.m[10] + lhs.m[11]*rhs.m[14];
+ r.m[0xB] = lhs.m[ 8]*rhs.m[ 3] + lhs.m[ 9]*rhs.m[ 7] + lhs.m[10]*rhs.m[11] + lhs.m[11]*rhs.m[15];
+ r.m[0xC] = lhs.m[12]*rhs.m[ 0] + lhs.m[13]*rhs.m[ 4] + lhs.m[14]*rhs.m[ 8] + lhs.m[15]*rhs.m[12];
+ r.m[0xD] = lhs.m[12]*rhs.m[ 1] + lhs.m[13]*rhs.m[ 5] + lhs.m[14]*rhs.m[ 9] + lhs.m[15]*rhs.m[13];
+ r.m[0xE] = lhs.m[12]*rhs.m[ 2] + lhs.m[13]*rhs.m[ 6] + lhs.m[14]*rhs.m[10] + lhs.m[15]*rhs.m[14];
+ r.m[0xF] = lhs.m[12]*rhs.m[ 3] + lhs.m[13]*rhs.m[ 7] + lhs.m[14]*rhs.m[11] + lhs.m[15]*rhs.m[15];
+
  return r;
 }
 

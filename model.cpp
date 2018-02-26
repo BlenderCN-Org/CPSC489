@@ -106,9 +106,9 @@ ErrorCode MeshUTF::ConstructAnimationData(void)
              animations[anim].animdata[k_index].slist[b_index][2] = kf.scale[2];
 
              // set translation
-             animations[anim].animdata[k_index].tlist[b_index][0] = kf.translation[0];
-             animations[anim].animdata[k_index].tlist[b_index][1] = kf.translation[1];
-             animations[anim].animdata[k_index].tlist[b_index][2] = kf.translation[2];
+             animations[anim].animdata[k_index].tlist[b_index][0] = kf.translation[0] - joints[b_index].position[0];
+             animations[anim].animdata[k_index].tlist[b_index][1] = kf.translation[1] - joints[b_index].position[1];
+             animations[anim].animdata[k_index].tlist[b_index][2] = kf.translation[2] - joints[b_index].position[2];
 
              // set quaternion
              animations[anim].animdata[k_index].qlist[b_index][0] = kf.quaternion[0];
@@ -238,6 +238,18 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
         // read matrix
         code = ASCIIReadMatrix4(linelist, &joints[i].m[0], false);
         if(Fail(code)) return code;
+
+        // save position to relative format
+        if(joints[i].parent == 0xFFFFFFFF) {
+           joints[i].p_rel[0] = joints[i].position[0];
+           joints[i].p_rel[1] = joints[i].position[1];
+           joints[i].p_rel[2] = joints[i].position[2];
+          }
+        else {
+           joints[i].p_rel[0] = joints[i].position[0] - joints[joints[i].parent].position[0];
+           joints[i].p_rel[1] = joints[i].position[1] - joints[joints[i].parent].position[1];
+           joints[i].p_rel[2] = joints[i].position[2] - joints[joints[i].parent].position[2];
+          }
 
         // save matrix to absolute format
         joints[i].m_abs[0x0] = joints[i].m[0x0];
@@ -750,8 +762,8 @@ void MeshUTF::FreeModel(void)
  for(size_t i = 0; i < meshes.size(); i++) {
      size_t n_tex = meshes[i].textures.size();
      for(size_t j = 0; j < n_tex; j++) {
-         if(buffers[i].rvlist[j]) buffers[i].rvlist[j]->Release();
-          buffers[i].rvlist[j] = nullptr;
+         FreeTexture(meshes[i].textures[j].filename.c_str());
+         buffers[i].rvlist[j] = nullptr; // don't call Release(), texture manager will do it
         }
     }
 
@@ -909,8 +921,8 @@ ErrorCode MeshUTFInstance::Update(void)
             real32 ratio = (time - kf1.delta)/(kf2.delta - kf1.delta);
 
             // interpolate scale
-            // real32 S[3];
-            // lerp3D(S, &kf1.slist[bi][0], &kf2.slist[bi][0], ratio);
+            real32 S[3];
+            lerp3D(S, &kf1.slist[bi][0], &kf2.slist[bi][0], ratio);
 
             // interpolate translation
             real32 T[3];
@@ -922,8 +934,7 @@ ErrorCode MeshUTFInstance::Update(void)
 
             // load scaling matrix
             matrix4D m;
-            //m.load_scaling(S[0], S[1], S[2]);
-            m.load_identity();
+            m.load_scaling(S[0], S[1], S[2]);
 
             // rotate, then scale
             matrix4D R;
@@ -944,12 +955,13 @@ ErrorCode MeshUTFInstance::Update(void)
 
  // for each bone that is animated
  // these transformation matrices are interpolated in relative space
+ jm[0] = mesh->joints[0].m_rel * jm[0];
  for(size_t bi = 1; bi < joints.size(); bi++) {
      uint32 parent = mesh->joints[bi].parent;
-     jm[bi] = jm[bi] * jm[parent];
+     jm[bi] = mesh->joints[bi].m_rel * jm[bi] * jm[parent];
     }
- for(size_t bi = 0; bi < joints.size(); bi++)
-     jm[bi] = mesh->joints[bi].m_abs * jm[bi];
+ // for(size_t bi = 0; bi < joints.size(); bi++)
+ //     jm[bi] = mesh->joints[bi].m_abs * jm[bi];
 
  for(size_t bi = 0; bi < joints.size(); bi++)
      jm[bi].transpose();
