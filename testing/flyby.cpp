@@ -35,10 +35,10 @@ void FreeFlybyTest(void)
 {
  // release controller
  ReleaseController(controllerIndex);
+ controllerIndex = 0xFFFFFFFFul;
 
- // release model(s)
- instance->SetAnimation(0xFFFFFFFFul);
- instance->FreeInstance();
+ // release model
+ instance.release();
  model.FreeModel();
 }
 
