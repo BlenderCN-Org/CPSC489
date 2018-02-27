@@ -1,6 +1,15 @@
-1 # number of room models
-cube_room.txt
-4 # number of portals
+10 # number of models
+room_001.txt
+room_002.txt
+room_003.txt
+room_004.txt
+door_001.txt
+door_002.txt
+door_003.txt
+door_004.txt
+sliding_door_001.txt
+player.txt
+8 # number of portals
 room_001 door_001 door_004
 door_001 room_001 room_002
 room_002 door_001 door_002
@@ -9,3 +18,15 @@ room_003 door_002 door_003
 door_003 room_003 room_004
 room_004 door_003 door_004
 door_004 room_004 room_001
+1 # number of doors
+8               # model reference
+1.0 0.0 0.0 0.0 # position
+1.0 0.0 0.0 0.0 # quaternion
+1 # number of triggers
+0               # door reference
+0               # animation reference
+0.0 0.0 0.0 0.0 # position
+1.0 0.0 0.0 0.0 # quaternion
+9           # player model index
+5.0 0.0 3.0 # player model start location
+0           # player model start animation
