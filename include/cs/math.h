@@ -1,10 +1,7 @@
 #ifndef __CS_MATH_H
 #define __CS_MATH_H
 
-#include<cmath>
-#include<functional>
-
-#include "../Common/types.h"
+#include<cs/types.h>
 
 //
 // SPECIAL FUNCTIONS

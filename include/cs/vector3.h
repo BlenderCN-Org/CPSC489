@@ -1,7 +1,8 @@
-#ifndef __VECTOR3_H
-#define __VECTOR3_H
+#ifndef __CS_VECTOR3_H
+#define __CS_VECTOR3_H
 
-#include "../Common/types.h"
+#include<cs/types.h>
+#include<cs/math.h>
 
 #pragma region VECTOR3D_CLASS_DEFINITIONS
 

@@ -1,6 +1,10 @@
 #ifndef __CS_TYPES_H
 #define __CS_TYPES_H
 
+// STL Headers
+#include<cmath>
+#include<functional>
+
 //
 // DATA TYPES
 //
