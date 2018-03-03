@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "testing", "testing", "{C674B06B-9A44-4A63-AE64-9C0A2ED5D067}"
 EndProject
@@ -10,6 +10,15 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BVH", "testing\BVH\BVH.vcxproj", "{4F81E96D-4834-4932-AABB-87ED8FEFED40}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SceneGraph", "testing\SceneGraph\SceneGraph.vcxproj", "{1FE3B50B-365F-497A-922E-C491D35D8750}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Portals", "testing\Portals\Portals.vcxproj", "{6026564A-125E-472B-89A5-972ED8741C5A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{24F9CC01-3070-4FE1-BC96-24465378F8D4}"
+	ProjectSection(SolutionItems) = preProject
+		testing\Common\math.h = testing\Common\math.h
+		testing\Common\matrix4.h = testing\Common\matrix4.h
+		testing\Common\vector3.h = testing\Common\vector3.h
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +52,14 @@ Global
 		{1FE3B50B-365F-497A-922E-C491D35D8750}.Release|x64.Build.0 = Release|x64
 		{1FE3B50B-365F-497A-922E-C491D35D8750}.Release|x86.ActiveCfg = Release|Win32
 		{1FE3B50B-365F-497A-922E-C491D35D8750}.Release|x86.Build.0 = Release|Win32
+		{6026564A-125E-472B-89A5-972ED8741C5A}.Debug|x64.ActiveCfg = Debug|x64
+		{6026564A-125E-472B-89A5-972ED8741C5A}.Debug|x64.Build.0 = Debug|x64
+		{6026564A-125E-472B-89A5-972ED8741C5A}.Debug|x86.ActiveCfg = Debug|Win32
+		{6026564A-125E-472B-89A5-972ED8741C5A}.Debug|x86.Build.0 = Debug|Win32
+		{6026564A-125E-472B-89A5-972ED8741C5A}.Release|x64.ActiveCfg = Release|x64
+		{6026564A-125E-472B-89A5-972ED8741C5A}.Release|x64.Build.0 = Release|x64
+		{6026564A-125E-472B-89A5-972ED8741C5A}.Release|x86.ActiveCfg = Release|Win32
+		{6026564A-125E-472B-89A5-972ED8741C5A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,6 +67,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{4F81E96D-4834-4932-AABB-87ED8FEFED40} = {C674B06B-9A44-4A63-AE64-9C0A2ED5D067}
 		{1FE3B50B-365F-497A-922E-C491D35D8750} = {C674B06B-9A44-4A63-AE64-9C0A2ED5D067}
+		{6026564A-125E-472B-89A5-972ED8741C5A} = {C674B06B-9A44-4A63-AE64-9C0A2ED5D067}
+		{24F9CC01-3070-4FE1-BC96-24465378F8D4} = {C674B06B-9A44-4A63-AE64-9C0A2ED5D067}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {882F7F97-0AE5-46BD-B40C-94951B24DEB8}
