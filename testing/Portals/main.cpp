@@ -1,9 +1,9 @@
 #include<iostream>
 using namespace std;
 
-#include "../common/math.h"
-#include "../common/vector3.h"
-#include "../common/matrix4.h"
+#include<cs/math.h>
+#include<cs/vector3.h>
+#include<cs/matrix4.h>
 
 int main()
 {
