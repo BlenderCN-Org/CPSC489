@@ -5,10 +5,33 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Shared Source">
+      <UniqueIdentifier>{9f3e853a-2fd3-4a6c-a210-6a6f9fd5e947}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sample.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\shared\ascii.cpp">
+      <Filter>Shared Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\shared\stdafx.cpp">
+      <Filter>Shared Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="sample.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\shared\ascii.h">
+      <Filter>Shared Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\shared\stdafx.h">
+      <Filter>Shared Source</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
