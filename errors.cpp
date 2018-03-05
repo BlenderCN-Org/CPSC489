@@ -115,6 +115,9 @@ void InitErrorStrings(void)
 
  // Animation Errors
  InsertErrorString(EC_ANIM_INDEX, LC_ENGLISH, L"Animation index out of bounds.");
+
+ // Game Errors
+ InsertErrorString(EC_LOAD_LEVEL, LC_ENGLISH, L"Failed to load level.");
 }
 
 void FreeErrorStrings(void)

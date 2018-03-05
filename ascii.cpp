@@ -36,7 +36,16 @@ ErrorCode ASCIIParseFile(const wchar_t* filename, std::deque<std::string>& linel
 ErrorCode ASCIIReadString(std::deque<std::string>& linelist, char* str)
 {
  if(linelist.empty()) return EC_FILE_EOF;
- strcpy_s(str, 256, linelist.front().c_str());
+ strcpy_s(str, 1024, linelist.front().c_str());
+ linelist.pop_front();
+ return EC_SUCCESS;
+}
+
+ErrorCode ASCIIReadUTF8String(std::deque<std::string>& linelist, STDSTRINGW& str)
+{
+ if(linelist.empty()) return EC_FILE_EOF;
+ const char* tmp = linelist.front().c_str();
+ str = ConvertUTF8ToUTF16(linelist.front().c_str());
  linelist.pop_front();
  return EC_SUCCESS;
 }

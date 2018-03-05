@@ -1,25 +1,29 @@
-10 # number of models
+4 # number of static models
 room_001.txt
 room_002.txt
 room_003.txt
 room_004.txt
+4 # number of dynamic models
 door_001.txt
 door_002.txt
 door_003.txt
 door_004.txt
-sliding_door_001.txt
-player.txt
-8 # number of portals
-room_001 door_001 door_004
-door_001 room_001 room_002
-room_002 door_001 door_002
-door_002 room_002 room_003
-room_003 door_002 door_003
-door_003 room_003 room_004
-room_004 door_003 door_004
-door_004 room_004 room_001
+4 # number of portal cells
+room_001 room_002 room_004
+room_002 room_003 room_001
+room_003 room_004 room_002
+room_004 room_001 room_003
+0 1
+2 0
+3 2
+1 3
+4 # number of portals
+1 2 3 1 2 3 1 2 3 1 2 3 # 4 corners of cell
+1 2 3 1 2 3 1 2 3 1 2 3 # 4 corners of cell
+1 2 3 1 2 3 1 2 3 1 2 3 # 4 corners of cell
+1 2 3 1 2 3 1 2 3 1 2 3 # 4 corners of cell
 1 # number of doors
-8               # model reference
+door_001        # model reference
 1.0 0.0 0.0 0.0 # position
 1.0 0.0 0.0 0.0 # quaternion
 1 # number of triggers

@@ -93,6 +93,8 @@ enum ErrorCode {
  EC_MODEL_TEXTURE_FILENAME,
  // Animation Errors
  EC_ANIM_INDEX,
+ // Game Errors
+ EC_LOAD_LEVEL,
 };
 
 enum LanguageCode {
