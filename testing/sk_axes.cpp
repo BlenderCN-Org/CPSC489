@@ -27,7 +27,7 @@ BOOL InitSkeletonAxesTest(void)
    }
  instance = std::make_unique<MeshUTFInstance>(model);
  instance->InitInstance();
- instance->SetAnimation(0); // 0xFFFFFFFFul);
+ instance->SetAnimation(1); // 0xFFFFFFFFul);
  return TRUE;
 }
 

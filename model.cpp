@@ -18,6 +18,8 @@
 #include "ascii.h"
 #include "model.h"
 
+static const real32 SECONDS_PER_FRAME = 5.0f/30.0f;
+
 MeshUTF::MeshUTF()
 {
  has_weights = false;
@@ -51,9 +53,6 @@ MeshUTF::~MeshUTF()
  */
 ErrorCode MeshUTF::ConstructAnimationData(void)
 {
- // number of seconds per frame
- const real32 SECONDS_PER_FRAME = 1.0f/30.0f;
-
  // for each animation
  for(size_t anim = 0; anim < animations.size(); anim++)
     {
@@ -345,9 +344,6 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
  //
  // READ ANIMATIONS
  //
-
- // number of seconds per frame
- const real32 SECONDS_PER_FRAME = 1.0f/30.0f;
 
  // read number of animations
  uint32 n_anim = 0;
