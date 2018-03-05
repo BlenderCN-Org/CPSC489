@@ -18,10 +18,10 @@ room_004 room_001 room_003
 3 2
 1 3
 4 # number of portals
-1 2 3 1 2 3 1 2 3 1 2 3 # 4 corners of cell
-1 2 3 1 2 3 1 2 3 1 2 3 # 4 corners of cell
-1 2 3 1 2 3 1 2 3 1 2 3 # 4 corners of cell
-1 2 3 1 2 3 1 2 3 1 2 3 # 4 corners of cell
+1 2 3 1 2 3 1 2 3 1 2 3 # 4 corners of portal
+1 2 3 1 2 3 1 2 3 1 2 3 # 4 corners of portal
+1 2 3 1 2 3 1 2 3 1 2 3 # 4 corners of portal
+1 2 3 1 2 3 1 2 3 1 2 3 # 4 corners of portal
 1 # number of doors
 door_001        # model reference
 1.0 0.0 0.0 0.0 # position
