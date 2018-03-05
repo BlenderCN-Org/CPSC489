@@ -70,6 +70,21 @@ inline real32 radians(real32 d) { return d*pi_over_180(); }
 inline real32 degrees(real32 r) { return r*pi_under_180(); }
 
 //
+// QUATERNIONS
+//
+
+inline real32 qnormalize(real32* q)
+{
+ real32 norm = std::sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
+ if(norm < 1.0e-7f) return norm;
+ real32 scale = 1.0f/norm;
+ q[0] *= scale;
+ q[1] *= scale;
+ q[2] *= scale;
+ q[3] *= scale;
+}
+
+//
 // INTERPOLATION
 //
 

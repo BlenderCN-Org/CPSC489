@@ -64,6 +64,7 @@
 //
 
 #ifndef RC_INVOKED
+#define BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE 
 #include<boost/algorithm/string.hpp>
 #include<boost/algorithm/string/classification.hpp>
 #include<boost/algorithm/string/split.hpp>

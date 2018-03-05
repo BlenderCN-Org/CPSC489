@@ -62,11 +62,13 @@ ErrorCode MeshUTF::ConstructAnimationData(void)
      animations[anim].animdata.reset(new MeshUTFAnimationData[n_keys]);
 
      // compute frame times
+     // remember, minframe does not have to start at zero!
+     // you have to subtract minframe from frame to get zero offset
      for(auto iter = animations[anim].keymap.begin(); iter != animations[anim].keymap.end(); iter++) {
          uint32 frame = iter->first;
          size_t index = iter->second;
          animations[anim].animdata[index].frame = frame;
-         animations[anim].animdata[index].delta = SECONDS_PER_FRAME*frame;
+         animations[anim].animdata[index].delta = SECONDS_PER_FRAME*(frame - animations[anim].minframe);
         }
 
      // create keyframe data
@@ -443,7 +445,10 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
          animations[i].keymap.insert(std::map<uint32, size_t>::value_type(*iter, index++));
 
      // set animation duration
-     animations[i].duration = SECONDS_PER_FRAME*(animations[i].maxframe + 1);
+     // since minframe doesn't have to start at 0, we need to compute the total number of frames
+     // for example, if minframe = 100 and maxframe = 105, there are a total of 6 frames
+     int n_frames = animations[i].maxframe - animations[i].minframe + 1;
+     animations[i].duration = SECONDS_PER_FRAME*n_frames;
     }
 
  // construct animation data
@@ -902,8 +907,18 @@ ErrorCode MeshUTFInstance::ResetAnimation(void)
  return Update();
 }
 
-static float dt = 0.0f;
-static std::ofstream crap("debug.txt");
+void q_printstream(std::ostream& os, const float* Q)
+{
+ os << "<" << Q[0] << ", " << Q[1] << ", " << Q[2] << ", " << Q[3] << ">" << std::endl;
+}
+
+void m_printstream(std::ostream& os, const float* M)
+{
+ os << "[" << M[0x0] << ", " << M[0x1] << ", " << M[0x2] << ", " << M[0x3] << "]," << std::endl;
+ os << "[" << M[0x4] << ", " << M[0x5] << ", " << M[0x6] << ", " << M[0x7] << "]," << std::endl;
+ os << "[" << M[0x8] << ", " << M[0x9] << ", " << M[0xA] << ", " << M[0xB] << "]," << std::endl;
+ os << "[" << M[0xC] << ", " << M[0xD] << ", " << M[0xE] << ", " << M[0xF] << "] " << std::endl;
+}
 
 ErrorCode MeshUTFInstance::Update(void)
 {
@@ -914,56 +929,80 @@ ErrorCode MeshUTFInstance::Update(void)
  const auto& joints = mesh->joints;
 
  // for each bone that is animated
+ bool found = false;
  for(size_t bi = 0; bi < joints.size(); bi++)
     {
-     // using current time, find keyframes [a, b] that time is inbetween
      size_t n_keys = animation.keyset.size();
-     for(size_t ki = 0; ki < (n_keys - 1); ki++)
-        {
-         // find [a, b] such that [a, time, b]
-         auto& kf1 = animation.animdata[ki];
-         auto& kf2 = animation.animdata[ki + 1];
-         if((time >= kf1.delta) && (time <= kf2.delta))
+     if(time >= animation.animdata[n_keys - 1].delta)
+       {
+        auto& kf = animation.animdata[n_keys - 1];
+
+        // load scaling matrix
+        matrix4D m;
+        m.load_scaling(kf.slist[bi][0], kf.slist[bi][1], kf.slist[bi][2]);
+
+        // rotate, then scale
+        matrix4D R;
+        R.load_quaternion(&kf.qlist[bi][0]);
+        m = m * R;
+
+        // translate
+        m[0x3] += kf.tlist[bi][0];
+        m[0x7] += kf.tlist[bi][1];
+        m[0xB] += kf.tlist[bi][2];
+
+        // set matrix
+        jm[bi] = m * mesh->joints[bi].m_rel;
+        found = true;
+       }
+     else
+       {
+        // using current time, find keyframes [a, b] that time is inbetween
+        for(size_t ki = 0; ki < (n_keys - 1); ki++)
            {
-            // compute ratio between kf1 (0.0) and kf2 (1.0)
-            real32 ratio = (time - kf1.delta)/(kf2.delta - kf1.delta);
+            // find [a, b] such that [a, time, b]
+            auto& kf1 = animation.animdata[ki];
+            auto& kf2 = animation.animdata[ki + 1];
 
-            // interpolate scale
-            real32 S[3];
-            lerp3D(S, &kf1.slist[bi][0], &kf2.slist[bi][0], ratio);
+            if((time >= kf1.delta) && (time < kf2.delta))
+              {
+               // compute ratio between kf1 (0.0) and kf2 (1.0)
+               real32 ratio = (time - kf1.delta)/(kf2.delta - kf1.delta);
 
-            // interpolate translation
-            real32 T[3];
-            lerp3D(T, &kf1.tlist[bi][0], &kf2.tlist[bi][0], ratio);
+               // interpolate scale
+               real32 S[3];
+               lerp3D(S, &kf1.slist[bi][0], &kf2.slist[bi][0], ratio);
 
-            // interpolate quaternion
-            real32 Q[4];
-            qslerp(Q, &kf1.qlist[bi][0], &kf2.qlist[bi][0], ratio);
-            if(::dt > 1.0f && ::dt < 2.0f) {
-               std::stringstream ss;
-               ss << "q = <" << Q[0] << ", " << Q[1] << ", " << Q[2] << ", " << Q[3] << ">, dt = " << dt;
-               crap << ss.str().c_str() << std::endl;
+               // interpolate translation
+               real32 T[3];
+               lerp3D(T, &kf1.tlist[bi][0], &kf2.tlist[bi][0], ratio);
+
+               // interpolate quaternion
+               real32 Q[4];
+               qslerp(Q, &kf1.qlist[bi][0], &kf2.qlist[bi][0], ratio);
+               qnormalize(Q);
+
+               // load scaling matrix
+               matrix4D m;
+               m.load_scaling(S[0], S[1], S[2]);
+
+               // rotate, then scale
+               matrix4D R;
+               R.load_quaternion(Q);
+               m = m * R;
+
+               // translate
+               m[0x3] += T[0];
+               m[0x7] += T[1];
+               m[0xB] += T[2];
+
+               // set matrix
+               jm[bi] = m * mesh->joints[bi].m_rel;
+               found = true;
+               break;
               }
-
-            // load scaling matrix
-            matrix4D m;
-            m.load_scaling(S[0], S[1], S[2]);
-
-            // rotate, then scale
-            matrix4D R;
-            R.load_quaternion(Q);
-            m = m * R;
-
-            // translate
-            m[0x3] += T[0];
-            m[0x7] += T[1];
-            m[0xB] += T[2];
-
-            // set matrix
-            jm[bi] = m;
-            break;
            }
-        }
+       }
     }
 
  // for each bone that is animated
@@ -973,11 +1012,9 @@ ErrorCode MeshUTFInstance::Update(void)
      jm[bi] = jm[bi] * jm[parent];
     }
  for(size_t bi = 0; bi < joints.size(); bi++) {
-     jm[bi] = mesh->joints[bi].m_inv * jm[bi] * mesh->joints[bi].m_abs;
-    }
-
- for(size_t bi = 0; bi < joints.size(); bi++)
+     jm[bi] = mesh->joints[bi].m_inv * jm[bi];
      jm[bi].transpose();
+    }
 
  // copy matrices to Direct3D
  UINT size = (UINT)(mesh->joints.size()*sizeof(matrix4D));
@@ -990,7 +1027,6 @@ ErrorCode MeshUTFInstance::Update(void)
 
 ErrorCode MeshUTFInstance::Update(real32 dt)
 {
- ::dt += dt;
  return SetTime(time + dt);
 }
 

@@ -42,7 +42,7 @@ ErrorCode InitRasterizerStates(void)
  // SOLID MODELS
  rsdlist.push_back(D3D11_RASTERIZER_DESC());
  rsdlist.back().FillMode = D3D11_FILL_SOLID;
- rsdlist.back().CullMode = D3D11_CULL_BACK;
+ rsdlist.back().CullMode = D3D11_CULL_NONE; //BACK;
  rsdlist.back().FrontCounterClockwise = TRUE;
  rsdlist.back().DepthBias = 0;
  rsdlist.back().DepthBiasClamp = 0.0f;
