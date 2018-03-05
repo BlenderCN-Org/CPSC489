@@ -172,6 +172,7 @@
     <ClCompile Include="bmp.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="errors.cpp" />
+    <ClCompile Include="game.cpp" />
     <ClCompile Include="gfx.cpp" />
     <ClCompile Include="grid.cpp" />
     <ClCompile Include="hudtex.cpp" />
@@ -212,6 +213,7 @@
     <ClInclude Include="bmp.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="errors.h" />
+    <ClInclude Include="game.h" />
     <ClInclude Include="gfx.h" />
     <ClInclude Include="grid.h" />
     <ClInclude Include="hudtex.h" />
