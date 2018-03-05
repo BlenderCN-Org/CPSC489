@@ -925,31 +925,31 @@ ErrorCode MeshUTFInstance::Update(void)
  const auto& joints = mesh->joints;
 
  // for each bone that is animated
- bool found = false;
+ matrix4D m;
  for(size_t bi = 0; bi < joints.size(); bi++)
     {
      size_t n_keys = animation.keyset.size();
-     if(time >= animation.animdata[n_keys - 1].delta)
-       {
-        auto& kf = animation.animdata[n_keys - 1];
-
-        // load scaling matrix
-        matrix4D m;
+     if(time <= animation.animdata[0].delta) {
+        auto& kf = animation.animdata[0];
         m.load_scaling(kf.slist[bi][0], kf.slist[bi][1], kf.slist[bi][2]);
-
-        // rotate, then scale
         matrix4D R;
         R.load_quaternion(&kf.qlist[bi][0]);
         m = m * R;
-
-        // translate
         m[0x3] += kf.tlist[bi][0];
         m[0x7] += kf.tlist[bi][1];
         m[0xB] += kf.tlist[bi][2];
-
-        // set matrix
         jm[bi] = m * mesh->joints[bi].m_rel;
-        found = true;
+       }
+     else if(time >= animation.animdata[n_keys - 1].delta) {
+        auto& kf = animation.animdata[n_keys - 1];
+        m.load_scaling(kf.slist[bi][0], kf.slist[bi][1], kf.slist[bi][2]);
+        matrix4D R;
+        R.load_quaternion(&kf.qlist[bi][0]);
+        m = m * R;
+        m[0x3] += kf.tlist[bi][0];
+        m[0x7] += kf.tlist[bi][1];
+        m[0xB] += kf.tlist[bi][2];
+        jm[bi] = m * mesh->joints[bi].m_rel;
        }
      else
        {
@@ -979,7 +979,6 @@ ErrorCode MeshUTFInstance::Update(void)
                qnormalize(Q);
 
                // load scaling matrix
-               matrix4D m;
                m.load_scaling(S[0], S[1], S[2]);
 
                // rotate, then scale
@@ -994,7 +993,6 @@ ErrorCode MeshUTFInstance::Update(void)
 
                // set matrix
                jm[bi] = m * mesh->joints[bi].m_rel;
-               found = true;
                break;
               }
            }
