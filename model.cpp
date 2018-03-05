@@ -634,18 +634,18 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
  if(FAILED(GetD3DDeviceContext()->Map(ja_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) return EC_D3D_MAP_RESOURCE;
  JAXISBUFFER* data = reinterpret_cast<JAXISBUFFER*>(msr.pData);
  for(size_t i = 0; i < n_jnts; i++) {
-     data[i].m[0x0] = joints[i].m[0x0];
-     data[i].m[0x1] = joints[i].m[0x1];
-     data[i].m[0x2] = joints[i].m[0x2];
-     data[i].m[0x3] = joints[i].position[0];
-     data[i].m[0x4] = joints[i].m[0x4];
-     data[i].m[0x5] = joints[i].m[0x5];
-     data[i].m[0x6] = joints[i].m[0x6];
-     data[i].m[0x7] = joints[i].position[1];
-     data[i].m[0x8] = joints[i].m[0x8];
-     data[i].m[0x9] = joints[i].m[0x9];
-     data[i].m[0xA] = joints[i].m[0xA];
-     data[i].m[0xB] = joints[i].position[2];
+     data[i].m[0x0] = joints[i].m_abs[0x0];
+     data[i].m[0x1] = joints[i].m_abs[0x1];
+     data[i].m[0x2] = joints[i].m_abs[0x2];
+     data[i].m[0x3] = joints[i].m_abs[0x3];
+     data[i].m[0x4] = joints[i].m_abs[0x4];
+     data[i].m[0x5] = joints[i].m_abs[0x5];
+     data[i].m[0x6] = joints[i].m_abs[0x6];
+     data[i].m[0x7] = joints[i].m_abs[0x7];
+     data[i].m[0x8] = joints[i].m_abs[0x8];
+     data[i].m[0x9] = joints[i].m_abs[0x9];
+     data[i].m[0xA] = joints[i].m_abs[0xA];
+     data[i].m[0xB] = joints[i].m_abs[0xB];
      data[i].m[0xC] = 0.0f;
      data[i].m[0xD] = 0.0f;
      data[i].m[0xE] = 0.0f;
@@ -902,6 +902,9 @@ ErrorCode MeshUTFInstance::ResetAnimation(void)
  return Update();
 }
 
+static float dt = 0.0f;
+static std::ofstream crap("debug.txt");
+
 ErrorCode MeshUTFInstance::Update(void)
 {
  // validate
@@ -936,6 +939,11 @@ ErrorCode MeshUTFInstance::Update(void)
             // interpolate quaternion
             real32 Q[4];
             qslerp(Q, &kf1.qlist[bi][0], &kf2.qlist[bi][0], ratio);
+            if(::dt > 1.0f && ::dt < 2.0f) {
+               std::stringstream ss;
+               ss << "q = <" << Q[0] << ", " << Q[1] << ", " << Q[2] << ", " << Q[3] << ">, dt = " << dt;
+               crap << ss.str().c_str() << std::endl;
+              }
 
             // load scaling matrix
             matrix4D m;
@@ -982,6 +990,7 @@ ErrorCode MeshUTFInstance::Update(void)
 
 ErrorCode MeshUTFInstance::Update(real32 dt)
 {
+ ::dt += dt;
  return SetTime(time + dt);
 }
 
