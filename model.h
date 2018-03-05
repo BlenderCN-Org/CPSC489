@@ -9,6 +9,7 @@ struct MeshUTFJoint {
  matrix4D m;
  matrix4D m_rel;
  matrix4D m_abs;
+ matrix4D m_inv;
 };
 
 struct MeshUTFKeyFrame {

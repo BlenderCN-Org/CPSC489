@@ -106,9 +106,9 @@ ErrorCode MeshUTF::ConstructAnimationData(void)
              animations[anim].animdata[k_index].slist[b_index][2] = kf.scale[2];
 
              // set translation
-             animations[anim].animdata[k_index].tlist[b_index][0] = kf.translation[0] - joints[b_index].position[0];
-             animations[anim].animdata[k_index].tlist[b_index][1] = kf.translation[1] - joints[b_index].position[1];
-             animations[anim].animdata[k_index].tlist[b_index][2] = kf.translation[2] - joints[b_index].position[2];
+             animations[anim].animdata[k_index].tlist[b_index][0] = kf.translation[0];
+             animations[anim].animdata[k_index].tlist[b_index][1] = kf.translation[1];
+             animations[anim].animdata[k_index].tlist[b_index][2] = kf.translation[2];
 
              // set quaternion
              animations[anim].animdata[k_index].qlist[b_index][0] = kf.quaternion[0];
@@ -255,19 +255,23 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
         joints[i].m_abs[0x0] = joints[i].m[0x0];
         joints[i].m_abs[0x1] = joints[i].m[0x1];
         joints[i].m_abs[0x2] = joints[i].m[0x2];
-        joints[i].m_abs[0x3] = joints[i].m[0x3];
+        joints[i].m_abs[0x3] = joints[i].position[0];
         joints[i].m_abs[0x4] = joints[i].m[0x4];
         joints[i].m_abs[0x5] = joints[i].m[0x5];
         joints[i].m_abs[0x6] = joints[i].m[0x6];
-        joints[i].m_abs[0x7] = joints[i].m[0x7];
+        joints[i].m_abs[0x7] = joints[i].position[1];
         joints[i].m_abs[0x8] = joints[i].m[0x8];
         joints[i].m_abs[0x9] = joints[i].m[0x9];
         joints[i].m_abs[0xA] = joints[i].m[0xA];
-        joints[i].m_abs[0xB] = joints[i].m[0xB];
+        joints[i].m_abs[0xB] = joints[i].position[2];
         joints[i].m_abs[0xC] = joints[i].m[0xC];
         joints[i].m_abs[0xD] = joints[i].m[0xD];
         joints[i].m_abs[0xE] = joints[i].m[0xE];
         joints[i].m_abs[0xF] = joints[i].m[0xF];
+
+        // save inverse
+        joints[i].m_inv = joints[i].m_abs;
+        joints[i].m_inv.invert();
 
         // save matrix to relative format
         if(joints[i].parent == 0xFFFFFFFF) {
@@ -960,8 +964,9 @@ ErrorCode MeshUTFInstance::Update(void)
      uint32 parent = mesh->joints[bi].parent;
      jm[bi] = jm[bi] * jm[parent];
     }
- for(size_t bi = 0; bi < joints.size(); bi++)
-     jm[bi] = mesh->joints[bi].m_abs * jm[bi];
+ for(size_t bi = 0; bi < joints.size(); bi++) {
+     jm[bi] = mesh->joints[bi].m_inv * jm[bi] * mesh->joints[bi].m_abs;
+    }
 
  for(size_t bi = 0; bi < joints.size(); bi++)
      jm[bi].transpose();

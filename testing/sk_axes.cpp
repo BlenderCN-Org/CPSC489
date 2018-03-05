@@ -38,7 +38,7 @@ void FreeSkeletonAxesTest(void)
  controllerIndex = 0xFFFFFFFFul;
 
  // release model
- instance.release();
+ if(instance.get()) instance.release();
  model.FreeModel();
 }
 

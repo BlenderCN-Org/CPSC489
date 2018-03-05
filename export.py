@@ -82,6 +82,7 @@ def ExportArmature(file, armature, skeleton):
                 dx + bone.head_local[0],
                 dy + bone.head_local[1],
                 dz + bone.head_local[2]]
+			# in Blender, this is a column major matrix, so we must transpose
             bonelist[index].matrix = [
                 [bone.matrix_local[0][0], bone.matrix_local[1][0], bone.matrix_local[2][0]],
                 [bone.matrix_local[0][1], bone.matrix_local[1][1], bone.matrix_local[2][1]],
@@ -177,7 +178,7 @@ def ExportAnimations(file, armature):
             if n_keys > 0:
                 file.write(name + '\n')
                 file.write('{}'.format(len(keydict)) + ' # number of keys\n')
-                for frame, transforms in keydict.items():
+                for frame, transforms in sorted(keydict.items()):
                     file.write('{}\n'.format(int(frame)))
                     file.write('{} {} {}\n'.format(transforms[0][0] + dx, transforms[0][1] + dy, transforms[0][2] + dz))
                     file.write('{} {} {} {}\n'.format(transforms[1][0], transforms[1][1], transforms[1][2], transforms[1][3]))
