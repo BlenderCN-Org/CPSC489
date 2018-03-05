@@ -453,4 +453,25 @@ ErrorCode ASCIIReadMatrix4(std::deque<std::string>& linelist, real32* v, bool re
  return EC_SUCCESS;
 }
 
+ErrorCode ASCIIReadUint32Array(std::deque<std::string>& linelist, std::vector<uint32>& data)
+{
+ // read past EOF
+ if(linelist.empty()) return EC_FILE_EOF;
+
+ // split parameters
+ const size_t max_param = 64;
+ std::deque<std::string> parameters;
+ boost::split(parameters, linelist.front(), boost::is_any_of(" "));
+ if(parameters.size() < 1 || parameters.size() > max_param) return EC_FILE_PARSE;
+
+ // assign data
+ std::vector<uint32> v(parameters.size());
+ for(size_t i = 0; i < parameters.size(); i++) v[i] = strtoul(parameters[i].c_str(), nullptr, 10);
+ data = std::move(v);
+
+ // remove line from list
+ linelist.pop_front();
+ return EC_SUCCESS;
+}
+
 #pragma endregion ASCII_FILE_UTILITIES

@@ -12,6 +12,9 @@ static std::vector<std::shared_ptr<MeshUTF>> m_static; // static models
 static std::vector<std::shared_ptr<MeshUTF>> m_dynamic; // dynamic models
 static std::vector<std::shared_ptr<MeshUTFInstance>> instances;
 
+// portal variables
+static std::vector<std::vector<uint32>> cell_graph;
+
 ErrorCode LoadMap(LPCWSTR name)
 {
  // parse file
@@ -64,13 +67,13 @@ ErrorCode LoadMap(LPCWSTR name)
      m_dynamic.push_back(model);
     }
 
- // read number of portals
- uint32 n_portals = 0;
- code = ASCIIReadUint32(linelist, &n_portals);
+ // read number of portal cells
+ uint32 n_cells = 0;
+ code = ASCIIReadUint32(linelist, &n_cells);
  if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
 
- // read portals
- for(uint32 i = 0; i < n_portals; i++)
+ // read cell graph (named connections)
+ for(uint32 i = 0; i < n_cells; i++)
     {
      // load line that holds adjacency list
      char line[1024];
@@ -84,7 +87,35 @@ ErrorCode LoadMap(LPCWSTR name)
 
      // TODO:
      // This is where we want to lookup the names of the portals to match them to the names of the
-     // static models so we can index them. Once we have the model, we can figure out 
+     // static models so we can index them. Once we have the model, we can figure out bounding boxes
+     // for the portals.
+    }
+
+ // read cell graph (portal connections)
+ for(uint32 i = 0; i < n_cells; i++)
+    {
+     // load cell references
+     std::vector<uint32> v;
+     code = ASCIIReadUint32Array(linelist, v);
+     if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
+     // bidirectional portal
+     // room_001 room_002 room_004
+     // room_004 room_001 room_003
+     // 0 1 # room_001 -> room_004 using cell[1]
+     // 1 3 # room_004 -> room_001 using cell[1] (give a warning if they don't match)
+
+     // unidirectional portal
+     // room_001 room_002 room_004
+     // room_004 room_003
+     // 0 1 # room_001 -> room_004 using cell[1]
+     // 3   # room_004 -> room_003 using cell[3]
+
+     // cell with no connections
+     // room_001
+     // room_002
+     // -1 means no cell
+     // -1 means no cell
     }
 
  return EC_SUCCESS;

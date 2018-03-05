@@ -20,4 +20,6 @@ ErrorCode ASCIIReadVector8(std::deque<std::string>& linelist, real32* v, bool re
 ErrorCode ASCIIReadMatrix3(std::deque<std::string>& linelist, real32* v, bool repeat = false);
 ErrorCode ASCIIReadMatrix4(std::deque<std::string>& linelist, real32* v, bool repeat = false);
 
+ErrorCode ASCIIReadUint32Array(std::deque<std::string>& linelist, std::vector<uint32>& data); 
+
 #endif
