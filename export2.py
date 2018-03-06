@@ -52,11 +52,23 @@ def CreateIndexBoneMap(armature):
 #
 # MESH FUNCTIONS
 #
-def GetUVMapChannel(meshobj, name):
-	for index, uv_layer in enumerate(meshobj.uv_layers):
+def GetUVMapChannel(mesh, name):
+	for index, uv_layer in enumerate(mesh.uv_layers):
 		if uv_layer.name == name: return index
 	return -1
-
+def GetIndexBufferDictionary(mesh):
+	if IsPortalMesh(mesh.name): return None
+	facedict = {}
+	for index in range(len(mesh.materials)): facedict[index] = []
+	for poly in mesh.polygons:
+		if poly.loop_total != 3: raise Exception('Mesh geometry contains non-triangles.')
+		face = [
+			mesh.loops[poly.loop_indices[0]].vertex_index,
+			mesh.loops[poly.loop_indices[1]].vertex_index,
+			mesh.loops[poly.loop_indices[2]].vertex_index]
+		facedict[poly.material_index].append(face)
+	return facedict
+			
 #
 # MATERIAL FUNCTIONS
 #
@@ -69,9 +81,9 @@ class MaterialTexture:
 	# filename
 	pass
 
-def GetMeshMaterials(meshobj):
-	if((meshobj == None) or (len(meshobj.materials) == 0)): return None
-	for material in meshobj.materials:
+def GetMeshMaterials(mesh):
+	if((mesh == None) or (len(mesh.materials) == 0)): return None
+	for material in mesh.materials:
 		print(material.name)
 	return None
 def GetMeshMaterialTextures(material):
@@ -86,9 +98,6 @@ def GetMeshMaterialTextures(material):
 			if slot.texture.image != None: mt.filename = slot.texture.image.filepath
 			else: mt.filename = 'default.bmp'
 			rv.append(mt)
-			print(mt.name)
-			print(mt.uvmap)
-			print(mt.filename)
 	return rv
 	
 #
@@ -99,17 +108,23 @@ def IsPortalMesh(objname):
 	list = objname.split('_')
 	if(len(list) == 0): return False
 	return list[0] == 'portal'
-	
 def IsRoomMesh(objname):
 	if(objname == None): return False
 	list = objname.split('_')
 	if(len(list) == 0): return False
 	return list[0] == 'room'
-	
+
+# create file
+splitpath = GetFilePathSplitExt()
+filename = splitpath[0] + "_test.txt"
+file = open(filename, 'w')
+
 meshlist = GetMeshObjects()
 for mesh in meshlist:
-	print(mesh)
-	print(IsPortalMesh(mesh.name))
-	GetMeshMaterials(mesh)
-	for material in mesh.materials:
-		GetMeshMaterialTextures(material)
+	print(mesh.name)
+	facedict = GetIndexBufferDictionary(mesh)
+	if facedict != None: print('{} #number of facedict'.format(len(facedict)))
+	else: print('No face dict.')
+	if facedict != None and len(facedict) > 0:
+		for i, facelist in facedict.items():
+			file.write('{} # number of faces'.format(len(facelist)))
