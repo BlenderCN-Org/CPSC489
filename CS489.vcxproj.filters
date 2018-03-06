@@ -137,14 +137,8 @@
     <ClCompile Include="xinput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="map.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hudtex.cpp">
       <Filter>Source Files\Direct3D</Filter>
-    </ClCompile>
-    <ClCompile Include="portal.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="testing\flyby.cpp">
       <Filter>Source Files\Testing</Filter>
@@ -156,6 +150,12 @@
       <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="door.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="map.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="portal.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
   </ItemGroup>
@@ -259,14 +259,8 @@
     <ClInclude Include="xinput.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="map.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="hudtex.h">
       <Filter>Source Files\Direct3D</Filter>
-    </ClInclude>
-    <ClInclude Include="portal.h">
-      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="testing\flyby.h">
       <Filter>Source Files\Testing</Filter>
@@ -278,6 +272,12 @@
       <Filter>Source Files\Game</Filter>
     </ClInclude>
     <ClInclude Include="door.h">
+      <Filter>Source Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="map.h">
+      <Filter>Source Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="portal.h">
       <Filter>Source Files\Game</Filter>
     </ClInclude>
   </ItemGroup>
