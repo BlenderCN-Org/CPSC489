@@ -251,6 +251,9 @@
   <ItemGroup>
     <ResourceCompile Include="stdres.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="tools.py" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

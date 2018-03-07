@@ -29,16 +29,21 @@ def GetMeshObjects(): return bpy.data.meshes
 def GetSelectedArmatureObjects():
 	r = []
 	for obj in GetObjects():
-		if ((IsArmature(obj) == True) and (obj.select == True)): r.append(obj)
+		if (IsArmature(obj) and obj.select): r.append(obj)
 	return r
 def GetSelectedMeshObjects():
 	r = []
 	for obj in GetObjects():
-		if ((IsMesh(obj) == True) and (obj.select == True)): r.append(obj)
+		if (IsMesh(obj) and obj.select): r.append(obj)
 	return r
 def IsArmature(obj): return (True if obj.type == 'ARMATURE' else False)
 def IsMesh(obj): return (True if obj.type == 'MESH' else False)
-
+def GetObjectFromMesh(mesh):
+	if mesh is None: return None
+	for obj in GetObjects():
+		if obj.data.name == mesh.name: return obj
+	return None
+	
 #
 # ARMATURE FUNCTIONS
 #
@@ -56,6 +61,41 @@ def GetUVMapChannel(mesh, name):
 	for index, uv_layer in enumerate(mesh.uv_layers):
 		if uv_layer.name == name: return index
 	return -1
+def GetVertexBufferPositions(mesh):
+	if len(mesh.vertices) == 0: return None
+	buffer = []
+	for i in range(len(mesh.vertices)):
+		# multiply vertices by matrix_world to get them in world coordinates
+		v = mesh.vertices[i]
+		temp = GetObjectFromMesh(mesh).matrix_world * v.co
+		temp[0] = temp[0]
+		temp[1] = temp[1]
+		temp[2] = temp[2]
+		buffer.append(temp)
+	return buffer
+def GetVertexBufferNormals(mesh):
+	if len(mesh.vertices) == 0: return None
+	buffer = []
+	for i in range(len(mesh.vertices)):
+		v = mesh.vertices[i]
+		temp = v.normal
+		temp[0] = temp[0]
+		temp[1] = temp[1]
+		temp[2] = temp[2]
+		buffer.append(temp)
+	return buffer
+def GetVertexBufferTexcoord(mesh):
+	if (len(mesh.vertices) == 0) or (mesh.uv_layers == 0): return None
+	buffer = [[]] * mesh.uv_layers
+	for i in range(mesh.uv_layers):	for j in range(len(mesh.vertices)):	buffer[i].append([0.0f, 0.0f])
+	for poly in mesh.polygons:
+		if poly.loop_total != 3: raise Exception('Mesh geometry contains non-triangles.')
+		for loop_index in poly.loop_indices:
+			vindex = mesh.loops[loop_index].vertex_index
+			for channel in range(mesh.uv_layers):
+				data = mesh.uv_layers[channel].data[loop_index]
+				buffer[channel][vindex] = data.uv
+	return buffer
 def GetIndexBufferDictionary(mesh):
 	if IsPortalMesh(mesh.name): return None
 	facedict = {}
@@ -73,8 +113,8 @@ def GetIndexBufferDictionary(mesh):
 # MATERIAL FUNCTIONS
 #
 class Material:
-	# name
-	# MaterialTexture[]
+	# name     String
+	# textures MaterialTexture[]
 	pass
 class MaterialTexture:
 	# name
@@ -87,8 +127,10 @@ def GetMeshMaterials(mesh):
 	if((mesh == None) or (len(mesh.materials) == 0)): return None
 	rv = []
 	for material in mesh.materials:
-		mt = GetMeshMaterialTextures(mesh, material)
-		if mt != None: rv.append(mt)
+		mobj = Material()
+		mobj.name = material.name
+		mobj.textures = GetMeshMaterialTextures(mesh, material)
+		rv.append(mobj)
 	return rv
 def GetMeshMaterialTextures(mesh, material):
 	rv = []
@@ -126,6 +168,14 @@ def IsRoomMesh(objname):
 	list = objname.split('_')
 	if(len(list) == 0): return False
 	return list[0] == 'room'
+def SetCellMeshState(state):
+	meshlist = GetSelectedMeshObjects()
+	if meshlist == None: return
+	for mesh in meshlist: mesh['is_cell'] = state
+def SetPortalMeshState(state):
+	meshlist = GetSelectedMeshObjects()
+	if meshlist == None: return
+	for mesh in meshlist: mesh['is_portal'] = state
 
 # create file
 splitpath = GetFilePathSplitExt()
@@ -137,8 +187,28 @@ for mesh in meshlist:
 
 	# build mesh materials
 	matlist = GetMeshMaterials(mesh)
-	if (matlist == None) or (len(matlist) == 0):
+	if (matlist is None) or (len(matlist) == 0):
 		raise Exception('The mesh {} does not have a material.'.format(mesh.name))
+
+    # build vertex buffer positions
+	vbuffer1 = GetVertexBufferPositions(mesh)
+	if vbuffer1 is None or len(vbuffer1) == 0:
+		raise Exception('The mesh {} has no vertex buffer.'.format(mesh.name))
+	if len(vbuffer1) != len(mesh.vertices):
+		raise Exception('The number of mesh vertices for mesh {} do not match.'.format(mesh.name))
+	
+	vbuffer2 = GetVertexBufferNormals(mesh)
+	if vbuffer2 is None or len(vbuffer2) == 0:
+		raise Exception('The mesh {} has no vertex buffer.'.format(mesh.name))
+	if len(vbuffer2) != len(mesh.vertices):
+		raise Exception('The number of mesh vertices for mesh {} do not match.'.format(mesh.name))
+	
+	vbuffer3 = []
+	vbuffer4 = []
+	vbuffer5 = []
+	vbuffer6 = []
+	vbuffer7 = []
+	vbuffer8 = []
 	
 	# build index buffers
 	facedict = GetIndexBufferDictionary(mesh)
@@ -155,26 +225,35 @@ for mesh in meshlist:
 	# output mesh if valid
 	if facedict != None:
 
-		# number of verts, texture channels, materials, and color channels
-		n_verts = len(mesh.vertices)
-		n_channels = len(mesh.uv_layers)
-		n_colors = len(mesh.vertex_colors)
-		
-		# write mesh header
+		# write mesh name
 		file.write('{}\n'.format(mesh.name))
-		file.write('{} # number of vertices\n'.format(n_verts))
-		file.write('{} # number of UV channels\n'.format(n_channels))
-		file.write('{} # number of color channels\n'.format(n_colors))
-
+	
 		# write material data
 		file.write('{} # of materials\n'.format(len(matlist)))
 		for mat in matlist:
-			file.write('{} # of textures\n'.format(len(mat)))
-			for texture in mat:
-				file.write('{}\n'.format(texture.name))
-				file.write('{}\n'.format(texture.type))
-				file.write('{}\n'.format(texture.channel))
-				file.write('{}\n'.format(texture.filename))
+			file.write('{}\n'.format(mat.name))
+			if mat.textures != None:
+				file.write('{} # of textures\n'.format(len(mat.textures)))
+				for texture in mat.textures:
+					file.write('{}\n'.format(texture.name))
+					file.write('{}\n'.format(texture.type))
+					file.write('{}\n'.format(texture.channel))
+					file.write('{}\n'.format(texture.filename))
+			else:
+				file.write('0 # of textures\n')
+
+		# write vertex buffers header
+		n_verts = len(mesh.vertices)
+		n_channels = len(mesh.uv_layers)
+		n_colors = len(mesh.vertex_colors)
+		file.write('{} # number of vertices\n'.format(n_verts))
+		file.write('{} # number of UV channels\n'.format(n_channels))
+		file.write('{} # number of color channels\n'.format(n_colors))
+		
+		# write vertex buffers
+		for i in range(len(vbuffer1)): 
+			file.write("{:.4f} {:.4f} {:.4f}\n".format(vbuffer1[i][0], vbuffer1[i][1], vbuffer1[i][2]))
+			file.write("{:.4f} {:.4f} {:.4f}\n".format(vbuffer2[i][0], vbuffer2[i][1], vbuffer2[i][2]))
 		
 		# write submesh data
 		file.write('{} # number of total faces\n'.format(n_faces))
