@@ -321,7 +321,7 @@ for mesh in meshlist:
 	
 		pass
 		
-	# if cell
+	# if cell (need to change this)
 	elif IsCellMesh(mesh):
 
 		# build mesh materials
@@ -425,6 +425,6 @@ for mesh in meshlist:
 					file.write('{} # material index\n'.format(i))
 					for face in facelist:
 						file.write('{} {} {}\n'.format(face[0], face[1], face[2]))
-			
+
 # close file
 file.close()
