@@ -36,9 +36,6 @@
     <Filter Include="Source Files\Game">
       <UniqueIdentifier>{834185c6-d36e-446f-8c81-f428a9e11983}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Python Files">
-      <UniqueIdentifier>{5c7a6a0b-bc7d-4a88-8ac4-d872f4050eba}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winmain.cpp">
@@ -288,10 +285,5 @@
     <ResourceCompile Include="stdres.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="tools.py">
-      <Filter>Python Files</Filter>
-    </None>
   </ItemGroup>
 </Project>
