@@ -47,12 +47,38 @@ def GetObjectFromMesh(mesh):
 #
 # ARMATURE FUNCTIONS
 #
-def HasBones(armature): return ((armature != None) and (len(armature.data.bones) > 0))
+def HasBones(armature):
+	return ((armature is not None) and (armature.data is not None) and (len(armature.data.bones) > 0))
 def CreateIndexBoneMap(armature):
 	if HasBones(armature) == False: return {}
 	bonemap = {}
 	for index, bone in enumerate(armature.data.bones): bonemap[bone.name] = index
 	return bonemap
+def GetArmatureObjectByName(name):
+	if name is None or len(name) == 0: return None
+	list = GetArmatureObjects()
+	for obj in list:
+		if obj.name == name: return obj
+	return None
+def GetArmatureDataByName(name):
+	if name is None or len(name) == 0: return None
+	list = GetArmatureObjects()
+	for obj in list:
+		if obj.data.name == name: return obj.data
+	return None
+def GetArmatureObjectFromMesh(mesh):
+	if mesh is None: return None
+	# 1st - parent armature
+	obj = GetObjectFromMesh(mesh)
+	if obj.parent_type == 'ARMATURE': return obj.parent
+	# 2nd - modifier armature
+	for modifier in obj.modifiers:
+		if modifier.type == 'ARMATURE':
+			return GetArmatureObjectByName(modifier.name)
+	# 3rd - first armature you find
+	list = GetArmatureObjects()
+	if list is not None and len(list): return list[0]
+	return None
 
 #
 # MESH FUNCTIONS
@@ -105,12 +131,63 @@ def GetVertexBufferTexcoord(mesh):
 def GetVertexBufferColors(mesh):
 	if mesh is None: raise Exception('You cannot use this function on a null mesh.')
 	if IsPortalMesh(mesh): raise Exception('You cannot use this function on portal meshes.')
-	if mesh.vertices is None or mesh.uv_layers is None: return None
-	if len(mesh.vertices) == 0: return None
-	if len(mesh.uv_layers) == 0: return None
-	
-	buffer = [[]] * len(mesh.vertex_colors)
+	if mesh.vertices is None or mesh.vertex_colors is None: return None
+	n_verts = len(mesh.vertices)
+	n_channels = len(mesh.vertex_colors)
+	if len(mesh.vertices) == 0 or len(mesh.vertex_colors) == 0: return None
+	buffer = [[]] * n_channels
+	for i in range(n_channels):
+		for j in range(len(mesh.vertices)):
+			buffer[i].append([0.0, 0.0, 0.0, 0.0])
+	for poly in mesh.polygons:
+		if poly.loop_total != 3: raise Exception('Mesh geometry contains non-triangles.')
+		for loop_index in poly.loop_indices:
+			vindex = mesh.loops[loop_index].vertex_index
+			for channel in range(n_channels):
+				data = mesh.vertex_colors[channel].data[loop_index]
+				buffer[channel][vindex][0] = data.color[0]
+				buffer[channel][vindex][1] = data.color[1]
+				buffer[channel][vindex][2] = data.color[2]
 	return buffer
+def GetVertexBufferBlendData(mesh):
+	if mesh is None: raise Exception('You cannot use this function on a null mesh.')
+	if IsPortalMesh(mesh): raise Exception('You cannot use this function on portal meshes.')
+	# no vertices 
+	if (mesh.vertices is None): return None
+	n_verts = len(mesh.vertices)
+	if n_verts == 0: return None
+	# get armature object
+	armature = GetArmatureObjectFromMesh(mesh)
+	if not HasBones(armature): return None
+	# get bone map <key = bone name, value = bone index>
+	bonemap = CreateIndexBoneMap(armature)
+	if bonemap is None: return None
+	# get vertex group dictionary <key = vertex group index, value = vertex group name>
+	vg_dict = CreateVertexGroupDictionary(mesh)
+	if vg_dict is None: return None
+	# get blend data
+	buffer = [[], []]
+	for i in range(n_verts):
+		# get list of (vertex group index, weight)
+		vertex = mesh.vertices[i]
+		if len(vertex.groups) > 4: raise Exception('Cannot have more than four weights per vertex.')
+		# for each (vertex group index, weight)
+		bi = [0, 0, 0, 0]
+		bw = [0.0, 0.0, 0.0, 0.0]
+		for i, vg in enumerate(vertex.groups):
+			if vg.group not in vg_dict:
+				raise Exception('The vertex group ({}) was not found in vertex group dictionary.'.format(vg.group))
+			vg_name = vg_dict[vg.group]
+			if vg_name not in bonemap:
+				raise Exception('The vertex group name ({}) was not found in bone dictionary'.format(vg_name))
+			bone_index = bonemap[vg_name]
+			bi[i] = bone_index
+			bw[i] = vg.weight
+		# insert values
+		buffer[0].append(bi)
+		buffer[1].append(bw)
+			
+	return buffer;
 def GetIndexBufferDictionary(mesh):
 	if mesh is None: raise Exception('You cannot use this function on a null mesh.')
 	if IsPortalMesh(mesh): raise Exception('You cannot use this function on portal meshes.')
@@ -124,7 +201,18 @@ def GetIndexBufferDictionary(mesh):
 			mesh.loops[poly.loop_indices[2]].vertex_index]
 		facedict[poly.material_index].append(face)
 	return facedict
-			
+	
+#
+# VERTEX GROUP FUNCTIONS
+#
+def CreateVertexGroupDictionary(mesh):
+    # dictionary<vertex group index, vertex group name>
+	obj = GetObjectFromMesh(mesh)
+	if obj is None: raise Exception('Failed to get object for mesh {}.'.format(mesh.name))
+	vgdict = {}
+	for vg in obj.vertex_groups: vgdict[vg.index] = vg.name
+	return vgdict
+	
 #
 # MATERIAL FUNCTIONS
 #
@@ -263,10 +351,21 @@ for mesh in meshlist:
 			if n_channels > 0: vbuffer3 = uvdata[0]
 			if n_channels > 1: vbuffer4 = uvdata[1]
 	
-		vbuffer5 = []
-		vbuffer6 = []
+		# build vertex buffer blend data
+		vbuffer5 = None
+		vbuffer6 = None
+		blenddata = GetVertexBufferBlendData(mesh)
+		if blenddata:
+			vbuffer5 = blenddata[0]
+			vbuffer6 = blenddata[1]
+		
+		# build vertex buffer color coordinates
 		vbuffer7 = []
 		vbuffer8 = []
+		cdata = GetVertexBufferColors(mesh)
+		if cdata:
+			if n_colors > 0: vbuffer7 = cdata[0]
+			if n_colors > 1: vbuffer8 = cdata[1]
 	
 		# build index buffers
 		facedict = GetIndexBufferDictionary(mesh)
@@ -311,6 +410,11 @@ for mesh in meshlist:
 				file.write("{:.4f} {:.4f} {:.4f}\n".format(vbuffer2[i][0], vbuffer2[i][1], vbuffer2[i][2]))
 				if n_channels > 0: file.write("{:.4f} {:.4f}\n".format(vbuffer3[i][0], vbuffer3[i][1]))  
 				if n_channels > 1: file.write("{:.4f} {:.4f}\n".format(vbuffer4[i][0], vbuffer4[i][1]))
+				if vbuffer5 is not None and vbuffer6 is not None:
+					file.write("{} {} {} {}\n".format(vbuffer5[i][0], vbuffer5[i][1], vbuffer5[i][2], vbuffer5[i][3]))  
+					file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer6[i][0], vbuffer6[i][1], vbuffer6[i][2], vbuffer6[i][3]))
+				if n_colors > 0: file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer7[i][0], vbuffer7[i][1], vbuffer7[i][2], vbuffer7[i][3]))  
+				if n_colors > 1: file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer8[i][0], vbuffer8[i][1], vbuffer8[i][2], vbuffer8[i][3]))
 		
 			# write submesh data
 			file.write('{} # number of total faces\n'.format(n_faces))
