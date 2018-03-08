@@ -131,6 +131,10 @@ ErrorCode InitD3D(void)
  code = InitAxesModel();
  if(Fail(code)) return code;
 
+ // create AABB
+ code = InitAABBModel();
+ if(Fail(code)) return code;
+
  // create orbit box
  code = InitOrbitBox();
  if(Fail(code)) return code;
@@ -177,6 +181,7 @@ void FreeD3D(void)
 
  // release default models
  FreeOrbitBox();
+ FreeAABBModel();
  FreeAxesModel();
  FreeGrid();
 
