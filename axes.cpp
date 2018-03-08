@@ -13,8 +13,18 @@
 //  MSDN states that drawing instanced data is faster for indexed primitives so
 //  therefore we will use them here as well.
 
+// axis buffers
 static ID3D11Buffer* vbuffer = nullptr;
 static ID3D11Buffer* ibuffer = nullptr;
+
+// bounding box buffers
+static ID3D11Buffer* BB_vbuffer = nullptr;
+static ID3D11Buffer* BB_ibuffer = nullptr;
+static const uint32 BB_vertices = 8;
+static const uint32 BB_vb_stride = 16;
+static const uint32 BB_id_stride = 32; // float4 (center) float4 (half-widths)
+static const uint32 BB_ib_stride = 2;
+static const uint32 BB_indices = 24;
 
 ErrorCode InitAxesModel(void)
 {
@@ -148,3 +158,116 @@ ErrorCode RenderAxes(ID3D11Buffer* instance, UINT n)
  context->DrawIndexedInstanced(n_indices, n, 0, 0, 0);
  return EC_SUCCESS;
 }
+
+//
+// AABB FUNCTIONS
+//
+#pragma region AABB_FUNCTIONS
+
+// AABB Model Functions
+ErrorCode InitAABBModel(void)
+{
+ // must have device
+ ID3D11Device* device = GetD3DDevice();
+ if(!device) return EC_D3D_DEVICE;
+
+ // free previous
+ FreeAABBModel();
+
+ // create vertex data
+ struct VERTEX { real32 x, y, z, w; };
+ std::unique_ptr<VERTEX[]> data(new VERTEX[BB_vertices]);
+
+// set vertices
+ auto setv = [](VERTEX& v, float x, float y, float z) {
+  v.x = x;
+  v.y = y;
+  v.z = z;
+  v.w = 1.0f;
+ };
+ setv(data[0], -1.0f, -1.0f, +1.0f); // front upper-left
+ setv(data[1], +1.0f, -1.0f, +1.0f); // front upper-right
+ setv(data[2], +1.0f, -1.0f, -1.0f); // front lower-right
+ setv(data[3], -1.0f, -1.0f, -1.0f); // front lower-left
+ setv(data[4], -1.0f, +1.0f, +1.0f); // back upper-left
+ setv(data[5], +1.0f, +1.0f, +1.0f); // back upper-right
+ setv(data[6], +1.0f, +1.0f, -1.0f); // back lower-right
+ setv(data[7], -1.0f, +1.0f, -1.0f); // back lower-left
+
+ // create face data
+ uint16 indices[BB_indices] = {
+  0x0, 0x1, // front connections
+  0x1, 0x2,
+  0x2, 0x3,
+  0x3, 0x0,
+  0x4, 0x5, // back connections
+  0x5, 0x6,
+  0x6, 0x7,
+  0x7, 0x4,
+  0x0, 0x4, // front-to-back connections
+  0x1, 0x5,
+  0x2, 0x6,
+  0x3, 0x7
+ };
+
+ // create buffers
+ ErrorCode code = CreateVertexBuffer((LPVOID)data.get(), BB_vertices, BB_vb_stride, &BB_vbuffer);
+ if(Fail(code)) {
+    FreeAABBModel();
+    return code;
+   }
+ code = CreateIndexBuffer(&indices[0], BB_indices, BB_ib_stride, &BB_ibuffer);
+ if(Fail(code)) {
+    FreeAABBModel();
+    return code;
+   }
+
+ return EC_SUCCESS;
+}
+
+void FreeAABBModel(void)
+{
+ if(ibuffer) BB_ibuffer->Release();
+ if(vbuffer) BB_vbuffer->Release();
+ BB_ibuffer = nullptr;
+ BB_vbuffer = nullptr;
+}
+
+ErrorCode RenderAABB(ID3D11Buffer* instance, UINT n)
+{
+ // must have instance buffer (OK if there is nothing to do)
+ if(!instance) return EC_SUCCESS;
+ if(!n) return EC_SUCCESS;
+
+ // must have device context
+ auto context = GetD3DDeviceContext();
+ if(!context) return EC_D3D_DEVICE_CONTEXT;
+
+ // two slots
+ UINT strides[2] = { BB_vb_stride, BB_id_stride };
+ UINT offsets[2] = { 0, 0 };
+ ID3D11Buffer* buffers[2] = { BB_vbuffer, instance };
+
+ // set input layout
+ ErrorCode code = SetInputLayout(IL_AABB);
+ if(Fail(code)) return code;
+
+ // set vertex shader
+ code = SetVertexShader(VS_AABB);
+ if(Fail(code)) return code;
+
+ // set pixel shader
+ code = SetPixelShader(PS_VERTEX_COLOR);
+ if(Fail(code)) return code;
+
+ // set input assembly
+ context->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+ context->IASetIndexBuffer(BB_ibuffer, DXGI_FORMAT_R16_UINT, 0);
+ context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+ // render
+ context->DrawIndexedInstanced(BB_indices, n, 0, 0, 0);
+ return EC_SUCCESS;
+}
+
+#pragma endregion AABB_FUNCTIONS

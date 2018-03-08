@@ -210,14 +210,14 @@ ErrorCode InitInputLayouts(void)
  descriptors[IL_index][7].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
  descriptors[IL_index][7].InstanceDataStepRate = 0;
 
-/*
- // INPUT LAYOUT INDEX #3
- // 1: POSITION (real32, real32, real32, real32)
- // 2: TEXCOORD (real32, real32)
- IL_index = 3;
- VS_index = 3;
- input_layout_map.insert(input_layout_map_type::value_type((INPUT_LAYOUT_INDEX)IL_index, VS_index)); // not assigned
- descriptors[IL_index] = std::vector<D3D11_INPUT_ELEMENT_DESC>(2);
+ // INPUT LAYOUT INDEX #4
+ // 1: POSITION     float4  0 + 16
+ // 2: CENTER       float4 16 + 16
+ // 3: HALFWIDTHS   float4 32 + 16
+ IL_index = IL_AABB
+ VS_index = VS_AABB;
+ input_layout_map.insert(input_layout_map_type::value_type(IL_index, VS_index));
+ descriptors[IL_index] = std::vector<D3D11_INPUT_ELEMENT_DESC>(8);
  descriptors[IL_index][0].SemanticName = "POSITION";
  descriptors[IL_index][0].SemanticIndex = 0;
  descriptors[IL_index][0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -225,14 +225,20 @@ ErrorCode InitInputLayouts(void)
  descriptors[IL_index][0].AlignedByteOffset = 0;
  descriptors[IL_index][0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
  descriptors[IL_index][0].InstanceDataStepRate = 0;
- descriptors[IL_index][1].SemanticName = "TEXCOORD";
+ descriptors[IL_index][1].SemanticName = "CENTER";
  descriptors[IL_index][1].SemanticIndex = 0;
- descriptors[IL_index][1].Format = DXGI_FORMAT_R32G32_FLOAT;
+ descriptors[IL_index][1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
  descriptors[IL_index][1].InputSlot = 1;
- descriptors[IL_index][1].AlignedByteOffset = 0;
- descriptors[IL_index][1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
- descriptors[IL_index][1].InstanceDataStepRate = 0;
-*/
+ descriptors[IL_index][1].AlignedByteOffset = 16;
+ descriptors[IL_index][1].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+ descriptors[IL_index][1].InstanceDataStepRate = 1;
+ descriptors[IL_index][2].SemanticName = "HALFWIDTHS";
+ descriptors[IL_index][2].SemanticIndex = 0;
+ descriptors[IL_index][2].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+ descriptors[IL_index][2].InputSlot = 1;
+ descriptors[IL_index][2].AlignedByteOffset = 32;
+ descriptors[IL_index][2].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+ descriptors[IL_index][2].InstanceDataStepRate = 1;
 
  // initialize input layouts
  input_layouts.resize(descriptors.size(), nullptr);
