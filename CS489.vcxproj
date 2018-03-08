@@ -195,6 +195,7 @@
     <ClCompile Include="stdgfx.cpp" />
     <ClCompile Include="stdwin.cpp" />
     <ClCompile Include="stencil.cpp" />
+    <ClCompile Include="testing\aabb.cpp" />
     <ClCompile Include="testing\flyby.cpp" />
     <ClCompile Include="testing\sk_axes.cpp" />
     <ClCompile Include="testing\tests.cpp" />
@@ -238,6 +239,7 @@
     <ClInclude Include="stdres.h" />
     <ClInclude Include="stdwin.h" />
     <ClInclude Include="stencil.h" />
+    <ClInclude Include="testing\aabb.h" />
     <ClInclude Include="testing\flyby.h" />
     <ClInclude Include="testing\sk_axes.h" />
     <ClInclude Include="testing\tests.h" />

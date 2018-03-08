@@ -26,7 +26,7 @@ cbuffer permdl : register(b1)
 PShaderInput VS(VShaderInput input)
 {
  PShaderInput psi;
- psi.position = input.position * input.halfdims + input.center;
+ psi.position = input.position;
  psi.position = mul(psi.position, mview);
  psi.position = mul(psi.position, cview);
  return psi;

@@ -9,6 +9,7 @@
 #include "flyby.h"
 #include "t_portal.h"
 #include "sk_axes.h"
+#include "aabb.h"
 
 typedef BOOL (*InitFunc)(void);
 typedef void (*FreeFunc)(void);
@@ -59,6 +60,21 @@ BOOL BeginTest(int cmd)
     init_func = InitSkeletonAxesTest;
     free_func = FreeSkeletonAxesTest;
     draw_func = RenderSkeletonAxesTest;
+    if((*init_func)()) {
+       active_test = cmd;
+       CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);
+       return TRUE;
+      }
+    else {
+       (*free_func)();
+       return FALSE;
+      }
+   }
+ // set test
+ else if(cmd == CM_AABB_TEST) {
+    init_func = InitAABBTest;
+    free_func = FreeAABBTest;
+    draw_func = RenderAABBTest;
     if((*init_func)()) {
        active_test = cmd;
        CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);

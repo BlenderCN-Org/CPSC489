@@ -663,6 +663,26 @@ ErrorCode UpdateDynamicConstBuffer(ID3D11Buffer* buffer, UINT size, const void* 
  return EC_SUCCESS;
 }
 
+ErrorCode CreateImmutableConstBuffer(ID3D11Buffer** buffer, UINT size, const void* data)
+{
+ // initialize descriptor
+ D3D11_BUFFER_DESC desc;
+ ZeroMemory(&desc, sizeof(desc));
+ desc.Usage = D3D11_USAGE_IMMUTABLE;
+ desc.ByteWidth = size;
+ desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ desc.CPUAccessFlags = 0;
+
+ // initialize data
+ D3D11_SUBRESOURCE_DATA srd;
+ ZeroMemory(&srd, sizeof(srd));
+ srd.pSysMem = data;
+
+ // create buffer
+ if(FAILED(lpDevice->CreateBuffer(&desc, &srd, buffer))) return EC_D3D_CREATE_BUFFER;
+ return EC_SUCCESS;
+}
+
 ErrorCode CreateDynamicFloat4ConstBuffer(real32* color, ID3D11Buffer** buffer)
 {
  // create buffer
@@ -709,6 +729,26 @@ ErrorCode UpdateDynamicFloat4ConstBuffer(ID3D11Buffer* buffer, const real32* col
  lpDeviceContext->Unmap(buffer, 0);
  return EC_SUCCESS;
 } 
+
+ErrorCode CreateImmutableFloat4ConstBuffer(real32* color, ID3D11Buffer** buffer)
+{
+ // initialize descriptor
+ D3D11_BUFFER_DESC bd;
+ ZeroMemory(&bd, sizeof(bd));
+ bd.Usage = D3D11_USAGE_IMMUTABLE;
+ bd.ByteWidth = 16;
+ bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ bd.CPUAccessFlags = 0;
+
+ // initialize data
+ D3D11_SUBRESOURCE_DATA srd;
+ ZeroMemory(&srd, sizeof(srd));
+ srd.pSysMem = color;
+
+ // create buffer
+ if(FAILED(lpDevice->CreateBuffer(&bd, &srd, buffer))) return EC_D3D_CREATE_BUFFER;
+ return EC_SUCCESS;
+}
 
 ErrorCode CreateDynamicMatrixConstBuffer(ID3D11Buffer** buffer)
 {

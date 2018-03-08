@@ -229,14 +229,14 @@ ErrorCode InitInputLayouts(void)
  descriptors[IL_index][1].SemanticIndex = 0;
  descriptors[IL_index][1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
  descriptors[IL_index][1].InputSlot = 1;
- descriptors[IL_index][1].AlignedByteOffset = 16;
+ descriptors[IL_index][1].AlignedByteOffset = 0;
  descriptors[IL_index][1].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
  descriptors[IL_index][1].InstanceDataStepRate = 1;
  descriptors[IL_index][2].SemanticName = "HALFDIMS";
  descriptors[IL_index][2].SemanticIndex = 0;
  descriptors[IL_index][2].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
  descriptors[IL_index][2].InputSlot = 1;
- descriptors[IL_index][2].AlignedByteOffset = 32;
+ descriptors[IL_index][2].AlignedByteOffset = 16;
  descriptors[IL_index][2].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
  descriptors[IL_index][2].InstanceDataStepRate = 1;
 

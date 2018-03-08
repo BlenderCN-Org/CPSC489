@@ -42,8 +42,10 @@ ErrorCode CreateImmutableIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11B
 ErrorCode CreateDynamicConstBuffer(ID3D11Buffer** buffer, UINT size);
 ErrorCode CreateDynamicConstBuffer(ID3D11Buffer** buffer, UINT size, const void* data);
 ErrorCode UpdateDynamicConstBuffer(ID3D11Buffer* buffer, UINT size, const void* data);
+ErrorCode CreateImmutableConstBuffer(ID3D11Buffer** buffer, UINT size, const void* data);
 ErrorCode CreateDynamicFloat4ConstBuffer(real32* color, ID3D11Buffer** buffer);
 ErrorCode UpdateDynamicFloat4ConstBuffer(ID3D11Buffer* buffer, const real32* color);
+ErrorCode CreateImmutableFloat4ConstBuffer(real32* color, ID3D11Buffer** buffer);
 ErrorCode CreateDynamicMatrixConstBuffer(ID3D11Buffer** buffer);
 ErrorCode UpdateDynamicMatrixConstBuffer(ID3D11Buffer* buffer, const DirectX::XMMATRIX& m);
 ErrorCode CreateDynamicMatrixConstBuffer(ID3D11Buffer** buffer, UINT n);

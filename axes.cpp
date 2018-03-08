@@ -179,20 +179,14 @@ ErrorCode InitAABBModel(void)
  std::unique_ptr<VERTEX[]> data(new VERTEX[BB_vertices]);
 
 // set vertices
- auto setv = [](VERTEX& v, float x, float y, float z) {
-  v.x = x;
-  v.y = y;
-  v.z = z;
-  v.w = 1.0f;
- };
- setv(data[0], -1.0f, -1.0f, +1.0f); // front upper-left
- setv(data[1], +1.0f, -1.0f, +1.0f); // front upper-right
- setv(data[2], +1.0f, -1.0f, -1.0f); // front lower-right
- setv(data[3], -1.0f, -1.0f, -1.0f); // front lower-left
- setv(data[4], -1.0f, +1.0f, +1.0f); // back upper-left
- setv(data[5], +1.0f, +1.0f, +1.0f); // back upper-right
- setv(data[6], +1.0f, +1.0f, -1.0f); // back lower-right
- setv(data[7], -1.0f, +1.0f, -1.0f); // back lower-left
+ data[0].x = -1.0f; data[0].y = -1.0f; data[0].z = +1.0f; data[0].w = 1.0f; // front upper-left
+ data[1].x = +1.0f; data[1].y = -1.0f; data[1].z = +1.0f; data[1].w = 1.0f; // front upper-right
+ data[2].x = +1.0f; data[2].y = -1.0f; data[2].z = -1.0f; data[2].w = 1.0f; // front lower-right
+ data[3].x = -1.0f; data[3].y = -1.0f; data[3].z = -1.0f; data[3].w = 1.0f; // front lower-left
+ data[4].x = -1.0f; data[4].y = +1.0f; data[4].z = +1.0f; data[4].w = 1.0f; // back upper-left
+ data[5].x = +1.0f; data[5].y = +1.0f; data[5].z = +1.0f; data[5].w = 1.0f; // back upper-right
+ data[6].x = +1.0f; data[6].y = +1.0f; data[6].z = -1.0f; data[6].w = 1.0f; // back lower-right
+ data[7].x = -1.0f; data[7].y = +1.0f; data[7].z = -1.0f; data[7].w = 1.0f; // back lower-left
 
  // create face data
  uint16 indices[BB_indices] = {
@@ -227,8 +221,8 @@ ErrorCode InitAABBModel(void)
 
 void FreeAABBModel(void)
 {
- if(ibuffer) BB_ibuffer->Release();
- if(vbuffer) BB_vbuffer->Release();
+ if(BB_ibuffer) BB_ibuffer->Release();
+ if(BB_vbuffer) BB_vbuffer->Release();
  BB_ibuffer = nullptr;
  BB_vbuffer = nullptr;
 }
