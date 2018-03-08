@@ -15,6 +15,16 @@ class ArmatureData:
 	# self.n_bones    - int
 	# self.bonelist[] - Bone[]
 	pass
+class AnimationKeyframe:
+	# self.position - vector3
+	# self.rotation - vector4
+	# self.scale    - vector3
+	pass
+class AnimationData:
+	# self.name      - String
+    # self.n_keyable - uint
+	# self.bonemap   - dictionary<String, AnimationKeyFrame>}
+	pass
 class Material:
 	# self.name     String
 	# self.textures MaterialTexture[]
@@ -34,6 +44,14 @@ def GetFileFullPath(): return bpy.data.filepath
 def GetFilePathName(): return os.path.splitext(bpy.data.filepath)[0]
 def GetFilePathSplit(): return os.path.split(bpy.data.filepath) 
 def GetFilePathSplitExt(): return os.path.splitext(bpy.data.filepath) 
+
+#
+# FILE FUNCTIONS
+#
+def WriteVector3(file, v): file.write('{} {} {}\n'.format(v[0], v[1], v[2]))
+def WriteVector3(file, v, dv): file.write('{} {} {}\n'.format(v[0]+dv[0], v[1]+dv[1], v[2]+dv[2]))
+def WriteVector4(file, v): file.write('{} {} {} {}\n'.format(v[0], v[1], v[2], v[3]))
+def WriteVector4(file, v, dv): file.write('{} {} {} {}\n'.format(v[0]+dv[0], v[1]+dv[1], v[2]+dv[2], v[3]+dv[3]))
 
 #
 # MODE FUNCTIONS
@@ -67,6 +85,7 @@ def GetObjectFromMesh(mesh):
 	for obj in GetObjects():
 		if obj.data.name == mesh.name: return obj
 	return None
+def GetActions(): return bpy.data.actions
 	
 #
 # ARMATURE FUNCTIONS
@@ -127,6 +146,67 @@ def ConstructArmatureData(armature):
 			[bone.matrix_local[1][0], bone.matrix_local[1][1], bone.matrix_local[1][2]],
 			[bone.matrix_local[2][0], bone.matrix_local[2][1], bone.matrix_local[2][2]]]
 	return data
+
+#
+# ANIMATION FUNCTIONS
+#
+def ConstructAnimationData(armature):
+	if (armature is None) or (armature.data is None): raise Exception('Invalid argument.')
+	rv = []
+	for action in GetActions(): rv.append(GetAnimationData(action, armature))
+	return rv
+def GetAnimationData(action, armature):
+	# valid arguments
+	if action is None: raise Exception('Invalid argument.')
+	if (armature is None) or (armature.data is None): raise Exception('Invalid argument.')
+	# map to associate bone with key
+	bonemap = {}
+	for bone in armature.data.bones: bonemap[bone.name] = {}
+	# for each curve
+	for fcu in i.fcurves:
+		# extract bone name and key type
+		pattern = r'pose\.bones\[\"(.*)\"\]\.(.*)'
+		str = fcu.data_path
+		m = re.match(pattern, str)
+		g1 = m.group(1)
+		g2 = m.group(2)
+		# extract keyframes
+		for keyframe in fcu.keyframe_points:
+			# frame/value pair
+			frame, value = keyframe.co
+			# lookup key dictionary for bone
+			keydict = bonemap[g1]
+			if keydict == None: raise Exception('Bone name lookup failed.')
+			# create default values
+			if frame not in keydict:
+				item = AnimationKeyframe()
+				item.position = [0.0, 0.0, 0.0]
+				item.rotation = [1.0, 0.0, 0.0, 0.0]
+				item.scale    = [1.0, 1.0, 1.0]
+				keydict[frame] = item
+			# assign values
+			if g2 == 'location':
+				if (fcu.array_index >= 0 and fcu.array_index <= 2):
+					keydict[frame].position[fcu.array_index] = value
+			if g2 == 'rotation_euler':
+				pass
+			if g2 == 'rotation_quaternion':
+				if (fcu.array_index >= 0 and fcu.array_index <= 4):
+					keydict[frame].rotation[fcu.array_index] = value
+			if g2 == 'scale':
+				if (fcu.array_index >= 0 and fcu.array_index <= 2):
+					keydict[frame].scale[fcu.array_index] = value
+	# pre-iterate through <bone, keys> dictionary
+	n_keyable = 0
+	for name, keydict in bonemap.items():
+		n_keys = len(keydict)
+		if n_keys > 0: n_keyable = n_keyable + 1
+	# return animation data
+	rv = AnimationData()
+	rv.name = action.name
+	rv.n_keyable = n_keyable
+	rv.bonemap = bonemap
+	return rv
 
 #
 # MESH FUNCTIONS
@@ -339,22 +419,39 @@ def SetCellMeshState(state):
 	meshlist = GetSelectedMeshObjects()
 	if meshlist is None: return
 	for mesh in meshlist: mesh['is_cell'] = state
-	
+
+###
+### CREATE FILE
+###
+
 # create file
 splitpath = GetFilePathSplitExt()
 filename = splitpath[0] + "_test.txt"
 file = open(filename, 'w')
 
-# count non-portal meshes and get skeleton used
+###
+### PRELIMINARIES
+###
+
+# count number of portal and non-portal meshes
 n_mesh = 0
+n_portal_mesh = 0
 meshlist = GetMeshObjects()
+for mesh in meshlist:
+	if IsPortalMesh(mesh): n_portal_mesh = n_portal_mesh + 1
+	else: n_mesh = n_mesh + 1
+	
+###
+### SAVE ARMATURE
+###
+
+# track skeletons used by meshes
 skellist = []
 for mesh in meshlist:
-	if not IsPortalMesh(mesh): n_mesh = n_mesh + 1
 	armature = GetArmatureObjectFromMesh(mesh)
 	if(not armature is None): skellist.append(armature)
 if len(skellist) > 1: raise Exception('Meshes cannot be controlled by more than one skeleton object.')
-	
+
 # construct and save armature
 if not skellist is None:
 	data = ConstructArmatureData(skellist[0])
@@ -369,8 +466,45 @@ if not skellist is None:
 			bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2], 0.0,
 			0.0, 0.0, 0.0, 1.0))   
 
+###
+### SAVE ANIMATIONS
+###
+
+# construct and save animations
+animdata = None
+if not skellist is None:
+	# get animation data
+	animdata = ConstructAnimationData(skellist[0])
+	if animdata is None: continue
+	# write header
+	n_anim = len(animdata)
+	file.write('{} # number of animations\n'.format(n_anim))
+	# print animations
+	for anim in animdata:
+		file.write(anim.name + '\n')
+		file.write('{}'.format(anim.n_keyable) + ' # number of keyframed bones\n')
+		# offsets (just in case)
+		dx = 0 #armature.location[0]
+		dy = 0 #armature.location[1]
+		dz = 0 #armature.location[2]
+		# iterate through <bone, keys> dictionary
+		for name, keydict in anim.bonemap.items():
+			n_keys = len(keydict)
+			if n_keys > 0:
+				file.write(name + '\n')
+				file.write('{}'.format(len(keydict)) + ' # number of keys\n')
+				for frame, transforms in sorted(keydict.items()):
+					file.write('{}\n'.format(int(frame)))
+					file.write('{} {} {}\n'.format(transforms[0][0] + dx, transforms[0][1] + dy, transforms[0][2] + dz))
+					file.write('{} {} {} {}\n'.format(transforms[1][0], transforms[1][1], transforms[1][2], transforms[1][3]))
+					file.write('{} {} {}\n'.format(transforms[2][0], transforms[2][1], transforms[2][2]))
+
+###
+### SAVE MESHES
+###
+
 # save meshes
-file.write('{} # number of non-portal meshes'.format(n_mesh))
+file.write('{} # number of non-portal meshes\n'.format(n_mesh))
 meshlist = GetMeshObjects()
 for mesh in meshlist:
 
