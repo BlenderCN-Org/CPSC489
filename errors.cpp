@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "stdwin.h"
 #include "app.h"
 #include "errors.h"
 
@@ -7,8 +8,20 @@ typedef std::map<LanguageCode, STDSTRINGW> language_map_t;
 typedef std::map<ErrorCode, language_map_t> codemap_t;
 static codemap_t codemap;
 static LanguageCode language = LC_ENGLISH;
-static size_t MAXFAILS = 8;
-static std::deque<std::wstring> failinfo;
+
+// error debugging variables
+struct LastErrorInfo {
+ ErrorCode code;
+ std::string line;
+ std::string file;
+ __int64 time;
+};
+static bool do_debug = false;
+static std::ofstream debug;
+static PerformanceCounter timer;
+static constexpr size_t max_queue = 16;
+static LastErrorInfo last_error_list[max_queue];
+static size_t n_debug = 0;
 
 void InsertErrorString(ErrorCode code, LanguageCode language, LPCWSTR error)
 {
@@ -118,6 +131,7 @@ void InitErrorStrings(void)
 
  // Game Errors
  InsertErrorString(EC_LOAD_LEVEL, LC_ENGLISH, L"Failed to load level.");
+ InsertErrorString(EC_HUD_INIT, LC_ENGLISH, L"Failed to initialize HUD.");
 }
 
 void FreeErrorStrings(void)
@@ -152,27 +166,51 @@ bool Error(ErrorCode code, LanguageCode language)
  return false;
 }
 
+void EnableErrorDebugging(bool state)
+{
+ do_debug = state;
+ if(do_debug) {
+    STDSTRINGSTREAMW ss;
+    ss << GetModulePathname().c_str() << L"debug.txt";
+    debug.open(ss.str().c_str());
+    if(!debug) return;
+    // reset
+    timer.reset();
+    for(size_t i = 0; i < max_queue; i++) {
+        last_error_list[i].code = EC_SUCCESS;
+        last_error_list[i].line.clear();
+        last_error_list[i].file.clear();
+        last_error_list[i].time = 0ull;
+       }
+    n_debug = 0;
+   }
+ else
+    debug.close();
+}
+
 ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file)
 {
- STDSTRINGW error = FindError(code, GetLanguageCode());
- STDSTRINGSTREAMW ss;
- ss << error << std::endl;
- ss << L"Line: " << line << std::endl;
- ss << L"File: " << file << std::ends;
- failinfo.push_back(ss.str());
- if(!(failinfo.size() < MAXFAILS)) failinfo.pop_front();
+ if(do_debug && debug.is_open()) {
+    STDSTRINGW error = FindError(code, GetLanguageCode());
+    STDSTRINGSTREAMW ss;
+    ss << error << std::endl;
+    ss << L" Line: " << line << std::endl;
+    ss << L" File: " << file << std::ends;
+    debug << ss.str().c_str() << std::endl;
+   }
  return code;
 }
 
 ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file, LanguageCode language)
 {
- STDSTRINGW error = FindError(code, language);
- STDSTRINGSTREAMW ss;
- ss << error << std::endl;
- ss << L"Line: " << line << std::endl;
- ss << L"File: " << file << std::ends;
- failinfo.push_back(ss.str());
- if(!(failinfo.size() < MAXFAILS)) failinfo.pop_front();
+ if(do_debug && debug.is_open()) {
+    STDSTRINGW error = FindError(code, language);
+    STDSTRINGSTREAMW ss;
+    ss << error << std::endl;
+    ss << L" Line: " << line << std::endl;
+    ss << L" File: " << file << std::ends;
+    debug << ss.str().c_str() << std::endl;
+   }
  return code;
 }
 

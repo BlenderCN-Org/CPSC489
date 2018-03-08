@@ -12,6 +12,7 @@
 #include "axes.h"
 #include "grid.h"
 #include "orbit.h"
+#include "hudtex.h"
 #include "gfx.h"
 #include "testing/tests.h"
 
@@ -148,6 +149,10 @@ ErrorCode InitD3D(void)
  orbitcam->SetViewport(0, 0, (int)buffer_dx, (int)buffer_dy);
  UpdateCamera();
 
+ // create HUD
+ code = InitHUD();
+ if(Fail(code)) return code;
+
  // success
  return EC_SUCCESS;
 }
@@ -178,6 +183,9 @@ void FreeD3D(void)
 {
  // stop any testing
  if(IsTestActive()) EndTest();
+
+ // release HUD
+ FreeHUD();
 
  // release default models
  FreeOrbitBox();

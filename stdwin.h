@@ -32,6 +32,12 @@ class PerformanceCounter {
   double hours(void)const { return hours(ticks()); }
   double days(void)const { return days(ticks()); }
  public :
+  void reset(void) {
+   QueryPerformanceFrequency((LARGE_INTEGER*)(&hz));
+   t0 = 0ull;
+   t1 = 0ull;
+  }
+ public :
   PerformanceCounter() { QueryPerformanceFrequency((LARGE_INTEGER*)(&hz)); }
  ~PerformanceCounter() {}
 };

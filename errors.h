@@ -95,6 +95,7 @@ enum ErrorCode {
  EC_ANIM_INDEX,
  // Game Errors
  EC_LOAD_LEVEL,
+ EC_HUD_INIT,
 };
 
 enum LanguageCode {
@@ -110,6 +111,9 @@ inline bool Fail(const ErrorCode& code) { return (code != EC_SUCCESS); }
 bool Error(ErrorCode code);
 bool Error(ErrorCode code, LanguageCode language);
 bool Error(ErrorCode code, LanguageCode language);
+
+// debug functions
+void EnableErrorDebugging(bool state);
 ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file);
 ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file, LanguageCode language);
 
