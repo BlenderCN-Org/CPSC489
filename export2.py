@@ -49,9 +49,9 @@ def GetFilePathSplitExt(): return os.path.splitext(bpy.data.filepath)
 # FILE FUNCTIONS
 #
 def WriteVector3(file, v): file.write('{} {} {}\n'.format(v[0], v[1], v[2]))
-def WriteVector3(file, v, dv): file.write('{} {} {}\n'.format(v[0]+dv[0], v[1]+dv[1], v[2]+dv[2]))
+def WriteOffsetVector3(file, v, dv): file.write('{} {} {}\n'.format(v[0]+dv[0], v[1]+dv[1], v[2]+dv[2]))
 def WriteVector4(file, v): file.write('{} {} {} {}\n'.format(v[0], v[1], v[2], v[3]))
-def WriteVector4(file, v, dv): file.write('{} {} {} {}\n'.format(v[0]+dv[0], v[1]+dv[1], v[2]+dv[2], v[3]+dv[3]))
+def WriteOffsetVector4(file, v, dv): file.write('{} {} {} {}\n'.format(v[0]+dv[0], v[1]+dv[1], v[2]+dv[2], v[3]+dv[3]))
 
 #
 # MODE FUNCTIONS
@@ -113,15 +113,15 @@ def GetArmatureObjectFromMesh(mesh):
 	if mesh is None: return None
 	# 1st - parent armature
 	obj = GetObjectFromMesh(mesh)
-	if obj.parent.type == 'ARMATURE': return obj.parent
+	if (obj.parent is not None):
+		if (obj.parent.type == 'ARMATURE'): return obj.parent
 	# 2nd - modifier armature
 	for modifier in obj.modifiers:
 		if modifier.type == 'ARMATURE':
 			return GetArmatureObjectByName(modifier.object.name)
 	# 3rd - first armature you find
 	list = GetArmatureObjects()
-	if list is not None and len(list):
-		return list[0]
+	if (list is not None) and len(list): return list[0]
 	return None
 def ConstructArmatureData(armature):
 	if armature is None or armature.data is None: raise Exception('Invalid argument.')
@@ -163,7 +163,7 @@ def GetAnimationData(action, armature):
 	bonemap = {}
 	for bone in armature.data.bones: bonemap[bone.name] = {}
 	# for each curve
-	for fcu in i.fcurves:
+	for fcu in action.fcurves:
 		# extract bone name and key type
 		pattern = r'pose\.bones\[\"(.*)\"\]\.(.*)'
 		str = fcu.data_path
@@ -450,21 +450,24 @@ skellist = []
 for mesh in meshlist:
 	armature = GetArmatureObjectFromMesh(mesh)
 	if(not armature is None): skellist.append(armature)
-if len(skellist) > 1: raise Exception('Meshes cannot be controlled by more than one skeleton object.')
+n_skeleton = len(skellist)
+if n_skeleton > 1: raise Exception('Meshes cannot be controlled by more than one skeleton object.')
 
 # construct and save armature
-if not skellist is None:
+if n_skeleton:
 	data = ConstructArmatureData(skellist[0])
 	file.write('{} # number of bones\n'.format(data.n_bones))
 	for bone in data.bonelist:
 		file.write(bone.name + "\n")
 		file.write("{}\n".format(bone.parent))
-		file.write("{} {} {}\n".format(bone.position[0], bone.position[1], bone.position[2]))
+		WriteVector3(file, bone.position)
 		file.write("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
 			bone.matrix[0][0], bone.matrix[0][1], bone.matrix[0][2], 0.0,
 			bone.matrix[1][0], bone.matrix[1][1], bone.matrix[1][2], 0.0,
 			bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2], 0.0,
-			0.0, 0.0, 0.0, 1.0))   
+			0.0, 0.0, 0.0, 1.0))
+else:
+	file.write('0 # number of bones\n')
 
 ###
 ### SAVE ANIMATIONS
@@ -472,32 +475,32 @@ if not skellist is None:
 
 # construct and save animations
 animdata = None
-if not skellist is None:
+n_anim = 0
+if n_skeleton:
 	# get animation data
 	animdata = ConstructAnimationData(skellist[0])
-	if animdata is None: continue
-	# write header
-	n_anim = len(animdata)
-	file.write('{} # number of animations\n'.format(n_anim))
+	if animdata is None: n_anim = 0
+	else: n_anim = len(animdata)
 	# print animations
+	file.write('{} # number of animations\n'.format(n_anim))
 	for anim in animdata:
 		file.write(anim.name + '\n')
 		file.write('{}'.format(anim.n_keyable) + ' # number of keyframed bones\n')
 		# offsets (just in case)
-		dx = 0 #armature.location[0]
-		dy = 0 #armature.location[1]
-		dz = 0 #armature.location[2]
+		offset = [0.0, 0.0, 0.0] # armature.location[0]
 		# iterate through <bone, keys> dictionary
 		for name, keydict in anim.bonemap.items():
 			n_keys = len(keydict)
 			if n_keys > 0:
 				file.write(name + '\n')
 				file.write('{}'.format(len(keydict)) + ' # number of keys\n')
-				for frame, transforms in sorted(keydict.items()):
+				for frame, keyval in sorted(keydict.items()):
 					file.write('{}\n'.format(int(frame)))
-					file.write('{} {} {}\n'.format(transforms[0][0] + dx, transforms[0][1] + dy, transforms[0][2] + dz))
-					file.write('{} {} {} {}\n'.format(transforms[1][0], transforms[1][1], transforms[1][2], transforms[1][3]))
-					file.write('{} {} {}\n'.format(transforms[2][0], transforms[2][1], transforms[2][2]))
+					WriteOffsetVector3(file, keyval.position, offset)
+					WriteVector4(file, keyval.rotation)
+					WriteVector3(file, keyval.scale)
+else:
+	file.write('0 # number of animations\n')
 
 ###
 ### SAVE MESHES
