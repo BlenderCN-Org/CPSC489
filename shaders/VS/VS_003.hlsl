@@ -11,7 +11,6 @@ struct VShaderInput
 struct PShaderInput
 {
  float4 position : SV_POSITION;
- float4 color    : COLOR;
 };
 
 cbuffer percam : register(b0)
@@ -22,7 +21,6 @@ cbuffer percam : register(b0)
 cbuffer permdl : register(b1)
 {
  matrix mview;
- float4 color;
 };
 
 PShaderInput VS(VShaderInput input)
@@ -31,6 +29,5 @@ PShaderInput VS(VShaderInput input)
  psi.position = input.position * input.halfdims + input.center;
  psi.position = mul(psi.position, mview);
  psi.position = mul(psi.position, cview);
- psi.color = color;
  return psi;
 }

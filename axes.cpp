@@ -257,7 +257,7 @@ ErrorCode RenderAABB(ID3D11Buffer* instance, UINT n)
  if(Fail(code)) return code;
 
  // set pixel shader
- code = SetPixelShader(PS_VERTEX_COLOR);
+ code = SetPixelShader(PS_CONST_COLOR);
  if(Fail(code)) return code;
 
  // set input assembly

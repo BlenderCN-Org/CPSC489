@@ -40,7 +40,7 @@ ErrorCode InitInputLayouts(void)
  DWORD VS_index = 0xFFFFFFFFul;
 
  // resize list of descriptors
- descriptors.resize(4);
+ descriptors.resize(5);
 
  // INPUT LAYOUT INDEX #0
  // 1: POSITION (real32, real32, real32, real32)
@@ -214,10 +214,10 @@ ErrorCode InitInputLayouts(void)
  // 1: POSITION     float4  0 + 16
  // 2: CENTER       float4 16 + 16
  // 3: HALFWIDTHS   float4 32 + 16
- IL_index = IL_AABB
+ IL_index = IL_AABB;
  VS_index = VS_AABB;
  input_layout_map.insert(input_layout_map_type::value_type(IL_index, VS_index));
- descriptors[IL_index] = std::vector<D3D11_INPUT_ELEMENT_DESC>(8);
+ descriptors[IL_index] = std::vector<D3D11_INPUT_ELEMENT_DESC>(3);
  descriptors[IL_index][0].SemanticName = "POSITION";
  descriptors[IL_index][0].SemanticIndex = 0;
  descriptors[IL_index][0].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -232,7 +232,7 @@ ErrorCode InitInputLayouts(void)
  descriptors[IL_index][1].AlignedByteOffset = 16;
  descriptors[IL_index][1].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
  descriptors[IL_index][1].InstanceDataStepRate = 1;
- descriptors[IL_index][2].SemanticName = "HALFWIDTHS";
+ descriptors[IL_index][2].SemanticName = "HALFDIMS";
  descriptors[IL_index][2].SemanticIndex = 0;
  descriptors[IL_index][2].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
  descriptors[IL_index][2].InputSlot = 1;
