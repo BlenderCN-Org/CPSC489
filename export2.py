@@ -3,6 +3,30 @@ import os
 import re
 
 #
+# CLASSES + STRUCTURES
+#
+class Bone:
+    # self.name
+    # self.parent
+    # self.position[3]
+    # self.matrix[3][3]
+    pass
+class ArmatureData:
+	# self.n_bones    - int
+	# self.bonelist[] - Bone[]
+	pass
+class Material:
+	# self.name     String
+	# self.textures MaterialTexture[]
+	pass
+class MaterialTexture:
+	# self.name
+	# self.type
+	# self.channel
+	# self.filename
+	pass
+
+#
 # FILENAME AND PATHNAME FUNCTIONS
 #
 def GetPythonPath(): return bpy.app.binary_path_python
@@ -70,15 +94,39 @@ def GetArmatureObjectFromMesh(mesh):
 	if mesh is None: return None
 	# 1st - parent armature
 	obj = GetObjectFromMesh(mesh)
-	if obj.parent_type == 'ARMATURE': return obj.parent
+	if obj.parent.type == 'ARMATURE': return obj.parent
 	# 2nd - modifier armature
 	for modifier in obj.modifiers:
 		if modifier.type == 'ARMATURE':
-			return GetArmatureObjectByName(modifier.name)
+			return GetArmatureObjectByName(modifier.object.name)
 	# 3rd - first armature you find
 	list = GetArmatureObjects()
-	if list is not None and len(list): return list[0]
+	if list is not None and len(list):
+		return list[0]
 	return None
+def ConstructArmatureData(armature):
+	if armature is None or armature.data is None: raise Exception('Invalid argument.')
+	# save number of bones    
+	data = ArmatureData()
+	data.n_bones = len(armature.data.bones)
+	data.bonelist = []
+	if data.n_bones == 0: return data
+	# save bones
+	bmap = CreateIndexBoneMap(armature)
+	for index, bone in enumerate(armature.data.bones):
+		data.bonelist.append(Bone())
+		data.bonelist[index].name = bone.name
+		data.bonelist[index].parent = -1
+		if bone.parent != None: data.bonelist[index].parent = bmap[bone.parent.name]
+		data.bonelist[index].position = [
+			bone.head_local[0],
+			bone.head_local[1],
+			bone.head_local[2]]
+		data.bonelist[index].matrix = [
+			[bone.matrix_local[0][0], bone.matrix_local[0][1], bone.matrix_local[0][2]],
+			[bone.matrix_local[1][0], bone.matrix_local[1][1], bone.matrix_local[1][2]],
+			[bone.matrix_local[2][0], bone.matrix_local[2][1], bone.matrix_local[2][2]]]
+	return data
 
 #
 # MESH FUNCTIONS
@@ -216,17 +264,6 @@ def CreateVertexGroupDictionary(mesh):
 #
 # MATERIAL FUNCTIONS
 #
-class Material:
-	# name     String
-	# textures MaterialTexture[]
-	pass
-class MaterialTexture:
-	# name
-	# type
-	# channel
-	# filename
-	pass
-
 def GetMeshMaterials(mesh):
 	if((mesh == None) or (len(mesh.materials) == 0)): return None
 	rv = []
@@ -308,6 +345,32 @@ splitpath = GetFilePathSplitExt()
 filename = splitpath[0] + "_test.txt"
 file = open(filename, 'w')
 
+# count non-portal meshes and get skeleton used
+n_mesh = 0
+meshlist = GetMeshObjects()
+skellist = []
+for mesh in meshlist:
+	if not IsPortalMesh(mesh): n_mesh = n_mesh + 1
+	armature = GetArmatureObjectFromMesh(mesh)
+	if(not armature is None): skellist.append(armature)
+if len(skellist) > 1: raise Exception('Meshes cannot be controlled by more than one skeleton object.')
+	
+# construct and save armature
+if not skellist is None:
+	data = ConstructArmatureData(skellist[0])
+	file.write('{} # number of bones\n'.format(data.n_bones))
+	for bone in data.bonelist:
+		file.write(bone.name + "\n")
+		file.write("{}\n".format(bone.parent))
+		file.write("{} {} {}\n".format(bone.position[0], bone.position[1], bone.position[2]))
+		file.write("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
+			bone.matrix[0][0], bone.matrix[0][1], bone.matrix[0][2], 0.0,
+			bone.matrix[1][0], bone.matrix[1][1], bone.matrix[1][2], 0.0,
+			bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2], 0.0,
+			0.0, 0.0, 0.0, 1.0))   
+
+# save meshes
+file.write('{} # number of non-portal meshes'.format(n_mesh))
 meshlist = GetMeshObjects()
 for mesh in meshlist:
 
@@ -321,8 +384,8 @@ for mesh in meshlist:
 	
 		pass
 		
-	# if cell (need to change this)
-	elif IsCellMesh(mesh):
+	# if not a portal
+	else:
 
 		# build mesh materials
 		matlist = GetMeshMaterials(mesh)
