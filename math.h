@@ -1,18 +1,13 @@
 #ifndef __CPSC489_MATH_H
 #define __CPSC489_MATH_H
 
-//
-// SPECIAL FUNCTIONS
-//
+// GENERAL FUNCTIONS
+#pragma region GENERAL_FUNCTIONS
 
 inline real32 inv(real32 x)
 {
  return 1.0f/x;
 }
-
-//
-// RULE OF SARRUS
-//
 
 inline real32 sarrus_2x2(real32 m11, real32 m12, real32 m21, real32 m22)
 {
@@ -24,9 +19,10 @@ inline real32 sarrus_2x2(const real32* m)
  return m[0]*m[3] - m[1]*m[2];
 }
 
-//
-// SPECIAL_NUMBERS
-//
+#pragma endregion GENERAL_FUNCTIONS
+
+// SPECIAL NUMBERS
+#pragma region SPECIAL_NUMBERS
 
 inline real32 epsilon(void)
 {
@@ -52,9 +48,10 @@ inline real32 negative_infinity(void)
  return *reinterpret_cast<real32*>(&x);
 }
 
-//
+#pragma endregion SPECIAL_NUMBERS
+
 // TRIGNOMETRY
-//
+#pragma region TRIGNOMETRY
 
 // Trignometric Constants
 inline real32 pi(void)           { uint32 x = 0x40490FDBul; return *reinterpret_cast<real32*>(&x); } // oeis.org code:A000796
@@ -69,9 +66,10 @@ inline real32 pi_under_180(void) { return 57.2957795131f; } // oeis.org code:A07
 inline real32 radians(real32 d) { return d*pi_over_180(); }
 inline real32 degrees(real32 r) { return r*pi_under_180(); }
 
-//
+#pragma endregion TRIGNOMETRY
+
 // QUATERNIONS
-//
+#pragma region QUATERNIONS
 
 inline real32 qnormalize(real32* q)
 {
@@ -84,9 +82,10 @@ inline real32 qnormalize(real32* q)
  q[3] *= scale;
 }
 
-//
+#pragma endregion QUATERNIONS
+
 // INTERPOLATION
-//
+#pragma region INTERPOLATION
 
 inline void lerp3D(real32* v, const real32* A, const real32* B, real32 t)
 {
@@ -145,5 +144,30 @@ inline void qslerp(real32* v, const real32* A, const real32* B, real32 t)
     v[3] = A[3]*s1 + B[3]*s2;
    }
 }
+
+#pragma endregion INTERPOLATION
+
+// AABB
+#pragma region AABB
+
+struct alignas(16) AABB_halfdim {
+ float center[4];
+ float widths[4];
+};
+
+#pragma endregion AABB
+
+// OBB
+#pragma region OBB
+
+struct alignas(16) OBB {
+ float center[4];
+ float x[4];
+ float y[4];
+ float z[4];
+ float widths[4];
+};
+
+#pragma endregion OBB
 
 #endif

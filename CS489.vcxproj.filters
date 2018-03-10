@@ -161,6 +161,9 @@
     <ClCompile Include="testing\aabb.cpp">
       <Filter>Source Files\Testing</Filter>
     </ClCompile>
+    <ClCompile Include="collision.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -285,6 +288,9 @@
     </ClInclude>
     <ClInclude Include="testing\aabb.h">
       <Filter>Source Files\Testing</Filter>
+    </ClInclude>
+    <ClInclude Include="collision.h">
+      <Filter>Source Files\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
