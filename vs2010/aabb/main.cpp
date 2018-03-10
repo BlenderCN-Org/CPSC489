@@ -40,22 +40,60 @@ inline bool AABB_intersect(const AABB_halfdim& aabb, const float* v)
 
 inline bool AABB_intersect(const AABB_halfdim& aabb, const sphere& s)
 {
- // x-axis test
- // if((s.center[0] + s.radius) < (aabb.center[0] - aabb.widths[0])) return false;
- // if((s.center[0] - s.radius) > (aabb.center[0] + aabb.widths[0])) return false;
- float d1 = s.center[0] - aabb.center[0];
- float d2 = s.radius + aabb.widths[0];
- if(d1 < -d2) return false;
- if(d1 > +d2) return false;
+ // http://www.mrtc.mdh.se/projects/3Dgraphics/paperF.pdf
+ // This intersection test is called the ARVO test. I follow the paper algorithm pretty
+ // strictly, but made one slight modification. I do a rejection test after each axis
+ // since the squared distances are often pretty large. When the box is far away, the
+ // squared distance from closest box-axis to the sphere center can be larger than the
+ // squared sphere radius.
 
- // y-axis test
- if((s.center[1]) < (aabb.center[1] - aabb.widths[1])) return false;
- if((s.center[1]) > (aabb.center[1] + aabb.widths[1])) return false;
+ // squared distance
+ const float squared_radius = s.radius*s.radius;
+ float distance = 0.0f;
+ float b_min;
+ float b_max;
+ float d;
 
- // z-axis test
- if((s.center[2]) < (aabb.center[2] - aabb.widths[2])) return false;
- if((s.center[2]) > (aabb.center[2] + aabb.widths[2])) return false;
+ // squared distance from sphere origin to AABB x_min or x_max, depending on which is closer
+ b_min = aabb.center[0] - aabb.widths[0];
+ b_max = aabb.center[0] + aabb.widths[0];
+ if(s.center[0] < b_min) {
+    d = s.center[0] - b_min;
+    distance += d*d;
+   }
+ else if(s.center[0] > b_max) {
+    d = s.center[0] - b_max;
+    distance += d*d;
+   }
+ if(squared_radius < distance) return false;
 
+ // squared distance from sphere origin to AABB y_min or y_max, depending on which is closer
+ b_min = aabb.center[1] - aabb.widths[1];
+ b_max = aabb.center[1] + aabb.widths[1];
+ if(s.center[1] < b_min) {
+    d = s.center[1] - b_min;
+    distance += d*d;
+   }
+ else if(s.center[1] > b_max) {
+    d = s.center[1] - b_max;
+    distance += d*d;
+   }
+ if(squared_radius < distance) return false;
+
+ // squared distance from sphere origin to AABB z_min or z_max, depending on which is closer
+ b_min = aabb.center[2] - aabb.widths[2];
+ b_max = aabb.center[2] + aabb.widths[2];
+ if(s.center[2] < b_min) {
+    d = s.center[2] - b_min;
+    distance += d*d;
+   }
+ else if(s.center[2] > b_max) {
+    d = s.center[2] - b_max;
+    distance += d*d;
+   }
+ if(squared_radius < distance) return false;
+
+ // if squared radius encompasses squared distance sum, it intersects
  return true;
 }
 
