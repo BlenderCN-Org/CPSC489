@@ -7,9 +7,12 @@
 
 int Run(void)
 {
- // window initialization
+ // errors and debugging
  SetLanguageCode(LC_ENGLISH);
  InitErrorStrings();
+ EnableErrorDebugging(true);
+
+ // window initialization
  if(!CreateMainWindow()) return -1;
 
  // Direct3D initialization

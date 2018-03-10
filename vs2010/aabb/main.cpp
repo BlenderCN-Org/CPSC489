@@ -1,18 +1,21 @@
 #include<iostream>
 
-// old way of aligning 
-__declspec(align(16)) struct AABB_halfdim {
+struct AABB_halfdim {
  float center[4];
  float widths[4];
 };
 
-// old way of aligning 
-__declspec(align(16)) struct OBB {
+struct OBB {
  float center[4];
  float x[4];
  float y[4];
  float z[4];
  float widths[4];
+};
+
+struct sphere {
+ float center[4];
+ float radius;
 };
 
 inline float radians(float d) { return d*0.01745329252f; }
@@ -31,6 +34,27 @@ inline bool AABB_intersect(const AABB_halfdim& aabb, const float* v)
  // z-axis test
  if(v[2] < (aabb.center[2] - aabb.widths[2])) return false;
  if(v[2] > (aabb.center[2] + aabb.widths[2])) return false;
+
+ return true;
+}
+
+inline bool AABB_intersect(const AABB_halfdim& aabb, const sphere& s)
+{
+ // x-axis test
+ // if((s.center[0] + s.radius) < (aabb.center[0] - aabb.widths[0])) return false;
+ // if((s.center[0] - s.radius) > (aabb.center[0] + aabb.widths[0])) return false;
+ float d1 = s.center[0] - aabb.center[0];
+ float d2 = s.radius + aabb.widths[0];
+ if(d1 < -d2) return false;
+ if(d1 > +d2) return false;
+
+ // y-axis test
+ if((s.center[1]) < (aabb.center[1] - aabb.widths[1])) return false;
+ if((s.center[1]) > (aabb.center[1] + aabb.widths[1])) return false;
+
+ // z-axis test
+ if((s.center[2]) < (aabb.center[2] - aabb.widths[2])) return false;
+ if((s.center[2]) > (aabb.center[2] + aabb.widths[2])) return false;
 
  return true;
 }
