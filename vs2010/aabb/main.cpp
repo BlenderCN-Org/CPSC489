@@ -121,39 +121,20 @@ inline bool OBB_intersect(const OBB& obb, const float* v)
   v[2] - obb.center[2]
  };
 
- // this is OBB matrix
- // obb.x[0] obb.x[1] obb.x[2]
- // obb.y[0] obb.y[1] obb.y[2]
- // obb.z[0] obb.z[1] obb.z[2]
+ // x-axis test (scalar projection of p onto obb.x = p dot obb.x/length(obb.x) = p dot obb.x)
+ float q = obb.x[0]*p[0] + obb.x[1]*p[1] + obb.x[2]*p[2];
+ if(q < -obb.widths[0]) return false;
+ if(q > +obb.widths[0]) return false;
 
- // this is OBB matrix inverse (transpose)
- // obb.x[0] obb.y[0] obb.z[0]
- // obb.x[1] obb.y[1] obb.z[1]
- // obb.x[2] obb.y[2] obb.z[2]
+ // y-axis test (scalar projection of p onto obb.y = p dot obb.y/length(obb.y) = p dot obb.y)
+ q = obb.y[0]*p[0] + obb.y[1]*p[1] + obb.y[2]*p[2];
+ if(q < -obb.widths[1]) return false;
+ if(q > +obb.widths[1]) return false;
 
- // to send point in OBB space to world space, multiply by OBB matrix inverse
- // | obb.x[0] obb.y[0] obb.z[0] |   | p[0] |   | obb.x[0]*p[0] + obb.y[0]*p[1] + obb.z[0]*p[2] |
- // | obb.x[1] obb.y[1] obb.z[1] | * | p[1] | = | obb.x[1]*p[0] + obb.y[1]*p[1] + obb.z[1]*p[2] |
- // | obb.x[2] obb.y[2] obb.z[2] |   | p[2] |   | obb.x[2]*p[0] + obb.y[2]*p[1] + obb.z[2]*p[2] |
-
- // point in world space, OBB now AABB 
- float q[3] = {
-  obb.x[0]*p[0] + obb.y[0]*p[1] + obb.z[0]*p[2],
-  obb.x[1]*p[0] + obb.y[1]*p[1] + obb.z[1]*p[2],
-  obb.x[2]*p[0] + obb.y[2]*p[1] + obb.z[2]*p[2] 
- };
-
- // x-axis test
- if(q[0] < -obb.widths[0]) return false;
- if(q[0] > +obb.widths[0]) return false;
-
- // y-axis test
- if(q[1] < -obb.widths[1]) return false;
- if(q[1] > +obb.widths[1]) return false;
-
- // z-axis test
- if(q[2] < -obb.widths[2]) return false;
- if(q[2] > +obb.widths[2]) return false;
+ // z-axis test (scalar projection of p onto obb.z = p dot obb.z/length(obb.z) = p dot obb.z)
+ q = obb.z[0]*p[0] + obb.z[1]*p[1] + obb.z[2]*p[2];
+ if(q < -obb.widths[2]) return false;
+ if(q > +obb.widths[2]) return false;
 
  return true;
 }
@@ -167,17 +148,6 @@ inline bool OBB_intersect(const OBB& obb, const sphere& s)
   s.center[2] - obb.center[2]
  };
 
- // align OBB to world (multiplying by inverse)
- // now an AABB-vs-sphere test
- float dots[3] = {
-  // obb.x[0]*so[0] + obb.y[0]*so[1] + obb.z[0]*so[2],
-  // obb.x[1]*so[0] + obb.y[1]*so[1] + obb.z[1]*so[2],
-  // obb.x[2]*so[0] + obb.y[2]*so[1] + obb.z[2]*so[2] 
-  obb.x[0]*so[0] + obb.x[1]*so[1] + obb.x[2]*so[2],
-  obb.y[0]*so[0] + obb.y[1]*so[1] + obb.y[2]*so[2],
-  obb.z[0]*so[0] + obb.z[1]*so[1] + obb.z[2]*so[2] 
- };
-
  // squared distance
  const float squared_radius = s.radius*s.radius;
  float distance = 0.0f;
@@ -188,12 +158,13 @@ inline bool OBB_intersect(const OBB& obb, const sphere& s)
  // squared distance from sphere origin to AABB x_min or x_max, depending on which is closer
  b_min = -obb.widths[0];
  b_max = +obb.widths[0];
- if(dots[0] < b_min) {
-    d = dots[0] - b_min;
+ float sp = obb.x[0]*so[0] + obb.x[1]*so[1] + obb.x[2]*so[2];
+ if(sp < b_min) {
+    d = sp - b_min;
     distance += d*d;
    }
- else if(dots[0] > b_max) {
-    d = dots[0] - b_max;
+ else if(sp > b_max) {
+    d = sp - b_max;
     distance += d*d;
    }
  if(squared_radius < distance) return false;
@@ -201,12 +172,13 @@ inline bool OBB_intersect(const OBB& obb, const sphere& s)
  // squared distance from sphere origin to AABB y_min or y_max, depending on which is closer
  b_min = -obb.widths[1];
  b_max = +obb.widths[1];
- if(dots[1] < b_min) {
-    d = dots[1] - b_min;
+ sp = obb.y[0]*so[0] + obb.y[1]*so[1] + obb.y[2]*so[2];
+ if(sp < b_min) {
+    d = sp - b_min;
     distance += d*d;
    }
- else if(dots[1] > b_max) {
-    d = dots[1] - b_max;
+ else if(sp > b_max) {
+    d = sp - b_max;
     distance += d*d;
    }
  if(squared_radius < distance) return false;
@@ -214,12 +186,13 @@ inline bool OBB_intersect(const OBB& obb, const sphere& s)
  // squared distance from sphere origin to AABB z_min or z_max, depending on which is closer
  b_min = -obb.widths[2];
  b_max = +obb.widths[2];
- if(dots[2] < b_min) {
-    d = dots[2] - b_min;
+ sp = obb.z[0]*so[0] + obb.z[1]*so[1] + obb.z[2]*so[2];
+ if(sp < b_min) {
+    d = sp - b_min;
     distance += d*d;
    }
- else if(dots[2] > b_max) {
-    d = dots[2] - b_max;
+ else if(sp > b_max) {
+    d = sp - b_max;
     distance += d*d;
    }
  if(squared_radius < distance) return false;
@@ -437,7 +410,7 @@ void Test_OBB_Point(void)
  obb.center[0] = 3.0f; obb.center[1] = 2.0f; obb.center[2] = 1.5f;
  obb.widths[0] = 1.0f; obb.widths[1] = 1.0f; obb.widths[2] = 1.0f;
  float R[9];
- matrix3D_rotate_XYZ(R, 0.0f, 0.0f, radians(46.6f));
+ matrix3D_rotate_XYZ(R, 0.0f, 0.0f, -radians(46.6f));
  obb.x[0] = R[0]; obb.x[1] = R[1]; obb.x[2] = R[2];
  obb.y[0] = R[3]; obb.y[1] = R[4]; obb.y[2] = R[5];
  obb.z[0] = R[6]; obb.z[1] = R[7]; obb.z[2] = R[8];
@@ -468,13 +441,6 @@ void Test_OBB_Sphere(void)
  obb.x[0] = R[0]; obb.x[1] = R[1]; obb.x[2] = R[2];
  obb.y[0] = R[3]; obb.y[1] = R[4]; obb.y[2] = R[5];
  obb.z[0] = R[6]; obb.z[1] = R[7]; obb.z[2] = R[8];
-
- // print OBB points
- std::cout << "OBB vertices" << std::endl;
- float verts[8][3];
- OBB_vertices(obb, verts);
- for(int i = 0; i < 8; i++) vector3D_print(verts[i]);
- std::cout << std::endl;
 
  // define spheres that do and don't intersect
  sphere s1; // TRUE (right dab in the middle)
@@ -549,3 +515,4 @@ int main()
 
  return 0;
 }
+
