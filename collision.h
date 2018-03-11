@@ -94,6 +94,12 @@ inline void OBB::translate(const float* v)
 
 inline void OBB::vertices(float b[][3])
 {
+ // the formula to computer vertices is as follows:
+ // C + (hx*X + hy*Y + hz*Z)
+ // C is box center
+ // X, Y, Z are box axes
+ // hx, hy, hz are halfdims
+
  // +
  float cx1 = center[0] + widths[0]*x[0];
  float cx2 = center[1] + widths[0]*x[1];
@@ -348,9 +354,9 @@ inline bool OBB_intersect(const OBB& obb, const BV_sphere& s)
  // align OBB to world (multiplying by inverse)
  // now an AABB-vs-sphere test
  float dots[3] = {
-  obb.x[0]*so[0] + obb.y[0]*so[1] + obb.z[0]*so[2],
-  obb.x[1]*so[0] + obb.y[1]*so[1] + obb.z[1]*so[2],
-  obb.x[2]*so[0] + obb.y[2]*so[1] + obb.z[2]*so[2] 
+  obb.x[0]*so[0] + obb.x[1]*so[1] + obb.x[2]*so[2],
+  obb.y[0]*so[0] + obb.y[1]*so[1] + obb.y[2]*so[2],
+  obb.z[0]*so[0] + obb.z[1]*so[1] + obb.z[2]*so[2] 
  };
 
  // squared distance
@@ -363,12 +369,12 @@ inline bool OBB_intersect(const OBB& obb, const BV_sphere& s)
  // squared distance from sphere origin to AABB x_min or x_max, depending on which is closer
  b_min = -obb.widths[0];
  b_max = +obb.widths[0];
- if(so[0] < b_min) {
-    d = so[0] - b_min;
+ if(dots[0] < b_min) {
+    d = dots[0] - b_min;
     distance += d*d;
    }
- else if(so[0] > b_max) {
-    d = so[0] - b_max;
+ else if(dots[0] > b_max) {
+    d = dots[0] - b_max;
     distance += d*d;
    }
  if(squared_radius < distance) return false;
@@ -376,12 +382,12 @@ inline bool OBB_intersect(const OBB& obb, const BV_sphere& s)
  // squared distance from sphere origin to AABB y_min or y_max, depending on which is closer
  b_min = -obb.widths[1];
  b_max = +obb.widths[1];
- if(so[1] < b_min) {
-    d = so[1] - b_min;
+ if(dots[1] < b_min) {
+    d = dots[1] - b_min;
     distance += d*d;
    }
- else if(so[1] > b_max) {
-    d = so[1] - b_max;
+ else if(dots[1] > b_max) {
+    d = dots[1] - b_max;
     distance += d*d;
    }
  if(squared_radius < distance) return false;
@@ -389,12 +395,12 @@ inline bool OBB_intersect(const OBB& obb, const BV_sphere& s)
  // squared distance from sphere origin to AABB z_min or z_max, depending on which is closer
  b_min = -obb.widths[2];
  b_max = +obb.widths[2];
- if(so[2] < b_min) {
-    d = so[2] - b_min;
+ if(dots[2] < b_min) {
+    d = dots[2] - b_min;
     distance += d*d;
    }
- else if(so[2] > b_max) {
-    d = so[2] - b_max;
+ else if(dots[2] > b_max) {
+    d = dots[2] - b_max;
     distance += d*d;
    }
  if(squared_radius < distance) return false;
