@@ -400,11 +400,61 @@ void Test_OBB_Point(void)
  intersect = OBB_intersect(obb, v2);
  if(intersect) std::cout << "OBB intersects with point v2." << std::endl;
  else std::cout << "OBB does not intersect with point v2." << std::endl;
- std::cout << std::endl;
 }
 
 void Test_OBB_Sphere(void)
 {
+ // define OBB
+ OBB obb;
+ obb.center[0] = 3.0f; obb.center[1] = 2.0f; obb.center[2] = 1.5f;
+ obb.widths[0] = 2.0f; obb.widths[1] = 1.0f; obb.widths[2] = 0.5f;
+ float R[9];
+ matrix3D_rotate_XYZ(R, radians(15.4f), radians(25.1f), radians(46.6f));
+ obb.x[0] = R[0]; obb.x[1] = R[1]; obb.x[2] = R[2];
+ obb.y[0] = R[3]; obb.y[1] = R[4]; obb.y[2] = R[5];
+ obb.z[0] = R[6]; obb.z[1] = R[7]; obb.z[2] = R[8];
+
+ // define spheres that do and don't intersect
+ sphere s1; // TRUE (right dab in the middle)
+ s1.center[0] = 3.30424f;
+ s1.center[1] = 2.40014f;
+ s1.center[2] = 1.28223f;
+ s1.radius    = 0.5f;
+ sphere s2; // TRUE (just barely touching from the bottom)
+ s2.center[0] = 0.629899f;
+ s2.center[1] = 1.88428f;
+ s2.center[2] = -0.045648f;
+ s2.radius    = 2.0f;
+ sphere s3; // FALSE (just barely missing from the bottom)
+ s3.center[0] = 3.70887f;
+ s3.center[1] = 2.58465f;
+ s3.center[2] = 0.126452f;
+ s3.radius    = 0.25f;
+ sphere s4; // FALSE (just barely missing from the side)
+ s4.center[0] = 7.30914f;
+ s4.center[1] = 6.22700f; // 6.00594f TRUE if you move just a little bit
+ s4.center[2] = 0.455197f;
+ s4.radius    = 4.0f;
+
+ // test point
+ bool intersect = OBB_intersect(obb, s1);
+ if(intersect) std::cout << "OBB intersects with sphere s1." << std::endl;
+ else std::cout << "OBB does not intersect with sphere s1." << std::endl;
+
+ // test point
+ intersect = OBB_intersect(obb, s2);
+ if(intersect) std::cout << "OBB intersects with sphere s2." << std::endl;
+ else std::cout << "OBB does not intersect with sphere s2." << std::endl;
+
+ // test point
+ intersect = OBB_intersect(obb, s3);
+ if(intersect) std::cout << "OBB intersects with sphere s3." << std::endl;
+ else std::cout << "OBB does not intersect with sphere s3." << std::endl;
+
+ // test point
+ intersect = OBB_intersect(obb, s4);
+ if(intersect) std::cout << "OBB intersects with sphere s4." << std::endl;
+ else std::cout << "OBB does not intersect with sphere s4." << std::endl;
 }
 
 int main()
@@ -428,6 +478,11 @@ int main()
  // OBB versus Point
  std::cout << "Testing OBB versus Point" << std::endl;
  Test_OBB_Point();
+ std::cout << std::endl;
+
+ // OBB versus Sphere
+ std::cout << "Testing OBB versus Sphere" << std::endl;
+ Test_OBB_Sphere();
  std::cout << std::endl;
 
  return 0;
