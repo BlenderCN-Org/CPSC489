@@ -45,7 +45,7 @@ inline bool AABB_intersect(const AABB_halfdim& aabb, const sphere& s)
  // strictly, but made one slight modification. I do a rejection test after each axis
  // since the squared distances are often pretty large. When the box is far away, the
  // squared distance from closest box-axis to the sphere center can be larger than the
- // squared sphere radius.
+ // squared sphere radius, so why not do the test now?
 
  // squared distance
  const float squared_radius = s.radius*s.radius;
@@ -155,6 +155,19 @@ inline bool OBB_intersect(const OBB& obb, const float* v)
  if(p[2] < -obb.widths[2]) return false;
  if(p[2] > +obb.widths[2]) return false;
 
+ return true;
+}
+
+inline bool OBB_intersect(const OBB& obb, const sphere& s)
+{
+ // move OBB to origin
+ float p[3] = {
+  v[0] - obb.center[0],
+  v[1] - obb.center[1],
+  v[2] - obb.center[2]
+ };
+
+ 
  return true;
 }
 
@@ -270,6 +283,48 @@ inline void vector3D_print(const float* v)
  std::cout << "<" << v[0] << ", " << v[1] << ", " << v[2] << ">" << std::endl;
 }
 
+void Test_AABB_Sphere(void)
+{
+ // see AABBvSphere.blend
+
+ // unit AABB
+ AABB_halfdim aabb;
+ aabb.center[0] = 0.0f;
+ aabb.center[1] = 0.0f;
+ aabb.center[2] = 0.0f;
+ aabb.widths[0] = 1.0f;
+ aabb.widths[1] = 1.0f;
+ aabb.widths[2] = 1.0f;
+
+ // sphere
+ sphere s1;
+ s1.center[0] = -1.30259f;
+ s1.center[1] = 0.746922f;
+ s1.center[2] = 1.449260f;
+ s1.radius = 0.5f;
+
+ // sphere
+ sphere s2;
+ s2.center[0] = -1.20288f;
+ s2.center[1] = 0.746922f;
+ s2.center[2] = 1.449260f;
+ s2.radius = 0.5f;
+
+ // should be NO
+ bool result = AABB_intersect(aabb, s1);
+ if(result) std::cout << "AABB intersects with sphere s1." << std::endl;
+ else std::cout << "AABB does not intersect with sphere s1." << std::endl;
+
+ // should be YES
+ result = AABB_intersect(aabb, s2);
+ if(result) std::cout << "AABB intersects with sphere s2." << std::endl;
+ else std::cout << "AABB does not intersect with sphere s2." << std::endl;
+}
+
+void Test_OBB_Sphere(void)
+{
+}
+
 int main()
 {
  AABB_halfdim aabb;
@@ -327,6 +382,11 @@ int main()
  intersect = OBB_intersect(obb, v);
  if(intersect) std::cout << "OBB intersects with point" << std::endl;
  else std::cout << "OBB does not intersect with point" << std::endl;
+ std::cout << std::endl;
+
+ // AABB versus Sphere
+ std::cout << "Testing AABB versus Sphere" << std::endl;
+ Test_AABB_Sphere();
 
  return 0;
 }
