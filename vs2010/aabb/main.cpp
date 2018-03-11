@@ -227,45 +227,63 @@ inline bool OBB_intersect(const OBB& obb, const sphere& s)
 
 inline void OBB_vertices(const OBB& obb, float b[][3])
 {
- // +, +, +
- b[0][0] = obb.center[0] + (obb.widths[0]*obb.x[0] + obb.widths[1]*obb.x[1] + obb.widths[2]*obb.x[2]);
- b[0][1] = obb.center[1] + (obb.widths[0]*obb.y[0] + obb.widths[1]*obb.y[1] + obb.widths[2]*obb.y[2]);
- b[0][2] = obb.center[2] + (obb.widths[0]*obb.z[0] + obb.widths[1]*obb.z[1] + obb.widths[2]*obb.z[2]);
+ // +
+ float cx1 = obb.center[0] + obb.widths[0]*obb.x[0];
+ float cx2 = obb.center[1] + obb.widths[0]*obb.x[1];
+ float cx3 = obb.center[2] + obb.widths[0]*obb.x[2];
+ // +, +
+ float xpy1 = cx1 + obb.widths[1]*obb.y[0];
+ float xpy2 = cx2 + obb.widths[1]*obb.y[1];
+ float xpy3 = cx3 + obb.widths[1]*obb.y[2];
+ // +
+ b[0][0] = xpy1 + obb.widths[2]*obb.z[0];
+ b[0][1] = xpy2 + obb.widths[2]*obb.z[1];
+ b[0][2] = xpy3 + obb.widths[2]*obb.z[2];
+ // -
+ b[1][0] = xpy1 - obb.widths[2]*obb.z[0];
+ b[1][1] = xpy2 - obb.widths[2]*obb.z[1];
+ b[1][2] = xpy3 - obb.widths[2]*obb.z[2];
+ // +, -
+ xpy1 = cx1 - obb.widths[1]*obb.y[0];
+ xpy2 = cx2 - obb.widths[1]*obb.y[1];
+ xpy3 = cx3 - obb.widths[1]*obb.y[2];
+ // +
+ b[2][0] = xpy1 + obb.widths[2]*obb.z[0];
+ b[2][1] = xpy2 + obb.widths[2]*obb.z[1];
+ b[2][2] = xpy3 + obb.widths[2]*obb.z[2];
+ // -
+ b[3][0] = xpy1 - obb.widths[2]*obb.z[0];
+ b[3][1] = xpy2 - obb.widths[2]*obb.z[1];
+ b[3][2] = xpy3 - obb.widths[2]*obb.z[2];
 
- // +, +, -
- b[1][0] = obb.center[0] + (obb.widths[0]*obb.x[0] + obb.widths[1]*obb.x[1] - obb.widths[2]*obb.x[2]);
- b[1][1] = obb.center[1] + (obb.widths[0]*obb.y[0] + obb.widths[1]*obb.y[1] - obb.widths[2]*obb.y[2]);
- b[1][2] = obb.center[2] + (obb.widths[0]*obb.z[0] + obb.widths[1]*obb.z[1] - obb.widths[2]*obb.z[2]);
-
- // +, -, +
- b[2][0] = obb.center[0] + (obb.widths[0]*obb.x[0] - obb.widths[1]*obb.x[1] + obb.widths[2]*obb.x[2]);
- b[2][1] = obb.center[1] + (obb.widths[0]*obb.y[0] - obb.widths[1]*obb.y[1] + obb.widths[2]*obb.y[2]);
- b[2][2] = obb.center[2] + (obb.widths[0]*obb.z[0] - obb.widths[1]*obb.z[1] + obb.widths[2]*obb.z[2]);
-
- // +, -, -
- b[3][0] = obb.center[0] + (obb.widths[0]*obb.x[0] - obb.widths[1]*obb.x[1] - obb.widths[2]*obb.x[2]);
- b[3][1] = obb.center[1] + (obb.widths[0]*obb.y[0] - obb.widths[1]*obb.y[1] - obb.widths[2]*obb.y[2]);
- b[3][2] = obb.center[2] + (obb.widths[0]*obb.z[0] - obb.widths[1]*obb.z[1] - obb.widths[2]*obb.z[2]);
-
- // -, +, +
- b[4][0] = obb.center[0] + (-obb.widths[0]*obb.x[0] + obb.widths[1]*obb.x[1] + obb.widths[2]*obb.x[2]);
- b[4][1] = obb.center[1] + (-obb.widths[0]*obb.y[0] + obb.widths[1]*obb.y[1] + obb.widths[2]*obb.y[2]);
- b[4][2] = obb.center[2] + (-obb.widths[0]*obb.z[0] + obb.widths[1]*obb.z[1] + obb.widths[2]*obb.z[2]);
-
- // -, +, -
- b[5][0] = obb.center[0] + (-obb.widths[0]*obb.x[0] + obb.widths[1]*obb.x[1] - obb.widths[2]*obb.x[2]);
- b[5][1] = obb.center[1] + (-obb.widths[0]*obb.y[0] + obb.widths[1]*obb.y[1] - obb.widths[2]*obb.y[2]);
- b[5][2] = obb.center[2] + (-obb.widths[0]*obb.z[0] + obb.widths[1]*obb.z[1] - obb.widths[2]*obb.z[2]);
-
- // -, -, +
- b[6][0] = obb.center[0] + (-obb.widths[0]*obb.x[0] - obb.widths[1]*obb.x[1] + obb.widths[2]*obb.x[2]);
- b[6][1] = obb.center[1] + (-obb.widths[0]*obb.y[0] - obb.widths[1]*obb.y[1] + obb.widths[2]*obb.y[2]);
- b[6][2] = obb.center[2] + (-obb.widths[0]*obb.z[0] - obb.widths[1]*obb.z[1] + obb.widths[2]*obb.z[2]);
-
- // -, -, -
- b[7][0] = obb.center[0] + (-obb.widths[0]*obb.x[0] - obb.widths[1]*obb.x[1] - obb.widths[2]*obb.x[2]);
- b[7][1] = obb.center[1] + (-obb.widths[0]*obb.y[0] - obb.widths[1]*obb.y[1] - obb.widths[2]*obb.y[2]);
- b[7][2] = obb.center[2] + (-obb.widths[0]*obb.z[0] - obb.widths[1]*obb.z[1] - obb.widths[2]*obb.z[2]);
+ // -
+ cx1 = obb.center[0] - obb.widths[0]*obb.x[0];
+ cx2 = obb.center[1] - obb.widths[0]*obb.x[1];
+ cx3 = obb.center[2] - obb.widths[0]*obb.x[2];
+ // -, +
+ xpy1 = cx1 + obb.widths[1]*obb.y[0];
+ xpy2 = cx2 + obb.widths[1]*obb.y[1];
+ xpy3 = cx3 + obb.widths[1]*obb.y[2];
+ // +
+ b[4][0] = xpy1 + obb.widths[2]*obb.z[0];
+ b[4][1] = xpy2 + obb.widths[2]*obb.z[1];
+ b[4][2] = xpy3 + obb.widths[2]*obb.z[2];
+ // -
+ b[5][0] = xpy1 - obb.widths[2]*obb.z[0];
+ b[5][1] = xpy2 - obb.widths[2]*obb.z[1];
+ b[5][2] = xpy3 - obb.widths[2]*obb.z[2];
+ // -, -
+ xpy1 = cx1 - obb.widths[1]*obb.y[0];
+ xpy2 = cx2 - obb.widths[1]*obb.y[1];
+ xpy3 = cx3 - obb.widths[1]*obb.y[2];
+ // +
+ b[6][0] = xpy1 + obb.widths[2]*obb.z[0];
+ b[6][1] = xpy2 + obb.widths[2]*obb.z[1];
+ b[6][2] = xpy3 + obb.widths[2]*obb.z[2];
+ // -
+ b[7][0] = xpy1 - obb.widths[2]*obb.z[0];
+ b[7][1] = xpy2 - obb.widths[2]*obb.z[1];
+ b[7][2] = xpy3 - obb.widths[2]*obb.z[2];
 }
 
 void matrix3D_mul(float* X, const float* A, const float* B)
@@ -330,6 +348,34 @@ inline void matrix3D_rotate_XYZ(float* m, float r1, float r2, float r3)
  m[6] =  (s1 * s3) - (c1 * c3_s2);
  m[7] =  (c3 * s1) + (c1 * s2_s3);
  m[8] =  (c1 * c2);
+}
+
+inline void matrix3D_rotate_ZYX(float* m, float r1, float r2, float r3)
+{
+ // cached cosines
+ float c1 = std::cos(r1);
+ float c2 = std::cos(r2);
+ float c3 = std::cos(r3);
+
+ // cached sines
+ float s1 = std::sin(r1);
+ float s2 = std::sin(r2);
+ float s3 = std::sin(r3);
+
+ // composite values
+ float c3_s2 = c3 * s2;
+ float s2_s3 = s2 * s3;
+
+ // set matrix
+ m[0x0] =  (c1 * c2);
+ m[0x1] = -(c3 * s1) + (c1 * s2_s3);
+ m[0x2] =  (s1 * s3) + (c1 * c3_s2);
+ m[0x3] =  (c2 * s1);
+ m[0x4] =  (c1 * c3) + (s1 * s2_s3);
+ m[0x5] = -(c1 * s3) + (s1 * c3_s2);
+ m[0x6] = -s2;
+ m[0x7] =  (c2 * s3);
+ m[0x8] =  (c2 * c3);
 }
 
 inline void vector3D_print(const float* v)
@@ -409,10 +455,17 @@ void Test_OBB_Sphere(void)
  obb.center[0] = 3.0f; obb.center[1] = 2.0f; obb.center[2] = 1.5f;
  obb.widths[0] = 2.0f; obb.widths[1] = 1.0f; obb.widths[2] = 0.5f;
  float R[9];
- matrix3D_rotate_XYZ(R, radians(15.4f), radians(25.1f), radians(46.6f));
+ matrix3D_rotate_XYZ(R, -radians(15.4f), -radians(25.1f), -radians(46.6f));
  obb.x[0] = R[0]; obb.x[1] = R[1]; obb.x[2] = R[2];
  obb.y[0] = R[3]; obb.y[1] = R[4]; obb.y[2] = R[5];
  obb.z[0] = R[6]; obb.z[1] = R[7]; obb.z[2] = R[8];
+
+ // print OBB points
+ std::cout << "OBB vertices" << std::endl;
+ float verts[8][3];
+ OBB_vertices(obb, verts);
+ for(int i = 0; i < 8; i++) vector3D_print(verts[i]);
+ std::cout << std::endl;
 
  // define spheres that do and don't intersect
  sphere s1; // TRUE (right dab in the middle)
@@ -426,7 +479,7 @@ void Test_OBB_Sphere(void)
  s2.center[2] = -0.045648f;
  s2.radius    = 2.0f;
  sphere s3; // FALSE (just barely missing from the bottom)
- s3.center[0] = 3.70887f;
+ s3.center[0] = 3.81439f; //3.70887f; // 3.81439f TRUE if you move just a little bit
  s3.center[1] = 2.58465f;
  s3.center[2] = 0.126452f;
  s3.radius    = 0.25f;
