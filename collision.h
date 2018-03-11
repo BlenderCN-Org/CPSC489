@@ -248,25 +248,92 @@ inline bool OBB_intersect(const OBB& obb, const float* v)
   v[2] - obb.center[2]
  };
 
- // point in world space, OBB now AABB 
- float dots[3] = {
+ // align OBB to world (multiplying by inverse)
+ float q[3] = {
   obb.x[0]*p[0] + obb.y[0]*p[1] + obb.z[0]*p[2],
   obb.x[1]*p[0] + obb.y[1]*p[1] + obb.z[1]*p[2],
   obb.x[2]*p[0] + obb.y[2]*p[1] + obb.z[2]*p[2] 
  };
 
  // x-axis test
- if(p[0] < -obb.widths[0]) return false;
- if(p[0] > +obb.widths[0]) return false;
+ if(q[0] < -obb.widths[0]) return false;
+ if(q[0] > +obb.widths[0]) return false;
 
  // y-axis test
- if(p[1] < -obb.widths[1]) return false;
- if(p[1] > +obb.widths[1]) return false;
+ if(q[1] < -obb.widths[1]) return false;
+ if(q[1] > +obb.widths[1]) return false;
 
  // z-axis test
- if(p[2] < -obb.widths[2]) return false;
- if(p[2] > +obb.widths[2]) return false;
+ if(q[2] < -obb.widths[2]) return false;
+ if(q[2] > +obb.widths[2]) return false;
 
+ return true;
+}
+
+inline bool OBB_intersect(const OBB& obb, const BV_sphere& s)
+{
+ // translate OBB to origin
+ float so[3] = {
+  s.center[0] - obb.center[0],
+  s.center[1] - obb.center[1],
+  s.center[2] - obb.center[2]
+ };
+
+ // align OBB to world (multiplying by inverse)
+ // now an AABB-vs-sphere test
+ float dots[3] = {
+  obb.x[0]*so[0] + obb.y[0]*so[1] + obb.z[0]*so[2],
+  obb.x[1]*so[0] + obb.y[1]*so[1] + obb.z[1]*so[2],
+  obb.x[2]*so[0] + obb.y[2]*so[1] + obb.z[2]*so[2] 
+ };
+
+ // squared distance
+ const float squared_radius = s.radius*s.radius;
+ float distance = 0.0f;
+ float b_min;
+ float b_max;
+ float d;
+
+ // squared distance from sphere origin to AABB x_min or x_max, depending on which is closer
+ b_min = -obb.widths[0];
+ b_max = +obb.widths[0];
+ if(so[0] < b_min) {
+    d = so[0] - b_min;
+    distance += d*d;
+   }
+ else if(so[0] > b_max) {
+    d = so[0] - b_max;
+    distance += d*d;
+   }
+ if(squared_radius < distance) return false;
+
+ // squared distance from sphere origin to AABB y_min or y_max, depending on which is closer
+ b_min = -obb.widths[1];
+ b_max = +obb.widths[1];
+ if(so[1] < b_min) {
+    d = so[1] - b_min;
+    distance += d*d;
+   }
+ else if(so[1] > b_max) {
+    d = so[1] - b_max;
+    distance += d*d;
+   }
+ if(squared_radius < distance) return false;
+
+ // squared distance from sphere origin to AABB z_min or z_max, depending on which is closer
+ b_min = -obb.widths[2];
+ b_max = +obb.widths[2];
+ if(so[2] < b_min) {
+    d = so[2] - b_min;
+    distance += d*d;
+   }
+ else if(so[2] > b_max) {
+    d = so[2] - b_max;
+    distance += d*d;
+   }
+ if(squared_radius < distance) return false;
+
+ // if squared radius encompasses squared distance sum, it intersects
  return true;
 }
 

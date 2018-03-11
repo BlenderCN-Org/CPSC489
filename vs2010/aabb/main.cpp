@@ -137,37 +137,91 @@ inline bool OBB_intersect(const OBB& obb, const float* v)
  // | obb.x[2] obb.y[2] obb.z[2] |   | p[2] |   | obb.x[2]*p[0] + obb.y[2]*p[1] + obb.z[2]*p[2] |
 
  // point in world space, OBB now AABB 
- float dots[3] = {
+ float q[3] = {
   obb.x[0]*p[0] + obb.y[0]*p[1] + obb.z[0]*p[2],
   obb.x[1]*p[0] + obb.y[1]*p[1] + obb.z[1]*p[2],
   obb.x[2]*p[0] + obb.y[2]*p[1] + obb.z[2]*p[2] 
  };
 
  // x-axis test
- if(p[0] < -obb.widths[0]) return false;
- if(p[0] > +obb.widths[0]) return false;
+ if(q[0] < -obb.widths[0]) return false;
+ if(q[0] > +obb.widths[0]) return false;
 
  // y-axis test
- if(p[1] < -obb.widths[1]) return false;
- if(p[1] > +obb.widths[1]) return false;
+ if(q[1] < -obb.widths[1]) return false;
+ if(q[1] > +obb.widths[1]) return false;
 
  // z-axis test
- if(p[2] < -obb.widths[2]) return false;
- if(p[2] > +obb.widths[2]) return false;
+ if(q[2] < -obb.widths[2]) return false;
+ if(q[2] > +obb.widths[2]) return false;
 
  return true;
 }
 
 inline bool OBB_intersect(const OBB& obb, const sphere& s)
 {
- // move OBB to origin
- float p[3] = {
-  v[0] - obb.center[0],
-  v[1] - obb.center[1],
-  v[2] - obb.center[2]
+ // translate OBB to origin
+ float so[3] = {
+  s.center[0] - obb.center[0],
+  s.center[1] - obb.center[1],
+  s.center[2] - obb.center[2]
  };
 
- 
+ // align OBB to world (multiplying by inverse)
+ // now an AABB-vs-sphere test
+ float dots[3] = {
+  obb.x[0]*so[0] + obb.y[0]*so[1] + obb.z[0]*so[2],
+  obb.x[1]*so[0] + obb.y[1]*so[1] + obb.z[1]*so[2],
+  obb.x[2]*so[0] + obb.y[2]*so[1] + obb.z[2]*so[2] 
+ };
+
+ // squared distance
+ const float squared_radius = s.radius*s.radius;
+ float distance = 0.0f;
+ float b_min;
+ float b_max;
+ float d;
+
+ // squared distance from sphere origin to AABB x_min or x_max, depending on which is closer
+ b_min = -obb.widths[0];
+ b_max = +obb.widths[0];
+ if(so[0] < b_min) {
+    d = so[0] - b_min;
+    distance += d*d;
+   }
+ else if(so[0] > b_max) {
+    d = so[0] - b_max;
+    distance += d*d;
+   }
+ if(squared_radius < distance) return false;
+
+ // squared distance from sphere origin to AABB y_min or y_max, depending on which is closer
+ b_min = -obb.widths[1];
+ b_max = +obb.widths[1];
+ if(so[1] < b_min) {
+    d = so[1] - b_min;
+    distance += d*d;
+   }
+ else if(so[1] > b_max) {
+    d = so[1] - b_max;
+    distance += d*d;
+   }
+ if(squared_radius < distance) return false;
+
+ // squared distance from sphere origin to AABB z_min or z_max, depending on which is closer
+ b_min = -obb.widths[2];
+ b_max = +obb.widths[2];
+ if(so[2] < b_min) {
+    d = so[2] - b_min;
+    distance += d*d;
+   }
+ else if(so[2] > b_max) {
+    d = so[2] - b_max;
+    distance += d*d;
+   }
+ if(squared_radius < distance) return false;
+
+ // if squared radius encompasses squared distance sum, it intersects
  return true;
 }
 
@@ -321,6 +375,34 @@ void Test_AABB_Sphere(void)
  else std::cout << "AABB does not intersect with sphere s2." << std::endl;
 }
 
+void Test_OBB_Point(void)
+{
+ // define OBB
+ OBB obb;
+ obb.center[0] = 3.0f; obb.center[1] = 2.0f; obb.center[2] = 1.5f;
+ obb.widths[0] = 1.0f; obb.widths[1] = 1.0f; obb.widths[2] = 1.0f;
+ float R[9];
+ matrix3D_rotate_XYZ(R, 0.0f, 0.0f, radians(46.6f));
+ obb.x[0] = R[0]; obb.x[1] = R[1]; obb.x[2] = R[2];
+ obb.y[0] = R[3]; obb.y[1] = R[4]; obb.y[2] = R[5];
+ obb.z[0] = R[6]; obb.z[1] = R[7]; obb.z[2] = R[8];
+
+ // define point that doesn't intersect
+ float v1[3] = { 4.2f, 1.4f, 1.0f }; // NO
+ float v2[3] = { 3.8f, 1.4f, 1.0f }; // YES
+
+ // test point
+ bool intersect = OBB_intersect(obb, v1);
+ if(intersect) std::cout << "OBB intersects with point v1." << std::endl;
+ else std::cout << "OBB does not intersect with point v1." << std::endl;
+
+ // test point
+ intersect = OBB_intersect(obb, v2);
+ if(intersect) std::cout << "OBB intersects with point v2." << std::endl;
+ else std::cout << "OBB does not intersect with point v2." << std::endl;
+ std::cout << std::endl;
+}
+
 void Test_OBB_Sphere(void)
 {
 }
@@ -338,55 +420,15 @@ int main()
  float v[3] = { 0.3f, 0.1f, 1.1f };
  std::cout << AABB_intersect(aabb, v) << std::endl;
 
- // define OBB
- OBB obb;
- obb.center[0] = 3.0f; obb.center[1] = 2.0f; obb.center[2] = 1.5f;
- obb.widths[0] = 1.0f; obb.widths[1] = 1.0f; obb.widths[2] = 1.0f;
- float R[9];
- matrix3D_rotate_XYZ(R, 0.0f, 0.0f, radians(46.6f));
- obb.x[0] = R[0]; obb.x[1] = R[1]; obb.x[2] = R[2];
- obb.y[0] = R[3]; obb.y[1] = R[4]; obb.y[2] = R[5];
- obb.z[0] = R[6]; obb.z[1] = R[7]; obb.z[2] = R[8];
-
- // <2.96051, 3.41366, 2.5> OK
- // <2.96051, 3.41366, 0.5>
- // <4.41366, 2.03949, 2.5> OK
- // <4.41366, 2.03949, 0.5>
- // <1.58634, 1.96051, 2.5> OK
- // <1.58634, 1.96051, 0.5>
- // <3.03949, 0.586338, 2.5> OK
- // <3.03949, 0.586338, 0.5>
-
- // print vertices to double-check
- float p[8][3];
- OBB_vertices(obb, p);
- for(int i = 0; i < 8; i++)
-     vector3D_print(p[i]);
-
- // define point that doesn't intersect
- v[0] = 4.2f;
- v[1] = 1.4f;
- v[2] = 1.0f;
-
- // test point
- bool intersect = OBB_intersect(obb, v);
- if(intersect) std::cout << "OBB intersects with point" << std::endl;
- else std::cout << "OBB does not intersect with point" << std::endl;
-
- // define point that does intersect
- v[0] = 3.8f;
- v[1] = 1.4f;
- v[2] = 1.0f;
-
- // test point
- intersect = OBB_intersect(obb, v);
- if(intersect) std::cout << "OBB intersects with point" << std::endl;
- else std::cout << "OBB does not intersect with point" << std::endl;
- std::cout << std::endl;
-
  // AABB versus Sphere
  std::cout << "Testing AABB versus Sphere" << std::endl;
  Test_AABB_Sphere();
+ std::cout << std::endl;
+
+ // OBB versus Point
+ std::cout << "Testing OBB versus Point" << std::endl;
+ Test_OBB_Point();
+ std::cout << std::endl;
 
  return 0;
 }
