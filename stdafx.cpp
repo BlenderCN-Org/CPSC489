@@ -15,6 +15,31 @@ size_t WideStringHash::operator ()(const std::wstring& str)const
  return hash;
 }
 
+STDSTRINGA ConvertUTF16ToUTF8(const wchar_t* str)
+{
+ // validate
+ if((str == NULL) || (*str == L'\0'))
+    return STDSTRINGA();
+
+ // fail if invalid input character is encountered
+ #if (WINVER >= 0x0600)
+ DWORD flags = WC_ERR_INVALID_CHARS;
+ #else
+ DWORD flags = 0;
+ #endif
+
+ // determine size of destination buffer including null
+ size_t n = wcslen(str) + 1;
+ int size = WideCharToMultiByte(CP_UTF8, flags, str, static_cast<int>(n), NULL, 0, NULL, NULL);
+ if(size < 2) return STDSTRINGA();
+
+ // convert and return result
+ STDSTRINGA retval;
+ retval.resize(size); 
+ if(!WideCharToMultiByte(CP_UTF8, flags, str, static_cast<int>(n), &retval[0], size, NULL, NULL)) return STDSTRINGA();
+ return retval;
+}
+
 STDSTRINGW ConvertUTF8ToUTF16(const char* str)
 {
  // validate

@@ -192,11 +192,10 @@ ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file)
 {
  if(do_debug && debug.is_open()) {
     STDSTRINGW error = FindError(code, GetLanguageCode());
-    STDSTRINGSTREAMW ss;
-    ss << error << std::endl;
-    ss << L" Line: " << line << std::endl;
-    ss << L" File: " << file << std::ends;
-    debug << ss.str().c_str() << std::endl;
+    auto str = ConvertUTF16ToUTF8(error.c_str());
+    debug << str.c_str() << std::endl;
+    debug << " Line: " << line << std::endl;
+    debug << " File: " << file << std::endl;
    }
  return code;
 }
@@ -205,11 +204,10 @@ ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file, LanguageCod
 {
  if(do_debug && debug.is_open()) {
     STDSTRINGW error = FindError(code, language);
-    STDSTRINGSTREAMW ss;
-    ss << error << std::endl;
-    ss << L" Line: " << line << std::endl;
-    ss << L" File: " << file << std::ends;
-    debug << ss.str().c_str() << std::endl;
+    auto str = ConvertUTF16ToUTF8(error.c_str());
+    debug << str.c_str() << std::endl;
+    debug << " Line: " << line << std::endl;
+    debug << " File: " << file << std::endl;
    }
  return code;
 }

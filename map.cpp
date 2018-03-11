@@ -96,7 +96,7 @@ ErrorCode LoadMap(LPCWSTR name)
     {
      // load cell references
      std::vector<uint32> v;
-     code = ASCIIReadUint32Array(linelist, v);
+     code = ASCIIReadArray(linelist, v);
      if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
 
      // bidirectional portal

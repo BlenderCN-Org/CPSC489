@@ -143,6 +143,7 @@ struct WideStringInsensitiveEqual {
  }
 };
 
+STDSTRINGA ConvertUTF16ToUTF8(const wchar_t* str);
 STDSTRINGW ConvertUTF8ToUTF16(const char* str);
 
 #endif

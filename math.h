@@ -80,6 +80,7 @@ inline real32 qnormalize(real32* q)
  q[1] *= scale;
  q[2] *= scale;
  q[3] *= scale;
+ return norm;
 }
 
 #pragma endregion QUATERNIONS

@@ -1,5 +1,5 @@
-#ifndef __CPSC489_ASCII_H
-#define __CPSC489_ASCII_H
+#ifndef __CS489_ASCII_H
+#define __CS489_ASCII_H
 
 // ASCII Utilities
 ErrorCode ASCIIParseFile(const wchar_t* filename, std::deque<std::string>& linelist);
@@ -20,6 +20,8 @@ ErrorCode ASCIIReadVector8(std::deque<std::string>& linelist, real32* v, bool re
 ErrorCode ASCIIReadMatrix3(std::deque<std::string>& linelist, real32* v, bool repeat = false);
 ErrorCode ASCIIReadMatrix4(std::deque<std::string>& linelist, real32* v, bool repeat = false);
 
-ErrorCode ASCIIReadUint32Array(std::deque<std::string>& linelist, std::vector<uint32>& data); 
+// arbitrary size arrays
+ErrorCode ASCIIReadArray(std::deque<std::string>& linelist, std::vector<uint32>& data); 
+ErrorCode ASCIIReadArray(std::deque<std::string>& linelist, std::vector<real32>& data); 
 
 #endif

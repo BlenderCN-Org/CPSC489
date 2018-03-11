@@ -19,7 +19,7 @@ static uint32 controllerIndex = 0xFFFFFFFFul;
 
 BOOL InitSkeletonAxesTest(void)
 {
- auto code = model.LoadModel(L"untitled3.txt");
+ auto code = model.LoadModel(L"models\\door.txt");
  if(Fail(code)) {
     DebugErrorCode(code, __LINE__, __FILE__);
     Error(code);
@@ -27,7 +27,7 @@ BOOL InitSkeletonAxesTest(void)
    }
  instance = std::make_unique<MeshUTFInstance>(model);
  instance->InitInstance();
- instance->SetAnimation(1); // 0xFFFFFFFFul);
+ instance->SetAnimation(0); // 0xFFFFFFFFul);
  return TRUE;
 }
 
