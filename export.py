@@ -43,6 +43,8 @@ def MeshExporter():
         file.write('0 # number of animations\n')
 
     # save number of meshes
+    # TODO: do not rely on len(bpy.data.meshes) to return the correct number
+    # of meshes. if you delete a few meshes, they will still show up!!!
     file.write("{} # number of meshes\n".format(len(bpy.data.meshes)))
             
     # export meshes
