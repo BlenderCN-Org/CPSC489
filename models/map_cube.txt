@@ -1,7 +1,7 @@
 1 # number of static models
-cube.txt
+models\cube.txt
 1 # number of moving models
-door.txt
+models\door.txt
 
 1 # number of static instances
 0               # model reference
@@ -10,7 +10,7 @@ door.txt
 
 2 # number of moving instances
 0               # model reference
-1.0 0.0 0.0 0.0 # position
+0.0 0.0 0.0     # position
 1.0 0.0 0.0 0.0 # quaternion
 0               # model reference
 0.0 4.0 0.0     # position

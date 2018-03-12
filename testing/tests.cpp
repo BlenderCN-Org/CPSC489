@@ -7,6 +7,7 @@
 
 // tests
 #include "flyby.h"
+#include "t_map.h"
 #include "t_portal.h"
 #include "sk_axes.h"
 #include "aabb.h"
@@ -75,6 +76,21 @@ BOOL BeginTest(int cmd)
     init_func = InitAABBTest;
     free_func = FreeAABBTest;
     draw_func = RenderAABBTest;
+    if((*init_func)()) {
+       active_test = cmd;
+       CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);
+       return TRUE;
+      }
+    else {
+       (*free_func)();
+       return FALSE;
+      }
+   }
+ // set test
+ else if(cmd == CM_MAP_TEST) {
+    init_func = InitMapTest;
+    free_func = FreeMapTest;
+    draw_func = RenderMapTest;
     if((*init_func)()) {
        active_test = cmd;
        CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);

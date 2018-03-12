@@ -202,6 +202,7 @@
     <ClCompile Include="testing\flyby.cpp" />
     <ClCompile Include="testing\sk_axes.cpp" />
     <ClCompile Include="testing\tests.cpp" />
+    <ClCompile Include="testing\t_map.cpp" />
     <ClCompile Include="testing\t_portal.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="tga.cpp" />
@@ -247,6 +248,7 @@
     <ClInclude Include="testing\flyby.h" />
     <ClInclude Include="testing\sk_axes.h" />
     <ClInclude Include="testing\tests.h" />
+    <ClInclude Include="testing\t_map.h" />
     <ClInclude Include="testing\t_portal.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="tga.h" />

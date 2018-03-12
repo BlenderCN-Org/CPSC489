@@ -25,15 +25,15 @@ Map::~Map()
  FreeMap();
 }
 
-ErrorCode Map::LoadMap(LPCWSTR name)
+ErrorCode Map::LoadMap(LPCWSTR filename)
 {
  // free previous
  FreeMap();
 
  // parse file
  std::deque<std::string> linelist;
- ErrorCode code = ASCIIParseFile(name, linelist);
- if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+ ErrorCode code = ASCIIParseFile(filename, linelist);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // temporary data
  uint32 n = 0;
@@ -48,7 +48,7 @@ ErrorCode Map::LoadMap(LPCWSTR name)
  // read number of static models
  n = 0;
  code = ASCIIReadUint32(linelist, &n);
- if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // read static models
  if(n)
@@ -62,12 +62,12 @@ ErrorCode Map::LoadMap(LPCWSTR name)
         // load filename
         STDSTRINGW filename;
         code = ASCIIReadUTF8String(linelist, filename);
-        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // load model
         std::shared_ptr<MeshUTF> model(new MeshUTF);
         code = model->LoadModel(filename.c_str());
-        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // add model
         meshdata[i] = model;
@@ -86,7 +86,7 @@ ErrorCode Map::LoadMap(LPCWSTR name)
  // read number of moving models
  n = 0;
  code = ASCIIReadUint32(linelist, &n);
- if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // read moving models
  if(n)
@@ -100,12 +100,12 @@ ErrorCode Map::LoadMap(LPCWSTR name)
         // load filename
         STDSTRINGW filename;
         code = ASCIIReadUTF8String(linelist, filename);
-        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // load model
         std::shared_ptr<MeshUTF> model(new MeshUTF);
         code = model->LoadModel(filename.c_str());
-        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // add model
         meshdata[i] = model;
@@ -124,7 +124,7 @@ ErrorCode Map::LoadMap(LPCWSTR name)
  // read number of static instances
  n = 0;
  code = ASCIIReadUint32(linelist, &n);
- if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // read static instances
  if(n)
@@ -138,7 +138,7 @@ ErrorCode Map::LoadMap(LPCWSTR name)
         // load model reference
         uint32 reference = 0;
         code = ASCIIReadUint32(linelist, &reference);
-        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // validate reference
         if(!(reference < n_static))
@@ -147,12 +147,12 @@ ErrorCode Map::LoadMap(LPCWSTR name)
         // read position
         real32 P[3];
         code = ASCIIReadVector3(linelist, &P[0], false);
-        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // read quaternion
         real32 Q[4];
         code = ASCIIReadVector4(linelist, &Q[0], false);
-        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // add instance
         MeshUTF* ptr = static_models[reference].get();
@@ -172,7 +172,7 @@ ErrorCode Map::LoadMap(LPCWSTR name)
  // read number of moving instances
  n = 0;
  code = ASCIIReadUint32(linelist, &n);
- if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // read moving instances
  if(n)
@@ -186,7 +186,7 @@ ErrorCode Map::LoadMap(LPCWSTR name)
         // load model reference
         uint32 reference = 0;
         code = ASCIIReadUint32(linelist, &reference);
-        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // validate reference
         if(!(reference < n_moving))
@@ -195,12 +195,12 @@ ErrorCode Map::LoadMap(LPCWSTR name)
         // read position
         real32 P[3];
         code = ASCIIReadVector3(linelist, &P[0], false);
-        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // read quaternion
         real32 Q[4];
         code = ASCIIReadVector4(linelist, &Q[0], false);
-        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // add instance
         MeshUTF* ptr = moving_models[reference].get();

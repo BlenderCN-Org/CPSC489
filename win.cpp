@@ -52,6 +52,7 @@ static WINDOW_COMMAND(CmFlybyTest);
 static WINDOW_COMMAND(CmPortalTest);
 static WINDOW_COMMAND(CmSkeletonAxesTest);
 static WINDOW_COMMAND(CmAABBTest);
+static WINDOW_COMMAND(CmMapTest);
 
 #pragma region WINDOW_FUNCTIONS
 
@@ -363,6 +364,7 @@ WINDOW_MESSAGE(EvCommand)
   WINDOW_COMMAND_HANDLER(CM_PORTAL_TEST, CmPortalTest);
   WINDOW_COMMAND_HANDLER(CM_SKELETON_AXES_TEST, CmSkeletonAxesTest);
   WINDOW_COMMAND_HANDLER(CM_AABB_TEST, CmAABBTest);
+  WINDOW_COMMAND_HANDLER(CM_MAP_TEST, CmMapTest);
   WINDOW_COMMAND_DEFAULT;
  END_COMMAND_HANDLER
  return 0;
@@ -405,5 +407,14 @@ WINDOW_COMMAND(CmAABBTest)
  else if(GetActiveTest() == CM_AABB_TEST) EndTest();
  return 0;
 }
+
+WINDOW_COMMAND(CmMapTest)
+{
+ // skeleton axes test
+ if(GetActiveTest() != CM_MAP_TEST) BeginTest(CM_MAP_TEST);
+ else if(GetActiveTest() == CM_MAP_TEST) EndTest();
+ return 0;
+}
+
 
 #pragma endregion WINDOW_COMMANDS
