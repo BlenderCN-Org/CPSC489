@@ -7,6 +7,8 @@ struct DoorController {
  uint32 anim_start;
  uint32 anim_enter;
  uint32 anim_leave;
+ //bool   
+ real32 time_out;
 };
 
 class Map {

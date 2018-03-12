@@ -895,8 +895,11 @@ ErrorCode MeshUTFInstance::SetAnimation(uint32 index, bool repeat)
     return ResetAnimation();
    }
 
+ // nothing has changed
+ if(index == anim) return EC_SUCCESS; 
+
  // set new animation
- if(!(index < mesh->animations.size())) return DebugErrorCode(EC_ANIM_INDEX, __LINE__, __FILE__);;
+ if(!(index < mesh->animations.size())) return DebugErrorCode(EC_ANIM_INDEX, __LINE__, __FILE__);
  anim = index;
  loop = repeat;
  return ResetAnimation();

@@ -4,6 +4,7 @@
 #include "math.h"
 #include "vector3.h"
 #include "matrix4.h"
+#include "camera.h"
 #include "model.h"
 #include "collision.h"
 #include "portal.h"
@@ -232,7 +233,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
  // READ DOOR CONTROLLERS
  //
 
- // read number of moving instances
+ // read number of door controllers
  n = 0;
  code = ASCIIReadUint32(linelist, &n);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
@@ -278,7 +279,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // validate reference
-        if(!(reference < n_moving))
+        if(!(reference < n_moving_instances))
            return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
 
         // read animations
@@ -295,6 +296,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
 
         // set item
         DoorController& item = dcdata[i];
+        item.door_index = reference;
         item.box.center[0] = P[0];
         item.box.center[1] = P[1];
         item.box.center[2] = P[2];
@@ -389,9 +391,21 @@ void Map::FreeMap(void)
 
 void Map::RenderMap(real32 dt)
 {
+ // get camera object and orbit point
+ auto camera = GetOrbitCamera();
+ real32 orbit[3];
+ camera->GetOrbitPoint(orbit);
+
  // INEFFICIENT!!!
- for(uint32 i = 0; i < n_door_controllers; i)
+ for(uint32 i = 0; i < n_door_controllers; i++)
     {
+     // camera is inside door controller
+     if(OBB_intersect(door_controllers[i].box, orbit))
+       {
+        uint32 door_index = door_controllers[i].door_index;
+        uint32 anim_index = door_controllers[i].anim_enter;
+        moving_instances[door_index]->SetAnimation(anim_index, false);
+       }
     }
 
  // INEFFICIENT!!!

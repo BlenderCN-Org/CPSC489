@@ -39,6 +39,11 @@ class OrbitCamera {
   real32 GetAspectRatio(void)const { return aspect; }
  // Camera Property Functions
  public :
+  void GetOrbitPoint(real32* pt)const {
+   pt[0] = cam_E[0] + orbit_distance*cam_X[0];
+   pt[1] = cam_E[1] + orbit_distance*cam_X[1];
+   pt[2] = cam_E[2] + orbit_distance*cam_X[2];
+  }
   real32 GetOrbitDistance(void)const { return orbit_distance; }
   real32 GetHorzAngle(void)const { return horz_angle; }
   real32 GetVertAngle(void)const { return vert_angle; }
