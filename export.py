@@ -126,6 +126,7 @@ def ExportAnimations(file, armature):
             str = fcu.data_path
             print(fcu.data_path)
             m = re.match(pattern, str)
+            if m is None: continue
             g1 = m.group(1)
             g2 = m.group(2)
             

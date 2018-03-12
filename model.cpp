@@ -364,7 +364,7 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
      if(!animations[i].name.length()) return EC_MODEL_ANIMATION_NAME;
 
      // set loop to default value of true
-     animations[i].loop = true;
+     animations[i].loop = false;
 
      // read number of keyframed bones
      uint32 n_keyframedbones = 0;
@@ -857,17 +857,19 @@ void MeshUTFInstance::FreeInstance(void)
  if(perframe) perframe->Release(); perframe = nullptr;
 }
 
-ErrorCode MeshUTFInstance::SetAnimation(uint32 index)
+ErrorCode MeshUTFInstance::SetAnimation(uint32 index, bool repeat)
 {
  // stop animating, render in bind pose
  if(index == 0xFFFFFFFFul) {
     anim = 0xFFFFFFFFul;
+    loop = false;
     return ResetAnimation();
    }
 
  // set new animation
  if(!(index < mesh->animations.size())) return DebugErrorCode(EC_ANIM_INDEX, __LINE__, __FILE__);;
  anim = index;
+ loop = repeat;
  return ResetAnimation();
 }
 
@@ -881,13 +883,13 @@ ErrorCode MeshUTFInstance::SetTime(real32 value)
  real32 duration = mesh->animations[anim].duration;
  time = value;
  if(time < 0.0f) {
-    if(mesh->animations[anim].loop)
+    if(loop) // mesh->animations[anim].loop)
        while(time < 0.0f) time += duration;
     else
        time = 0.0f;
    }
  else if(time > duration) {
-    if(mesh->animations[anim].loop)
+    if(loop) // mesh->animations[anim].loop)
        while(!(time < duration)) time -= duration;
     else
        time = duration;

@@ -1,13 +1,7 @@
-4 # number of static models
-room_001.txt
-room_002.txt
-room_003.txt
-room_004.txt
-4 # number of dynamic models
-door_001.txt
-door_002.txt
-door_003.txt
-door_004.txt
+1 # number of static models
+cube.txt
+1 # number of dynamic models
+door.txt
 4 # number of portal cells
 room_001 room_002 room_004
 room_002 room_003 room_001

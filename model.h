@@ -109,6 +109,7 @@ class MeshUTFInstance {
   const MeshUTF* mesh;
   real32 time;
   uint32 anim;
+  bool loop;
  private :
   matrix4D mv;
   std::unique_ptr<matrix4D[]> jm;
@@ -122,7 +123,7 @@ class MeshUTFInstance {
   uint32 GetAnimation(void)const { return anim; }
   real32 GetTime(void)const { return time; }
  public :
-  ErrorCode SetAnimation(uint32 index);
+  ErrorCode SetAnimation(uint32 index, bool repeat = false);
   ErrorCode SetTime(real32 value);
   ErrorCode ResetAnimation(void);
   ErrorCode Update(void);
