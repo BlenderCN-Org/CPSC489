@@ -159,9 +159,57 @@ ErrorCode Map::LoadMap(LPCWSTR name)
         instdata[i] = std::make_shared<MeshUTFInstance>(*ptr);
        }
 
-    // set static models
+    // set instance data
     n_static_instances = n;
     static_instances = std::move(instdata);
+   }
+
+ //
+ // PHASE 4:
+ // READ MOVING INSTANCES
+ //
+
+ // read number of moving instances
+ n = 0;
+ code = ASCIIReadUint32(linelist, &n);
+ if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
+ // read moving instances
+ if(n)
+   {
+    // allocate meshdata
+    instdata.reset(new std::shared_ptr<MeshUTFInstance>[n]);
+
+    // load instances
+    for(uint32 i = 0; i < n; i++)
+       {
+        // load model reference
+        uint32 reference = 0;
+        code = ASCIIReadUint32(linelist, &reference);
+        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
+        // validate reference
+        if(!(reference < n_moving))
+           return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
+        // read position
+        real32 P[3];
+        code = ASCIIReadVector3(linelist, &P[0], false);
+        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
+        // read quaternion
+        real32 Q[4];
+        code = ASCIIReadVector4(linelist, &Q[0], false);
+        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
+        // add instance
+        MeshUTF* ptr = moving_models[reference].get();
+        instdata[i] = std::make_shared<MeshUTFInstance>(*ptr);
+       }
+
+    // set instance data
+    n_moving_instances = n;
+    moving_instances = std::move(instdata);
    }
 
 /*

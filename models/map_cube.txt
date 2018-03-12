@@ -16,11 +16,18 @@ door.txt
 0.0 4.0 0.0     # position
 1.0 0.0 0.0 0.0 # quaternion
 
-1 # number of door controllers
-1.0 0.0 0.0 0.0 # position
+2 # number of door controllers
+0.0 0.0 0.0     # position
 1.0 0.0 0.0 0.0 # quaternion
 1.0 1.0 1.0     # halfdims
-0               # door reference
+0               # moving instance reference
+-1              # animation reference (idle)
+0               # animation reference (on enter)
+1               # animation reference (on leave)
+0.0 4.0 0.0     # position
+1.0 0.0 0.0 0.0 # quaternion
+1.0 1.0 1.0     # halfdims
+0               # moving instance reference
 -1              # animation reference (idle)
 0               # animation reference (on enter)
 1               # animation reference (on leave)
