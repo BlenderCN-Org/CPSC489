@@ -309,6 +309,8 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         item.anim_start = (anim1 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim1));
         item.anim_enter = (anim2 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim2));
         item.anim_leave = (anim3 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim3));
+        item.inside = false;
+        item.close_time = 0.0f;
        }
 
     // set data
@@ -400,11 +402,26 @@ void Map::RenderMap(real32 dt)
  for(uint32 i = 0; i < n_door_controllers; i++)
     {
      // camera is inside door controller
+     auto& dc = door_controllers[i];
      if(OBB_intersect(door_controllers[i].box, orbit))
        {
-        uint32 door_index = door_controllers[i].door_index;
-        uint32 anim_index = door_controllers[i].anim_enter;
+        uint32 door_index = dc.door_index;
+        uint32 anim_index = dc.anim_enter;
         moving_instances[door_index]->SetAnimation(anim_index, false);
+        if(!dc.inside) dc.inside = true;
+       }
+     // outside, but last frame we were inside
+     else if(dc.inside) {
+        dc.close_time = 5.0f;
+        dc.inside = false;
+       }
+     // outside
+     else if(dc.close_time) {
+        dc.close_time -= dt;
+        if(!(dc.close_time > 0.0f)) {
+           moving_instances[dc.door_index]->SetAnimation(dc.anim_leave, false);
+           dc.close_time = 0.0f;
+          }
        }
     }
 
