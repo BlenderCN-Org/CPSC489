@@ -132,6 +132,7 @@ class MeshUTFInstance {
   ErrorCode RenderModel(void);
  public :
   MeshUTFInstance(const MeshUTF& ptr);
+  MeshUTFInstance(const MeshUTF& ptr, const real32* P, const real32* Q);
  ~MeshUTFInstance();
  private :
   MeshUTFInstance(const MeshUTFInstance&) = delete;

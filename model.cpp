@@ -819,6 +819,25 @@ MeshUTFInstance::MeshUTFInstance(const MeshUTF& ptr)
  perframe = nullptr;
 }
 
+MeshUTFInstance::MeshUTFInstance(const MeshUTF& ptr, const real32* P, const real32* Q)
+{
+ // initialize animation data
+ mesh = &ptr;
+ time = 0.0f;
+ anim = 0xFFFFFFFFul;
+
+ // initialize constant data
+ mv.load_identity();
+ jm.reset(new matrix4D[mesh->joints.size()]);
+ for(size_t bi = 0; bi < mesh->joints.size(); bi++) jm[bi].load_identity();
+
+ // initialize buffers
+ permodel = nullptr;
+ perframe = nullptr;
+
+ // TODO: handle per model data using P and Q
+}
+
 MeshUTFInstance::~MeshUTFInstance()
 {
  FreeInstance();

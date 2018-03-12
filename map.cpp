@@ -8,65 +8,163 @@
 #include "portal.h"
 #include "map.h"
 
-static std::vector<std::shared_ptr<MeshUTF>> m_static; // static models
-static std::vector<std::shared_ptr<MeshUTF>> m_dynamic; // dynamic models
-static std::vector<std::shared_ptr<MeshUTFInstance>> instances;
+// singleton map variable
+static Map map;
+Map* GetMap(void) { return &map; }
 
-// portal variables
-static std::vector<std::vector<uint32>> cell_graph;
-
-ErrorCode LoadMap(LPCWSTR name)
+Map::Map()
 {
+ n_static = 0;
+ n_moving = 0;
+ n_static_instances = 0;
+ n_moving_instances = 0;
+}
+
+Map::~Map()
+{
+ FreeMap();
+}
+
+ErrorCode Map::LoadMap(LPCWSTR name)
+{
+ // free previous
+ FreeMap();
+
  // parse file
  std::deque<std::string> linelist;
  ErrorCode code = ASCIIParseFile(name, linelist);
  if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
 
+ // temporary data
+ uint32 n = 0;
+ std::unique_ptr<std::shared_ptr<MeshUTF>[]> meshdata;
+ std::unique_ptr<std::shared_ptr<MeshUTFInstance>[]> instdata;
+
+ //
+ // PHASE 1:
+ // READ STATIC MODELS
+ //
+
  // read number of static models
- uint32 n_models = 0;
- code = ASCIIReadUint32(linelist, &n_models);
+ n = 0;
+ code = ASCIIReadUint32(linelist, &n);
  if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
 
- // load static models
- for(uint32 i = 0; i < n_models; i++)
-    {
-     // load room name
-     STDSTRINGW name;
-     code = ASCIIReadUTF8String(linelist, name);
-     if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+ // read static models
+ if(n)
+   {
+    // allocate meshdata
+    meshdata.reset(new std::shared_ptr<MeshUTF>[n]);
 
-     // load room
-     std::shared_ptr<MeshUTF> model(new MeshUTF);
-     code = model->LoadModel(name.c_str());
-     if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+    // load models
+    for(uint32 i = 0; i < n; i++)
+       {
+        // load filename
+        STDSTRINGW filename;
+        code = ASCIIReadUTF8String(linelist, filename);
+        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
 
-     // add static model
-     m_static.push_back(model);
-    }
+        // load model
+        std::shared_ptr<MeshUTF> model(new MeshUTF);
+        code = model->LoadModel(filename.c_str());
+        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
 
- // read number of dynamic models
- uint32 n_dynamics = 0;
- code = ASCIIReadUint32(linelist, &n_dynamics);
+        // add model
+        meshdata[i] = model;
+       }
+
+    // set models
+    n_static = n;
+    static_models = std::move(meshdata);
+   }
+
+ //
+ // PHASE 2:
+ // READ MOVING MODELS
+ //
+
+ // read number of moving models
+ n = 0;
+ code = ASCIIReadUint32(linelist, &n);
  if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
 
- // load dynamic models
- // dyanmic models are things that move, like doors, pickup items, keys, etc.
- for(uint32 i = 0; i < n_dynamics; i++)
-    {
-     // load model name
-     STDSTRINGW name;
-     code = ASCIIReadUTF8String(linelist, name);
-     if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+ // read moving models
+ if(n)
+   {
+    // allocate meshdata
+    meshdata.reset(new std::shared_ptr<MeshUTF>[n]);
 
-     // load model
-     std::shared_ptr<MeshUTF> model(new MeshUTF);
-     code = model->LoadModel(name.c_str());
-     if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+    // load models
+    for(uint32 i = 0; i < n; i++)
+       {
+        // load filename
+        STDSTRINGW filename;
+        code = ASCIIReadUTF8String(linelist, filename);
+        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
 
-     // add dynamic model
-     m_dynamic.push_back(model);
-    }
+        // load model
+        std::shared_ptr<MeshUTF> model(new MeshUTF);
+        code = model->LoadModel(filename.c_str());
+        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
 
+        // add model
+        meshdata[i] = model;
+       }
+
+    // set models
+    n_moving = n;
+    moving_models = std::move(meshdata);
+   }
+
+ //
+ // PHASE 3:
+ // READ STATIC INSTANCES
+ //
+
+ // read number of static instances
+ n = 0;
+ code = ASCIIReadUint32(linelist, &n);
+ if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
+ // read static instances
+ if(n)
+   {
+    // allocate meshdata
+    instdata.reset(new std::shared_ptr<MeshUTFInstance>[n]);
+
+    // load instances
+    for(uint32 i = 0; i < n; i++)
+       {
+        // load model reference
+        uint32 reference = 0;
+        code = ASCIIReadUint32(linelist, &reference);
+        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
+        // validate reference
+        if(!(reference < n_static))
+           return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
+        // read position
+        real32 P[3];
+        code = ASCIIReadVector3(linelist, &P[0], false);
+        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
+        // read quaternion
+        real32 Q[4];
+        code = ASCIIReadVector4(linelist, &Q[0], false);
+        if(Fail(code)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
+        // add instance
+        MeshUTF* ptr = static_models[reference].get();
+        instdata[i] = std::make_shared<MeshUTFInstance>(*ptr);
+       }
+
+    // set static models
+    n_static_instances = n;
+    static_instances = std::move(instdata);
+   }
+
+/*
  // read number of portal cells
  uint32 n_cells = 0;
  code = ASCIIReadUint32(linelist, &n_cells);
@@ -117,14 +215,25 @@ ErrorCode LoadMap(LPCWSTR name)
      // -1 means no cell
      // -1 means no cell
     }
-
+*/
  return EC_SUCCESS;
 }
 
-void FreeMap(void)
+void Map::FreeMap(void)
 {
+ // free instances
+ if(n_static_instances) static_instances.reset();
+ if(n_moving_instances) moving_instances.reset();
+ n_static_instances = 0;
+ n_moving_instances = 0;
+
+ // free models
+ if(n_static) static_models.reset();
+ if(n_moving) moving_models.reset();
+ n_static = 0;
+ n_moving = 0;
 }
 
-void RenderMap(void)
+void Map::RenderMap(void)
 {
 }
