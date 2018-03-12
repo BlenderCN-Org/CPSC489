@@ -5,6 +5,7 @@
 #include "vector3.h"
 #include "matrix4.h"
 #include "model.h"
+#include "collision.h"
 #include "portal.h"
 #include "map.h"
 
@@ -14,10 +15,14 @@ Map* GetMap(void) { return &map; }
 
 Map::Map()
 {
+ // models
  n_static = 0;
  n_moving = 0;
  n_static_instances = 0;
  n_moving_instances = 0;
+
+ // door controllers
+ n_door_controllers = 0;
 }
 
 Map::~Map()
@@ -156,7 +161,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
 
         // add instance
         MeshUTF* ptr = static_models[reference].get();
-        instdata[i] = std::make_shared<MeshUTFInstance>(*ptr);
+        instdata[i] = std::make_shared<MeshUTFInstance>(*ptr, P, Q);
         code = instdata[i]->InitInstance();
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
        }
@@ -204,9 +209,15 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         code = ASCIIReadVector4(linelist, &Q[0], false);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
+        // normalize Q and protect agains invalid values
+        if(qnormalize(Q) < 1.0e-7f) {
+           Q[0] = 1.0f;
+           Q[1] = Q[2] = Q[3] = 0.0f;
+          } 
+
         // add instance
         MeshUTF* ptr = moving_models[reference].get();
-        instdata[i] = std::make_shared<MeshUTFInstance>(*ptr);
+        instdata[i] = std::make_shared<MeshUTFInstance>(*ptr, P, Q);
         code = instdata[i]->InitInstance();
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
        }
@@ -214,6 +225,93 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
     // set instance data
     n_moving_instances = n;
     moving_instances = std::move(instdata);
+   }
+
+ //
+ // PHASE 5:
+ // READ DOOR CONTROLLERS
+ //
+
+ // read number of moving instances
+ n = 0;
+ code = ASCIIReadUint32(linelist, &n);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+ // read door controllers
+ if(n)
+   {
+    // allocate data
+    std::unique_ptr<DoorController[]> dcdata;
+    dcdata.reset(new DoorController[n]);
+
+    // read data
+    for(uint32 i = 0; i < n; i++)
+       {
+        // read position
+        real32 P[3];
+        code = ASCIIReadVector3(linelist, &P[0], false);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read quaternion
+        real32 Q[4];
+        code = ASCIIReadVector4(linelist, &Q[0], false);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // normalize Q and protect agains invalid values
+        if(qnormalize(Q) < 1.0e-7f) {
+           Q[0] = 1.0f;
+           Q[1] = Q[2] = Q[3] = 0.0f;
+          }
+
+        // convert quaternion to matrix
+        real32 M[9];
+        matrix3D_quaternion(M, Q);
+
+        // read half-widths
+        real32 H[3];
+        code = ASCIIReadVector3(linelist, &H[0], false);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read reference
+        uint32 reference = 0;
+        code = ASCIIReadUint32(linelist, &reference);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // validate reference
+        if(!(reference < n_moving))
+           return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
+        // read animations
+        sint32 anim1 = -1;
+        sint32 anim2 = -1;
+        sint32 anim3 = -1;
+        code = ASCIIReadSint32(linelist, &anim1);
+        code = ASCIIReadSint32(linelist, &anim2);
+        code = ASCIIReadSint32(linelist, &anim3);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // TODO:
+        // WE NEED TO VALIDATE ANIMATION INDICES HERE!!!
+
+        // set item
+        DoorController& item = dcdata[i];
+        item.box.center[0] = P[0];
+        item.box.center[1] = P[1];
+        item.box.center[2] = P[2];
+        item.box.widths[0] = H[0];
+        item.box.widths[1] = H[1];
+        item.box.widths[2] = H[2];
+        item.box.x[0] = M[0]; item.box.x[1] = M[1]; item.box.x[2] = M[2];
+        item.box.y[0] = M[3]; item.box.y[1] = M[4]; item.box.y[2] = M[5];
+        item.box.z[0] = M[6]; item.box.z[1] = M[7]; item.box.z[2] = M[8];
+        item.anim_start = (anim1 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim1));
+        item.anim_enter = (anim2 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim2));
+        item.anim_leave = (anim3 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim3));
+       }
+
+    // set data
+    n_door_controllers = n;
+    door_controllers = std::move(dcdata);
    }
 
 /*
@@ -273,6 +371,9 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
 
 void Map::FreeMap(void)
 {
+ if(n_door_controllers) door_controllers.reset();
+ n_door_controllers = 0;
+
  // free instances
  if(n_static_instances) static_instances.reset();
  if(n_moving_instances) moving_instances.reset();
@@ -286,15 +387,22 @@ void Map::FreeMap(void)
  n_moving = 0;
 }
 
-void Map::RenderMap(void)
+void Map::RenderMap(real32 dt)
 {
  // INEFFICIENT!!!
+ for(uint32 i = 0; i < n_door_controllers; i)
+    {
+    }
+
+ // INEFFICIENT!!!
  // RENDER ALL STATIC MODEL INSTANCES
- for(uint32 i = 0; i < n_static; i++)
+ for(uint32 i = 0; i < n_static_instances; i++)
      static_instances[i]->RenderModel();
 
  // INEFFICIENT!!!
  // RENDER ALL MOVING MODEL INSTANCES
- for(uint32 i = 0; i < n_moving; i++)
+ for(uint32 i = 0; i < n_moving_instances; i++) {
+     moving_instances[i]->Update(dt);
      moving_instances[i]->RenderModel();
+    }
 }

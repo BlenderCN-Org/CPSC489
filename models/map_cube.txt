@@ -1,5 +1,6 @@
 1 # number of static models
 models\cube.txt
+
 1 # number of moving models
 models\door.txt
 
@@ -8,25 +9,36 @@ models\door.txt
 0.0 0.0 0.0     # position
 1.0 0.0 0.0 0.0 # quaternion
 
-2 # number of moving instances
-0               # model reference
-0.0 0.0 0.0     # position
-1.0 0.0 0.0 0.0 # quaternion
-0               # model reference
-0.0 4.0 0.0     # position
-1.0 0.0 0.0 0.0 # quaternion
+8 # number of moving instances
+0                   # model reference
+2.0 -8.0 0.0        # position
+0.707 0.0 0.0 0.707 # quaternion
+0                   # model reference
+2.0 -6.0 0.0        # position
+0.707 0.0 0.0 0.707 # quaternion
+0                   # model reference
+4.0 2.0 0.0         # position
+0.707 0.0 0.0 0.707 # quaternion
+0                   # model reference
+4.0 4.0 0.0         # position
+0.707 0.0 0.0 0.707 # quaternion
+0                   # model reference
+-10.0 0.0 0.0       # position
+0.707 0.0 0.0 0.707 # quaternion
+0                   # model reference
+-2.0 8.0 0.0        # position
+1.0 0.0 0.0 0.0     # quaternion
+0                   # model reference
+-4.0 8.0 0.0        # position
+1.0 0.0 0.0 0.0     # quaternion
+0                   # model reference
+0.0 -8.0 0.0        # position
+1.0 0.0 0.0 0.0     # quaternion
 
-2 # number of door controllers
-2.0 -8.0 0.0    # position
+1 # number of door controllers
+3.0 -8.0 1.0    # position
 1.0 0.0 0.0 0.0 # quaternion
-1.0 1.0 1.0     # halfdims
-0               # moving instance reference
--1              # animation reference (idle)
-0               # animation reference (on enter)
-1               # animation reference (on leave)
-0.0 4.0 0.0     # position
-1.0 0.0 0.0 0.0 # quaternion
-1.0 1.0 1.0     # halfdims
+1.0 0.5 1.0     # halfdims
 0               # moving instance reference
 -1              # animation reference (idle)
 0               # animation reference (on enter)

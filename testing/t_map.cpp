@@ -9,6 +9,7 @@
 #include "../camera.h"
 #include "../xinput.h"
 #include "../gfx.h"
+#include "../collision.h"
 #include "../map.h"
 
 // testing includes
@@ -85,5 +86,5 @@ void RenderMapTest(real32 dt)
    }
 
  // render map
- GetMap()->RenderMap();
+ GetMap()->RenderMap(dt);
 }

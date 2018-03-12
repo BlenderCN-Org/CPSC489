@@ -18,6 +18,7 @@
 #include "ascii.h"
 #include "model.h"
 
+static const uint32 FRAMES_PER_SECOND = 30;
 static const real32 SECONDS_PER_FRAME = 1.0f/30.0f;
 
 MeshUTF::MeshUTF()
@@ -797,7 +798,7 @@ ErrorCode MeshUTF::RenderMeshList(void)
 
 ErrorCode MeshUTF::RenderModel(void)
 {
- SetVertexShaderPerModelBuffer(GetIdentityMatrix());
+ //SetVertexShaderPerModelBuffer(GetIdentityMatrix());
  RenderSkeleton();
  return EC_SUCCESS;
 }
@@ -841,8 +842,6 @@ MeshUTFInstance::MeshUTFInstance(const MeshUTF& ptr, const real32* P, const real
  // initialize buffers
  permodel = nullptr;
  perframe = nullptr;
-
- // TODO: handle per model data using P and Q
 }
 
 MeshUTFInstance::~MeshUTFInstance()
@@ -933,19 +932,6 @@ ErrorCode MeshUTFInstance::ResetAnimation(void)
 {
  time = 0.0f;
  return Update();
-}
-
-void q_printstream(std::ostream& os, const float* Q)
-{
- os << "<" << Q[0] << ", " << Q[1] << ", " << Q[2] << ", " << Q[3] << ">" << std::endl;
-}
-
-void m_printstream(std::ostream& os, const float* M)
-{
- os << "[" << M[0x0] << ", " << M[0x1] << ", " << M[0x2] << ", " << M[0x3] << "]," << std::endl;
- os << "[" << M[0x4] << ", " << M[0x5] << ", " << M[0x6] << ", " << M[0x7] << "]," << std::endl;
- os << "[" << M[0x8] << ", " << M[0x9] << ", " << M[0xA] << ", " << M[0xB] << "]," << std::endl;
- os << "[" << M[0xC] << ", " << M[0xD] << ", " << M[0xE] << ", " << M[0xF] << "] " << std::endl;
 }
 
 ErrorCode MeshUTFInstance::Update(void)

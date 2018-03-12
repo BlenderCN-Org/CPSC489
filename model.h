@@ -105,7 +105,6 @@ class MeshUTF {
 
 class MeshUTFInstance {
  private :
-  static const uint32 FRAMES_PER_SECOND = 30;
   const MeshUTF* mesh;
   real32 time;
   uint32 anim;

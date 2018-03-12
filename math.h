@@ -83,6 +83,39 @@ inline real32 qnormalize(real32* q)
  return norm;
 }
 
+// returns m = q
+inline void matrix3D_quaternion(real32* m, const real32* q)
+{
+ // factors
+ real32 a2 = q[0] + q[0];
+ real32 b2 = q[1] + q[1];
+ real32 c2 = q[2] + q[2];
+ real32 d2 = q[3] + q[3];
+
+ // factors
+ real32 ab2 = q[0] * b2;
+ real32 ac2 = q[0] * c2;
+ real32 ad2 = q[0] * d2;
+ real32 bb2 = q[1] * b2;
+ real32 bc2 = q[1] * c2;
+ real32 bd2 = q[1] * d2;
+ real32 cc2 = q[2] * c2;
+ real32 cd2 = q[2] * d2;
+ real32 dd2 = q[3] * d2;
+
+ // reinterpret matrix
+ real32 one = 1.0f;
+ m[0] = one - cc2 - dd2;
+ m[1] = bc2 - ad2;
+ m[2] = bd2 + ac2;
+ m[3] = bc2 + ad2;
+ m[4] = one - bb2 - dd2;
+ m[5] = cd2 - ab2;
+ m[6] = bd2 - ac2;
+ m[7] = cd2 + ab2;
+ m[8] = one - bb2 - cc2;
+}
+
 #pragma endregion QUATERNIONS
 
 // INTERPOLATION
