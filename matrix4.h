@@ -902,7 +902,7 @@ inline void matrix4D_vector4_mul(real32* X, const real32* A, const real32* B)
  X[3] = T[3];
 }
 
-inline real32 inverse(real32* X, const real32* A)
+inline real32 matrix4D_inverse(real32* X, const real32* A)
 {
  // cache 2x2 determinants
  real32 D[12] = {

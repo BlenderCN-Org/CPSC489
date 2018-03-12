@@ -809,8 +809,10 @@ MeshUTFInstance::MeshUTFInstance(const MeshUTF& ptr)
  time = 0.0f;
  anim = 0xFFFFFFFFul;
 
- // initialize constant data
+ // initialize position/orientation data
  mv.load_identity();
+
+ // initialize joint matrix data
  jm.reset(new matrix4D[mesh->joints.size()]);
  for(size_t bi = 0; bi < mesh->joints.size(); bi++) jm[bi].load_identity();
 
@@ -826,8 +828,13 @@ MeshUTFInstance::MeshUTFInstance(const MeshUTF& ptr, const real32* P, const real
  time = 0.0f;
  anim = 0xFFFFFFFFul;
 
- // initialize constant data
- mv.load_identity();
+ // initialize position/orientation data
+ mv.load_quaternion(Q);
+ mv[0x3] = P[0];
+ mv[0x7] = P[1];
+ mv[0xB] = P[2];
+
+ // initialize skinning matrices
  jm.reset(new matrix4D[mesh->joints.size()]);
  for(size_t bi = 0; bi < mesh->joints.size(); bi++) jm[bi].load_identity();
 
@@ -845,14 +852,18 @@ MeshUTFInstance::~MeshUTFInstance()
 
 ErrorCode MeshUTFInstance::InitInstance(void)
 {
- // initialize model matrix
+ // create model matrix
  permodel = nullptr;
  ErrorCode code = CreateDynamicMatrixConstBuffer(&permodel);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
- code = UpdateDynamicMatrixConstBuffer(permodel, DirectX::XMMatrixIdentity());
+
+ // set model matrix
+ DirectX::XMMATRIX m(&mv[0]);
+ DirectX::XMMatrixTranspose(m);
+ code = UpdateDynamicMatrixConstBuffer(permodel, m);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
- // initialize skinning matrices
+ // create skinning matrices
  perframe = nullptr;
  if(mesh->joints.size()) {
     UINT size = (UINT)(mesh->joints.size()*sizeof(matrix4D));

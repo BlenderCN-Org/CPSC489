@@ -17,7 +17,7 @@ models\door.txt
 1.0 0.0 0.0 0.0 # quaternion
 
 2 # number of door controllers
-0.0 0.0 0.0     # position
+2.0 -8.0 0.0    # position
 1.0 0.0 0.0 0.0 # quaternion
 1.0 1.0 1.0     # halfdims
 0               # moving instance reference

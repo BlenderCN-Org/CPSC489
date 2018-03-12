@@ -157,6 +157,8 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         // add instance
         MeshUTF* ptr = static_models[reference].get();
         instdata[i] = std::make_shared<MeshUTFInstance>(*ptr);
+        code = instdata[i]->InitInstance();
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
        }
 
     // set instance data
@@ -205,6 +207,8 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         // add instance
         MeshUTF* ptr = moving_models[reference].get();
         instdata[i] = std::make_shared<MeshUTFInstance>(*ptr);
+        code = instdata[i]->InitInstance();
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
        }
 
     // set instance data
@@ -284,4 +288,13 @@ void Map::FreeMap(void)
 
 void Map::RenderMap(void)
 {
+ // INEFFICIENT!!!
+ // RENDER ALL STATIC MODEL INSTANCES
+ for(uint32 i = 0; i < n_static; i++)
+     static_instances[i]->RenderModel();
+
+ // INEFFICIENT!!!
+ // RENDER ALL MOVING MODEL INSTANCES
+ for(uint32 i = 0; i < n_moving; i++)
+     moving_instances[i]->RenderModel();
 }
