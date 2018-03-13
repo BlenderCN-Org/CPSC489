@@ -2,8 +2,12 @@
 #include<array>
 
 struct AABB_halfdim {
- float center[4];
- float widths[4];
+ float center[3];
+ float widths[3];
+};
+
+struct vector3D {
+ float v[3];
 };
 
 class octree {
@@ -13,6 +17,9 @@ class octree {
    std::array<node, 8> children;
   };
   node root;
+ public :
+  void construct(const vector3D* data);
+  void clear();
  public :
   octree& operator =(const octree& other);
   octree& operator =(octree&& other);
@@ -54,4 +61,12 @@ octree& octree::operator =(octree&& other)
 {
  if(this == &other) return *this;
  return *this;
+}
+
+void octree::construct(const vector3D* data)
+{
+}
+
+void octree::clear()
+{
 }
