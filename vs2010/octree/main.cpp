@@ -1,4 +1,5 @@
 #include<iostream>
+#include<fstream>
 #include<cmath>
 #include<memory>
 
@@ -6,6 +7,35 @@ struct AABB_halfdim {
  float center[3];
  float widths[3];
 };
+
+inline std::ostream& operator <<(std::ostream& os, const AABB_halfdim& aabb)
+{
+ os << "AABB[0]: <" << (aabb.center[0] - aabb.widths[0]) <<
+               ", " << (aabb.center[1] - aabb.widths[1]) <<
+               ", " << (aabb.center[2] - aabb.widths[2]) << ">" << std::endl;
+ os << "AABB[1]: <" << (aabb.center[0] + aabb.widths[0]) <<
+               ", " << (aabb.center[1] - aabb.widths[1]) <<
+               ", " << (aabb.center[2] - aabb.widths[2]) << ">" << std::endl;
+ os << "AABB[2]: <" << (aabb.center[0] - aabb.widths[0]) <<
+               ", " << (aabb.center[1] + aabb.widths[1]) <<
+               ", " << (aabb.center[2] - aabb.widths[2]) << ">" << std::endl;
+ os << "AABB[3]: <" << (aabb.center[0] + aabb.widths[0]) <<
+               ", " << (aabb.center[1] + aabb.widths[1]) <<
+               ", " << (aabb.center[2] - aabb.widths[2]) << ">" << std::endl;
+ os << "AABB[4]: <" << (aabb.center[0] - aabb.widths[0]) <<
+               ", " << (aabb.center[1] - aabb.widths[1]) <<
+               ", " << (aabb.center[2] + aabb.widths[2]) << ">" << std::endl;
+ os << "AABB[5]: <" << (aabb.center[0] + aabb.widths[0]) <<
+               ", " << (aabb.center[1] - aabb.widths[1]) <<
+               ", " << (aabb.center[2] + aabb.widths[2]) << ">" << std::endl;
+ os << "AABB[6]: <" << (aabb.center[0] - aabb.widths[0]) <<
+               ", " << (aabb.center[1] + aabb.widths[1]) <<
+               ", " << (aabb.center[2] + aabb.widths[2]) << ">" << std::endl;
+ os << "AABB[7]: <" << (aabb.center[0] + aabb.widths[0]) <<
+               ", " << (aabb.center[1] + aabb.widths[1]) <<
+               ", " << (aabb.center[2] + aabb.widths[2]) << ">" << std::endl;
+ return os;
+}
 
 struct vector3D {
  float v[3];
@@ -39,7 +69,7 @@ class octree {
   };
   std::unique_ptr<node> root;
  public :
-  void construct(const vector3D* verts, size_t n_verts, const unsigned int* faces, size_t n_faces);
+  void construct(const vector3D* verts, size_t n_verts, const unsigned int* faces, size_t n_indices);
   void clear();
  public :
   octree& operator =(const octree& other);
@@ -55,14 +85,14 @@ int main()
 {
  // see sample.lwo
  vector3D points[24] = {
-  vector3D(1.4, 2.3, 7.0), vector3D(1.7, 2.5, 5.8), vector3D(2.4, 2.0, 5.3), // 0 1 2
-  vector3D(2.1, 1.2, 2.8), vector3D(1.3, 1.6, 2.1), vector3D(1.8, 1.4, 1.6), // 3 4 5
-  vector3D(4.1, 1.1, 7.5), vector3D(4.3, 1.3, 7.1), vector3D(4.7, 1.3, 7.7), // 6 7 8
-  vector3D(2.7, 1.5, 4.6), vector3D(3.1, 1.0, 4.4), vector3D(3.2, 1.4, 4.2), // 9 10 11
-  vector3D(5.1, 1.4, 5.6), vector3D(6.0, 1.1, 5.6), vector3D(5.6, 1.2, 4.3), // 12 13 14
-  vector3D(8.0, 0.1, 4.8), vector3D(7.8, 0.2, 4.2), vector3D(8.4, 0.5, 3.7), // 15 16 17
-  vector3D(3.5, 1.1, 3.4), vector3D(3.0, 0.6, 1.3), vector3D(4.3, 0.5, 2.2), // 18 19 20
-  vector3D(6.9, 0.9, 3.9), vector3D(7.3, 0.5, 3.5), vector3D(6.3, 0.9, 3.4), // 21 22 23
+  vector3D(1.4f, 2.3f, 7.0f), vector3D(1.7f, 2.5f, 5.8f), vector3D(2.4f, 2.0f, 5.3f), // 0 1 2
+  vector3D(2.1f, 1.2f, 2.8f), vector3D(1.3f, 1.6f, 2.1f), vector3D(1.8f, 1.4f, 1.6f), // 3 4 5
+  vector3D(4.1f, 1.1f, 7.5f), vector3D(4.3f, 1.3f, 7.1f), vector3D(4.7f, 1.3f, 7.7f), // 6 7 8
+  vector3D(2.7f, 1.5f, 4.6f), vector3D(3.1f, 1.0f, 4.4f), vector3D(3.2f, 1.4f, 4.2f), // 9 10 11
+  vector3D(5.1f, 1.4f, 5.6f), vector3D(6.0f, 1.1f, 5.6f), vector3D(5.6f, 1.2f, 4.3f), // 12 13 14
+  vector3D(8.0f, 0.1f, 4.8f), vector3D(7.8f, 0.2f, 4.2f), vector3D(8.4f, 0.5f, 3.7f), // 15 16 17
+  vector3D(3.5f, 1.1f, 3.4f), vector3D(3.0f, 0.6f, 1.3f), vector3D(4.3f, 0.5f, 2.2f), // 18 19 20
+  vector3D(6.9f, 0.9f, 3.9f), vector3D(7.3f, 0.5f, 3.5f), vector3D(6.3f, 0.9f, 3.4f), // 21 22 23
  };
 
  unsigned int facelist[24] = {
@@ -110,7 +140,7 @@ octree& octree::operator =(octree&& other)
  return *this;
 }
 
-void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int* faces, size_t n_faces)
+void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int* faces, size_t n_indices)
 {
  // binning example
  // dv = (max_v - min_v)/n_bin = (2*box_w)/n_bin
@@ -120,15 +150,35 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
  // R_cnt     x     x     x     x     x     x     x     x 
 
  if(!verts || !n_verts) return;
- if(!faces || !n_faces) return;
+ if(!faces || !n_indices) return;
+
+ // compute number of faces
+ size_t n_faces = n_indices/3;
+ if(!n_faces) return;
+
+ // debug
+ using namespace std;
+ bool debug = true;
+ ofstream ofile;
+ int vb_index = 0;
+ int ib_index = 0;
+ if(debug) {
+    ofile.open("debug.obj");
+    ofile << "o debug.obj" << endl;
+   }
 
  // compute centroids
  std::unique_ptr<vector3D[]> centroids(new vector3D[n_faces]);
- size_t a = faces[0];
- size_t b = faces[1];
- size_t c = faces[2];
- centroids[0] = triangle_centroid(verts[a++], verts[b++], verts[c++]);
- for(size_t i = 1; i < n_faces; i++) centroids[i] = triangle_centroid(verts[a++], verts[b++], verts[c++]);
+ size_t a = 0;
+ centroids[0] = triangle_centroid(verts[faces[a++]], verts[faces[a++]], verts[faces[a++]]);
+ for(size_t i = 1; i < n_faces; i++) centroids[i] = triangle_centroid(verts[faces[a++]], verts[faces[a++]], verts[faces[a++]]);
+
+ // output centroids
+ if(debug) {
+    for(size_t i = 0; i < n_faces; i++)
+        ofile << "v " << centroids[i][0] << " " << centroids[i][1] << " " << -centroids[i][2] << endl;        
+    vb_index += n_faces;
+   }
 
  // compute min-max bounds
  float min_b[3] = { verts[0][0], verts[0][1], verts[0][2] };
@@ -146,12 +196,13 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
 
  // define root node
  root = std::unique_ptr<node>(new node);
- root->volume.center[0] = (max_b[0] - min_b[0])/2.0f;
- root->volume.center[1] = (max_b[1] - min_b[1])/2.0f;
- root->volume.center[2] = (max_b[2] - min_b[2])/2.0f;
+ root->volume.center[0] = (max_b[0] + min_b[0])/2.0f;
+ root->volume.center[1] = (max_b[1] + min_b[1])/2.0f;
+ root->volume.center[2] = (max_b[2] + min_b[2])/2.0f;
  root->volume.widths[0] = max_b[0] - root->volume.center[0];
  root->volume.widths[1] = max_b[1] - root->volume.center[1];
  root->volume.widths[2] = max_b[2] - root->volume.center[2];
+ std::cout << "root AABB = " << root->volume << std::endl;
 
  // loop to split
  node* curr = root.get();
@@ -234,6 +285,11 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
             }
         }
 
+     std::cout << "best_d = " << std::endl;
+     std::cout << best_d[0] << ", " << best_d[1] << ", " << best_d[2] << std::endl;
+     std::cout << "best_i = " << std::endl;
+     std::cout << best_i[0] << ", " << best_i[1] << ", " << best_i[2] << std::endl;
+
      // now that we have our split point, we can partition
      // the AABB into eight parts
      float split_point[3] = {
@@ -241,6 +297,9 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
       split_v[1][best_i[1] + 1],
       split_v[2][best_i[2] + 1],
      };
+
+     std::cout << "split point = " << std::endl;
+     std::cout << split_point[0] << ", " << split_point[1] << ", " << split_point[2] << std::endl;
     }
 }
 
