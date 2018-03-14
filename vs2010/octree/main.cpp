@@ -83,7 +83,9 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
  // binning example
  // dv = (max_v - min_v)/n_bin = (2*box_w)/n_bin
  // bin       0     1     2     3     4     5     6     7
- // range 4.0 - 4.5 - 5.0 - 5.5 - 6.0 - 6.5 - 7.0 - 7.5 - 8.0
+ // range 4.0 - 4.5 - 5.0 - 5.5 - 6.0 - 6.5 - 7.0 - 7.5 - 8.0 (split_v)
+ // L_cnt     x     x     x     x     x     x     x     x
+ // R_cnt     x     x     x     x     x     x     x     x 
 
  if(!verts || !n_verts) return;
  if(!faces || !n_faces) return;
@@ -132,18 +134,14 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
      const float dz = (2.0f*curr->volume.widths[2])/n_bin;
 
      // define split intervals
-     float split_x[n_split];
-     float split_y[n_split];
-     float split_z[n_split];
+     float split_v[3][n_split];
      for(int i = 0; i < n_split; i++) {
-         split_x[i] = min_x + i*dx;
-         split_y[i] = min_y + i*dy;
-         split_z[i] = min_z + i*dz;
+         split_v[0][i] = min_x + i*dx;
+         split_v[1][i] = min_y + i*dy;
+         split_v[2][i] = min_z + i*dz;
         }
 
      // keep track of number of faces in each bin
-     int bin[3][n_bin];
-     int bin[3][n_bin];
      int bin[3][n_bin];
      for(size_t i = 0; i < n_bin; i++) bin[0][i] = bin[1][i] = bin[2][i] = 0;
 
@@ -152,8 +150,8 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
         {
          // split x-axis
          for(int j = 0; j < n_bin; j++) {
-             float a = split_x[j];
-             float b = split_x[j + 1];
+             float a = split_v[0][j];
+             float b = split_v[0][j + 1];
              if(centroids[i][0] >= a && centroids[i][0] <= b) {
                 bin[0][j]++;
                 break;
@@ -161,8 +159,8 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
             }
          // split y-axis
          for(int j = 0; j < n_bin; j++) {
-             float a = split_y[j];
-             float b = split_y[j + 1];
+             float a = split_v[1][j];
+             float b = split_v[1][j + 1];
              if(centroids[i][1] >= a && centroids[i][1] <= b) {
                 bin[1][j]++;
                 break;
@@ -170,8 +168,8 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
             }
          // split z-axis
          for(int j = 0; j < n_bin; j++) {
-             float a = split_z[j];
-             float b = split_z[j + 1];
+             float a = split_v[2][j];
+             float b = split_v[2][j + 1];
              if(centroids[i][2] >= a && centroids[i][2] <= b) {
                 bin[2][j]++;
                 break;
@@ -179,7 +177,7 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
             }
         }
 
-     // determine best x-axis split
+     // determine best axes split
      int L_count[3] = { bin[0][0], bin[1][0], bin[2][0] };
      int R_count[3] = { 
       n_faces - bin[0][0],
@@ -203,6 +201,14 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
                }
             }
         }
+
+     // now that we have our split point, we can partition
+     // the AABB into eight parts
+     float split_point[3] = {
+      split_v[0][best_i[0] + 1],
+      split_v[1][best_i[1] + 1],
+      split_v[2][best_i[2] + 1],
+     };
     }
 }
 
