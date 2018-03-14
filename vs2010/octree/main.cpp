@@ -1,5 +1,6 @@
 #include<iostream>
-#include<array>
+#include<cmath>
+#include<memory>
 
 struct AABB_halfdim {
  float center[3];
@@ -23,11 +24,14 @@ inline vector3D triangle_centroid(const vector3D& v1, const vector3D& v2, const 
 
 class octree {
  private :
+  static const int n_bin = 8;
+  static const int n_split = n_bin + 1;
+ private :
   struct node {
    AABB_halfdim volume;
-   std::array<node, 8> children;
+   std::unique_ptr<node> children[8];
   };
-  node root;
+  std::unique_ptr<node> root;
  public :
   void construct(const vector3D* verts, size_t n_verts, const unsigned int* faces, size_t n_faces);
   void clear();
@@ -76,6 +80,11 @@ octree& octree::operator =(octree&& other)
 
 void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int* faces, size_t n_faces)
 {
+ // binning example
+ // dv = (max_v - min_v)/n_bin = (2*box_w)/n_bin
+ // bin       0     1     2     3     4     5     6     7
+ // range 4.0 - 4.5 - 5.0 - 5.5 - 6.0 - 6.5 - 7.0 - 7.5 - 8.0
+
  if(!verts || !n_verts) return;
  if(!faces || !n_faces) return;
 
@@ -102,33 +111,98 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
     }
 
  // define root node
- root.volume.center[0] = (max_b[0] - min_b[0])/2.0f;
- root.volume.center[1] = (max_b[1] - min_b[1])/2.0f;
- root.volume.center[2] = (max_b[2] - min_b[2])/2.0f;
- root.volume.widths[0] = max_b[0] - root.volume.center[0];
- root.volume.widths[1] = max_b[1] - root.volume.center[1];
- root.volume.widths[2] = max_b[2] - root.volume.center[2];
+ root = std::unique_ptr<node>(new node);
+ root->volume.center[0] = (max_b[0] - min_b[0])/2.0f;
+ root->volume.center[1] = (max_b[1] - min_b[1])/2.0f;
+ root->volume.center[2] = (max_b[2] - min_b[2])/2.0f;
+ root->volume.widths[0] = max_b[0] - root->volume.center[0];
+ root->volume.widths[1] = max_b[1] - root->volume.center[1];
+ root->volume.widths[2] = max_b[2] - root->volume.center[2];
 
  // loop to split
- const int n_split = 8;
+ node* curr = root.get();
  // for(;;)
     {
      // AABB properties
-     const float min_x = (root.volume.center[0] - root.volume.widths[0]);
-     const float min_y = (root.volume.center[1] - root.volume.widths[1]);
-     const float dx = (2.0f*root.volume.widths[0])/(n_split + 2.0f);
-     const float dy = (2.0f*root.volume.widths[1])/(n_split + 2.0f);
+     const float min_x = (curr->volume.center[0] - curr->volume.widths[0]);
+     const float min_y = (curr->volume.center[1] - curr->volume.widths[1]);
+     const float min_z = (curr->volume.center[2] - curr->volume.widths[2]);
+     const float dx = (2.0f*curr->volume.widths[0])/n_bin;
+     const float dy = (2.0f*curr->volume.widths[1])/n_bin;
+     const float dz = (2.0f*curr->volume.widths[2])/n_bin;
 
-     // split intervals
+     // define split intervals
      float split_x[n_split];
      float split_y[n_split];
+     float split_z[n_split];
      for(int i = 0; i < n_split; i++) {
          split_x[i] = min_x + i*dx;
          split_y[i] = min_y + i*dy;
+         split_z[i] = min_z + i*dz;
         }
 
-     size_t bin_x[n_split + 1];
-     size_t bin_y[n_split + 1];
+     // keep track of number of faces in each bin
+     int bin[3][n_bin];
+     int bin[3][n_bin];
+     int bin[3][n_bin];
+     for(size_t i = 0; i < n_bin; i++) bin[0][i] = bin[1][i] = bin[2][i] = 0;
+
+     // partition face centroids into bins
+     for(size_t i = 0; i < n_faces; i++)
+        {
+         // split x-axis
+         for(int j = 0; j < n_bin; j++) {
+             float a = split_x[j];
+             float b = split_x[j + 1];
+             if(centroids[i][0] >= a && centroids[i][0] <= b) {
+                bin[0][j]++;
+                break;
+               }
+            }
+         // split y-axis
+         for(int j = 0; j < n_bin; j++) {
+             float a = split_y[j];
+             float b = split_y[j + 1];
+             if(centroids[i][1] >= a && centroids[i][1] <= b) {
+                bin[1][j]++;
+                break;
+               }
+            }
+         // split z-axis
+         for(int j = 0; j < n_bin; j++) {
+             float a = split_z[j];
+             float b = split_z[j + 1];
+             if(centroids[i][2] >= a && centroids[i][2] <= b) {
+                bin[2][j]++;
+                break;
+               }
+            }
+        }
+
+     // determine best x-axis split
+     int L_count[3] = { bin[0][0], bin[1][0], bin[2][0] };
+     int R_count[3] = { 
+      n_faces - bin[0][0],
+      n_faces - bin[1][0],
+      n_faces - bin[2][0],
+     };
+     int best_d[3] = {
+      std::abs(R_count[0] - L_count[0]),
+      std::abs(R_count[1] - L_count[1]),
+      std::abs(R_count[2] - L_count[2]),
+     };
+     int best_i[3] = { 0, 0, 0 };
+     for(int i = 1; i < n_bin; i++) {
+         for(int j = 0; j < 3; j++) {
+             L_count[j] += bin[j][i];
+             R_count[j] -= bin[j][i];
+             int difference = std::abs(R_count[j] - L_count[j]);
+             if(difference < best_d[j]) {
+                best_d[j] = difference;
+                best_i[j] = i;
+               }
+            }
+        }
     }
 }
 
