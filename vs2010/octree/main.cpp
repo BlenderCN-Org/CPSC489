@@ -11,6 +11,12 @@ struct vector3D {
  float v[3];
  float& operator [](size_t i) { return v[i]; }
  const float& operator [](size_t i)const { return v[i]; }
+ vector3D() {}
+ vector3D(float x, float y, float z) {
+  v[0] = x;
+  v[1] = y;
+  v[2] = z;
+ }
 };
 
 inline vector3D triangle_centroid(const vector3D& v1, const vector3D& v2, const vector3D& v3)
@@ -47,6 +53,32 @@ class octree {
 
 int main()
 {
+ // see sample.lwo
+ vector3D points[24] = {
+  vector3D(1.4, 2.3, 7.0), vector3D(1.7, 2.5, 5.8), vector3D(2.4, 2.0, 5.3), // 0 1 2
+  vector3D(2.1, 1.2, 2.8), vector3D(1.3, 1.6, 2.1), vector3D(1.8, 1.4, 1.6), // 3 4 5
+  vector3D(4.1, 1.1, 7.5), vector3D(4.3, 1.3, 7.1), vector3D(4.7, 1.3, 7.7), // 6 7 8
+  vector3D(2.7, 1.5, 4.6), vector3D(3.1, 1.0, 4.4), vector3D(3.2, 1.4, 4.2), // 9 10 11
+  vector3D(5.1, 1.4, 5.6), vector3D(6.0, 1.1, 5.6), vector3D(5.6, 1.2, 4.3), // 12 13 14
+  vector3D(8.0, 0.1, 4.8), vector3D(7.8, 0.2, 4.2), vector3D(8.4, 0.5, 3.7), // 15 16 17
+  vector3D(3.5, 1.1, 3.4), vector3D(3.0, 0.6, 1.3), vector3D(4.3, 0.5, 2.2), // 18 19 20
+  vector3D(6.9, 0.9, 3.9), vector3D(7.3, 0.5, 3.5), vector3D(6.3, 0.9, 3.4), // 21 22 23
+ };
+
+ unsigned int facelist[24] = {
+   0,  1,  2,
+   3,  4,  5,
+   6,  7,  8,
+   9, 10, 11,
+  12, 13, 14,
+  15, 16, 17,
+  18, 19, 20,
+  21, 22, 23,
+ };
+
+ octree tree;
+ tree.construct(points, 24, facelist, 24);
+ 
  return -1;
 }
 
