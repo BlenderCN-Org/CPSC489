@@ -161,7 +161,6 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
  bool debug = true;
  ofstream ofile;
  int vb_index = 0;
- int ib_index = 0;
  if(debug) {
     ofile.open("debug.obj");
     ofile << "o debug.obj" << endl;
@@ -300,6 +299,71 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
 
      std::cout << "split point = " << std::endl;
      std::cout << split_point[0] << ", " << split_point[1] << ", " << split_point[2] << std::endl;
+
+     //
+     if(debug) {
+        // split X-axis
+        float X[4][3] = {
+         {
+          split_point[0],                                  // split x
+          curr->volume.center[1] + curr->volume.widths[1], // +y
+          curr->volume.center[2] - curr->volume.widths[2], // -z
+         },
+         {
+          split_point[0],                                  // split x
+          curr->volume.center[1] - curr->volume.widths[1], // -y
+          curr->volume.center[2] - curr->volume.widths[2], // -z
+         },
+         {
+          split_point[0],                                  // split x
+          curr->volume.center[1] - curr->volume.widths[1], // -y
+          curr->volume.center[2] + curr->volume.widths[2], // +z
+         },
+         {
+          split_point[0],                                  // split x
+          curr->volume.center[1] + curr->volume.widths[1], // +y
+          curr->volume.center[2] + curr->volume.widths[2], // +z
+         },
+        };
+        ofile << "v " << X[0][0] << " " << X[0][1] << " " << -X[0][2] << endl;
+        ofile << "v " << X[1][0] << " " << X[1][1] << " " << -X[1][2] << endl;
+        ofile << "v " << X[2][0] << " " << X[2][1] << " " << -X[2][2] << endl;
+        ofile << "v " << X[3][0] << " " << X[3][1] << " " << -X[3][2] << endl;
+        int start = vb_index + 1;
+        ofile << "f " << (start + 0) << " " << (start + 1) << " " << (start + 2) << " " << (start + 3) << endl;
+        vb_index += 4;
+
+        // split Z-axis
+        float p[4][3] = {
+         {
+          curr->volume.center[0] + curr->volume.widths[0], // +x
+          curr->volume.center[1] - curr->volume.widths[1], // -y
+          split_point[2]                                   // split z
+         },
+         {
+          curr->volume.center[0] - curr->volume.widths[0], // -x
+          curr->volume.center[1] - curr->volume.widths[1], // -y
+          split_point[2]                                   // split z
+         },
+         {
+          curr->volume.center[0] - curr->volume.widths[0], // -x
+          curr->volume.center[1] + curr->volume.widths[1], // +y
+          split_point[2]                                   // split z
+         },
+         {
+          curr->volume.center[0] + curr->volume.widths[0], // +x
+          curr->volume.center[1] + curr->volume.widths[1], // +y
+          split_point[2]                                   // split z
+         },
+        };
+        ofile << "v " << p[0][0] << " " << p[0][1] << " " << -p[0][2] << endl;
+        ofile << "v " << p[1][0] << " " << p[1][1] << " " << -p[1][2] << endl;
+        ofile << "v " << p[2][0] << " " << p[2][1] << " " << -p[2][2] << endl;
+        ofile << "v " << p[3][0] << " " << p[3][1] << " " << -p[3][2] << endl;
+        start = vb_index + 1;
+        ofile << "f " << (start + 0) << " " << (start + 1) << " " << (start + 2) << " " << (start + 3) << endl;
+        vb_index += 4;
+       }
     }
 }
 
