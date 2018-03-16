@@ -8,6 +8,11 @@ struct AABB_halfdim {
  float widths[3];
 };
 
+struct AABB_minmax {
+ float a[3];
+ float b[3];
+};
+
 inline std::ostream& operator <<(std::ostream& os, const AABB_halfdim& aabb)
 {
  os << "AABB[0]: <" << (aabb.center[0] - aabb.widths[0]) <<
@@ -81,8 +86,95 @@ class octree {
  ~octree();
 };
 
+void SplitTest(void)
+{
+ // box to split
+ AABB_minmax mmb;
+ mmb.a[0] = 1.0f; mmb.a[1] = 2.0f; mmb.a[2] = 3.0f;
+ mmb.b[0] = 5.0f; mmb.b[1] = 4.0f; mmb.b[2] = 6.0f;
+
+ // compute median
+ float x_mid = (mmb.a[0] + mmb.b[0])/2.0f;
+ float y_mid = (mmb.a[1] + mmb.b[1])/2.0f;
+ float z_mid = (mmb.a[2] + mmb.b[2])/2.0f;
+
+ // for convenience
+ float x_min = mmb.a[0]; float x_max = mmb.b[0];
+ float y_min = mmb.a[1]; float y_max = mmb.b[1];
+ float z_min = mmb.a[2]; float z_max = mmb.b[2];
+
+ // split[0]
+ AABB_minmax split[8];
+ split[0].a[0] = x_mid; split[0].a[1] = y_min; split[0].a[2] = z_mid;
+ split[0].b[0] = x_max; split[0].b[1] = y_mid; split[0].b[2] = z_max;
+ // split[1]
+ split[1].a[0] = x_min; split[1].a[1] = y_min; split[1].a[2] = z_mid;
+ split[1].b[0] = x_mid; split[1].b[1] = y_mid; split[1].b[2] = z_max;
+ // split[2]
+ split[2].a[0] = x_min; split[2].a[1] = y_mid; split[2].a[2] = z_mid;
+ split[2].b[0] = x_mid; split[2].b[1] = y_max; split[2].b[2] = z_max;
+ // split[3]
+ split[3].a[0] = x_mid; split[3].a[1] = y_mid; split[3].a[2] = z_mid;
+ split[3].b[0] = x_max; split[3].b[1] = y_max; split[3].b[2] = z_max;
+
+ // lower-half (only z values change)
+ // split[4]
+ split[4].a[0] = x_mid; split[4].a[1] = y_min; split[4].a[2] = z_min;
+ split[4].b[0] = x_max; split[4].b[1] = y_mid; split[4].b[2] = z_mid;
+ // split[5]
+ split[5].a[0] = x_min; split[5].a[1] = y_min; split[5].a[2] = z_min;
+ split[5].b[0] = x_mid; split[5].b[1] = y_mid; split[5].b[2] = z_mid;
+ // split[6]
+ split[6].a[0] = x_min; split[6].a[1] = y_mid; split[6].a[2] = z_min;
+ split[6].b[0] = x_mid; split[6].b[1] = y_max; split[6].b[2] = z_mid;
+ // split[7]
+ split[7].a[0] = x_mid; split[7].a[1] = y_mid; split[7].a[2] = z_min;
+ split[7].b[0] = x_max; split[7].b[1] = y_max; split[7].b[2] = z_mid;
+
+ using namespace std;
+ ofstream ofile("octrees_split.obj");
+ ofile << "o octrees_split.obj" << endl;
+
+ // boxes
+ int base = 0;
+ for(int i = 0; i < 8; i++) {
+     ofile << "v " << split[i].a[0] << " " << split[i].a[1] << " " << -split[i].a[2] << endl; // L-side
+     ofile << "v " << split[i].b[0] << " " << split[i].a[1] << " " << -split[i].a[2] << endl; // L-side
+     ofile << "v " << split[i].b[0] << " " << split[i].a[1] << " " << -split[i].b[2] << endl; // L-side
+     ofile << "v " << split[i].a[0] << " " << split[i].a[1] << " " << -split[i].b[2] << endl; // L-side
+     ofile << "v " << split[i].a[0] << " " << split[i].b[1] << " " << -split[i].a[2] << endl; // R-side
+     ofile << "v " << split[i].b[0] << " " << split[i].b[1] << " " << -split[i].a[2] << endl; // R-side
+     ofile << "v " << split[i].b[0] << " " << split[i].b[1] << " " << -split[i].b[2] << endl; // R-side
+     ofile << "v " << split[i].a[0] << " " << split[i].b[1] << " " << -split[i].b[2] << endl; // R-side
+     ofile << "f " << (base + 1) << " " << (base + 2) << endl; // L-side
+     ofile << "f " << (base + 2) << " " << (base + 3) << endl; // L-side
+     ofile << "f " << (base + 3) << " " << (base + 4) << endl; // L-side
+     ofile << "f " << (base + 4) << " " << (base + 1) << endl; // L-side
+     ofile << "f " << (base + 5) << " " << (base + 6) << endl; // R-side
+     ofile << "f " << (base + 6) << " " << (base + 7) << endl; // R-side
+     ofile << "f " << (base + 7) << " " << (base + 8) << endl; // R-side
+     ofile << "f " << (base + 8) << " " << (base + 5) << endl; // R-side
+     ofile << "f " << (base + 1) << " " << (base + 5) << endl; // L/R-side
+     ofile << "f " << (base + 2) << " " << (base + 6) << endl; // L/R-side
+     ofile << "f " << (base + 3) << " " << (base + 7) << endl; // L/R-side
+     ofile << "f " << (base + 4) << " " << (base + 8) << endl; // L/R-side
+     ofile << endl;
+     base += 8;
+    }
+
+ // min-max diagonals
+ for(int i = 0; i < 8; i++) {
+     ofile << "v " << split[i].a[0] << " " << split[i].a[1] << " " << -split[i].a[2] << endl;
+     ofile << "v " << split[i].b[0] << " " << split[i].b[1] << " " << -split[i].b[2] << endl;
+     ofile << "f " << (base + 1) << " " << (base + 2) << endl;
+     base += 2;
+    }
+}
+
 int main()
 {
+ SplitTest();
+
  // see sample.lwo
  vector3D points[24] = {
   vector3D(1.4f, 2.3f, 7.0f), vector3D(1.7f, 2.5f, 5.8f), vector3D(2.4f, 2.0f, 5.3f), // 0 1 2
