@@ -42,6 +42,32 @@ inline std::ostream& operator <<(std::ostream& os, const AABB_halfdim& aabb)
  return os;
 }
 
+inline void StreamToOBJ(std::ostream& os, const AABB_minmax& box, int& base)
+{
+ os << "v " << box.a[0] << " " << box.a[1] << " " << -box.a[2] << std::endl; // L-side
+ os << "v " << box.b[0] << " " << box.a[1] << " " << -box.a[2] << std::endl; // L-side
+ os << "v " << box.b[0] << " " << box.a[1] << " " << -box.b[2] << std::endl; // L-side
+ os << "v " << box.a[0] << " " << box.a[1] << " " << -box.b[2] << std::endl; // L-side
+ os << "v " << box.a[0] << " " << box.b[1] << " " << -box.a[2] << std::endl; // R-side
+ os << "v " << box.b[0] << " " << box.b[1] << " " << -box.a[2] << std::endl; // R-side
+ os << "v " << box.b[0] << " " << box.b[1] << " " << -box.b[2] << std::endl; // R-side
+ os << "v " << box.a[0] << " " << box.b[1] << " " << -box.b[2] << std::endl; // R-side
+ os << "f " << (base + 1) << " " << (base + 2) << std::endl; // L-side
+ os << "f " << (base + 2) << " " << (base + 3) << std::endl; // L-side
+ os << "f " << (base + 3) << " " << (base + 4) << std::endl; // L-side
+ os << "f " << (base + 4) << " " << (base + 1) << std::endl; // L-side
+ os << "f " << (base + 5) << " " << (base + 6) << std::endl; // R-side
+ os << "f " << (base + 6) << " " << (base + 7) << std::endl; // R-side
+ os << "f " << (base + 7) << " " << (base + 8) << std::endl; // R-side
+ os << "f " << (base + 8) << " " << (base + 5) << std::endl; // R-side
+ os << "f " << (base + 1) << " " << (base + 5) << std::endl; // L/R-side
+ os << "f " << (base + 2) << " " << (base + 6) << std::endl; // L/R-side
+ os << "f " << (base + 3) << " " << (base + 7) << std::endl; // L/R-side
+ os << "f " << (base + 4) << " " << (base + 8) << std::endl; // L/R-side
+ os << std::endl;
+ base += 8;
+}
+
 struct vector3D {
  float v[3];
  float& operator [](size_t i) { return v[i]; }
@@ -69,7 +95,7 @@ class octree {
   static const int n_split = n_bin + 1;
  private :
   struct node {
-   AABB_halfdim volume;
+   AABB_minmax volume;
    std::unique_ptr<node> children[8];
   };
   std::unique_ptr<node> root;
@@ -135,34 +161,10 @@ void SplitTest(void)
  ofstream ofile("octrees_split.obj");
  ofile << "o octrees_split.obj" << endl;
 
- // boxes
+ // stream boxes
  int base = 0;
- for(int i = 0; i < 8; i++) {
-     ofile << "v " << split[i].a[0] << " " << split[i].a[1] << " " << -split[i].a[2] << endl; // L-side
-     ofile << "v " << split[i].b[0] << " " << split[i].a[1] << " " << -split[i].a[2] << endl; // L-side
-     ofile << "v " << split[i].b[0] << " " << split[i].a[1] << " " << -split[i].b[2] << endl; // L-side
-     ofile << "v " << split[i].a[0] << " " << split[i].a[1] << " " << -split[i].b[2] << endl; // L-side
-     ofile << "v " << split[i].a[0] << " " << split[i].b[1] << " " << -split[i].a[2] << endl; // R-side
-     ofile << "v " << split[i].b[0] << " " << split[i].b[1] << " " << -split[i].a[2] << endl; // R-side
-     ofile << "v " << split[i].b[0] << " " << split[i].b[1] << " " << -split[i].b[2] << endl; // R-side
-     ofile << "v " << split[i].a[0] << " " << split[i].b[1] << " " << -split[i].b[2] << endl; // R-side
-     ofile << "f " << (base + 1) << " " << (base + 2) << endl; // L-side
-     ofile << "f " << (base + 2) << " " << (base + 3) << endl; // L-side
-     ofile << "f " << (base + 3) << " " << (base + 4) << endl; // L-side
-     ofile << "f " << (base + 4) << " " << (base + 1) << endl; // L-side
-     ofile << "f " << (base + 5) << " " << (base + 6) << endl; // R-side
-     ofile << "f " << (base + 6) << " " << (base + 7) << endl; // R-side
-     ofile << "f " << (base + 7) << " " << (base + 8) << endl; // R-side
-     ofile << "f " << (base + 8) << " " << (base + 5) << endl; // R-side
-     ofile << "f " << (base + 1) << " " << (base + 5) << endl; // L/R-side
-     ofile << "f " << (base + 2) << " " << (base + 6) << endl; // L/R-side
-     ofile << "f " << (base + 3) << " " << (base + 7) << endl; // L/R-side
-     ofile << "f " << (base + 4) << " " << (base + 8) << endl; // L/R-side
-     ofile << endl;
-     base += 8;
-    }
-
- // min-max diagonals
+ for(int i = 0; i < 8; i++) StreamToOBJ(ofile, split[i], base);
+ // stream min-max diagonals
  for(int i = 0; i < 8; i++) {
      ofile << "v " << split[i].a[0] << " " << split[i].a[1] << " " << -split[i].a[2] << endl;
      ofile << "v " << split[i].b[0] << " " << split[i].b[1] << " " << -split[i].b[2] << endl;
@@ -173,8 +175,6 @@ void SplitTest(void)
 
 int main()
 {
- SplitTest();
-
  // see sample.lwo
  vector3D points[24] = {
   vector3D(1.4f, 2.3f, 7.0f), vector3D(1.7f, 2.5f, 5.8f), vector3D(2.4f, 2.0f, 5.3f), // 0 1 2
@@ -303,32 +303,29 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
 
  // define root node
  root = std::unique_ptr<node>(new node);
- root->volume.center[0] = (max_b[0] + min_b[0])/2.0f;
- root->volume.center[1] = (max_b[1] + min_b[1])/2.0f;
- root->volume.center[2] = (max_b[2] + min_b[2])/2.0f;
- root->volume.widths[0] = max_b[0] - root->volume.center[0];
- root->volume.widths[1] = max_b[1] - root->volume.center[1];
- root->volume.widths[2] = max_b[2] - root->volume.center[2];
- std::cout << "root AABB = " << root->volume << std::endl;
+ root->volume.a[0] = min_b[0];
+ root->volume.a[1] = min_b[1];
+ root->volume.a[2] = min_b[2];
+ root->volume.b[0] = max_b[0];
+ root->volume.b[1] = max_b[1];
+ root->volume.b[2] = max_b[2];
+ if(debug) StreamToOBJ(ofile, root->volume, vb_index);
 
  // loop to split
  node* curr = root.get();
  // for(;;)
     {
      // AABB properties
-     const float min_x = (curr->volume.center[0] - curr->volume.widths[0]);
-     const float min_y = (curr->volume.center[1] - curr->volume.widths[1]);
-     const float min_z = (curr->volume.center[2] - curr->volume.widths[2]);
-     const float dx = (2.0f*curr->volume.widths[0])/n_bin;
-     const float dy = (2.0f*curr->volume.widths[1])/n_bin;
-     const float dz = (2.0f*curr->volume.widths[2])/n_bin;
+     const float dx = (curr->volume.b[0] - curr->volume.a[0])/n_bin;
+     const float dy = (curr->volume.b[1] - curr->volume.a[1])/n_bin;
+     const float dz = (curr->volume.b[2] - curr->volume.a[2])/n_bin;
 
      // define split intervals
      float split_v[3][n_split];
      for(int i = 0; i < n_split; i++) {
-         split_v[0][i] = min_x + i*dx;
-         split_v[1][i] = min_y + i*dy;
-         split_v[2][i] = min_z + i*dz;
+         split_v[0][i] = curr->volume.a[0] + i*dx;
+         split_v[1][i] = curr->volume.a[1] + i*dy;
+         split_v[2][i] = curr->volume.a[2] + i*dz;
         }
 
      // keep track of number of faces in each bin
@@ -413,24 +410,24 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
         // split X-axis
         float X[4][3] = {
          {
-          split_point[0],                                  // split x
-          curr->volume.center[1] + curr->volume.widths[1], // +y
-          curr->volume.center[2] - curr->volume.widths[2], // -z
+          split_point[0],    // split x
+          curr->volume.b[1], // +y
+          curr->volume.a[2], // -z
          },
          {
-          split_point[0],                                  // split x
-          curr->volume.center[1] - curr->volume.widths[1], // -y
-          curr->volume.center[2] - curr->volume.widths[2], // -z
+          split_point[0],    // split x
+          curr->volume.a[1], // -y
+          curr->volume.a[2], // -z
          },
          {
-          split_point[0],                                  // split x
-          curr->volume.center[1] - curr->volume.widths[1], // -y
-          curr->volume.center[2] + curr->volume.widths[2], // +z
+          split_point[0],    // split x
+          curr->volume.a[1], // -y
+          curr->volume.b[2], // +z
          },
          {
-          split_point[0],                                  // split x
-          curr->volume.center[1] + curr->volume.widths[1], // +y
-          curr->volume.center[2] + curr->volume.widths[2], // +z
+          split_point[0],    // split x
+          curr->volume.b[1], // +y
+          curr->volume.b[2], // +z
          },
         };
         ofile << "v " << X[0][0] << " " << X[0][1] << " " << -X[0][2] << endl;
@@ -441,27 +438,58 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
         ofile << "f " << (start + 0) << " " << (start + 1) << " " << (start + 2) << " " << (start + 3) << endl;
         vb_index += 4;
 
+        // split Y-axis
+        float Y[4][3] = {
+         {
+          curr->volume.b[0], // +x
+          split_point[1],    // split y
+          curr->volume.a[2], // -z
+         },
+         {
+          curr->volume.a[0], // -x
+          split_point[1], // split y
+          curr->volume.a[2], // -z
+         },
+         {
+          curr->volume.a[0], // -x
+          split_point[1], // split y
+          curr->volume.b[2], // +z
+         },
+         {
+          curr->volume.b[0], // +x
+          split_point[1], // split y
+          curr->volume.b[2], // +z
+         },
+        };
+        ofile << "v " << Y[0][0] << " " << Y[0][1] << " " << -Y[0][2] << endl;
+        ofile << "v " << Y[1][0] << " " << Y[1][1] << " " << -Y[1][2] << endl;
+        ofile << "v " << Y[2][0] << " " << Y[2][1] << " " << -Y[2][2] << endl;
+        ofile << "v " << Y[3][0] << " " << Y[3][1] << " " << -Y[3][2] << endl;
+        start = vb_index + 1;
+        ofile << "f " << (start + 0) << " " << (start + 1) << " " << (start + 2) << " " << (start + 3) << endl;
+        vb_index += 4;
+
         // split Z-axis
         float p[4][3] = {
          {
-          curr->volume.center[0] + curr->volume.widths[0], // +x
-          curr->volume.center[1] - curr->volume.widths[1], // -y
-          split_point[2]                                   // split z
+          curr->volume.b[0], // +x
+          curr->volume.a[1], // -y
+          split_point[2]     // split z
          },
          {
-          curr->volume.center[0] - curr->volume.widths[0], // -x
-          curr->volume.center[1] - curr->volume.widths[1], // -y
-          split_point[2]                                   // split z
+          curr->volume.a[0], // -x
+          curr->volume.a[1], // -y
+          split_point[2]     // split z
          },
          {
-          curr->volume.center[0] - curr->volume.widths[0], // -x
-          curr->volume.center[1] + curr->volume.widths[1], // +y
-          split_point[2]                                   // split z
+          curr->volume.a[0], // -x
+          curr->volume.b[1], // +y
+          split_point[2]     // split z
          },
          {
-          curr->volume.center[0] + curr->volume.widths[0], // +x
-          curr->volume.center[1] + curr->volume.widths[1], // +y
-          split_point[2]                                   // split z
+          curr->volume.b[0], // +x
+          curr->volume.b[1], // +y
+          split_point[2]     // split z
          },
         };
         ofile << "v " << p[0][0] << " " << p[0][1] << " " << -p[0][2] << endl;
