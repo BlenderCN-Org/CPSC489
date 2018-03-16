@@ -252,39 +252,65 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
  using namespace std;
  bool debug = true;
  ofstream ofile;
- int vb_index = 0;
+ int vb_base = 0;
  if(debug) {
     ofile.open("debug.obj");
     ofile << "o debug.obj" << endl;
    }
 
- // compute centroids
- std::unique_ptr<vector3D[]> centroids(new vector3D[n_faces]);
- size_t a = 0;
- centroids[0] = triangle_centroid(verts[faces[a++]], verts[faces[a++]], verts[faces[a++]]);
- for(size_t i = 1; i < n_faces; i++) {
-     vector3D v1 = verts[faces[a++]];
-     vector3D v2 = verts[faces[a++]];
-     vector3D v3 = verts[faces[a++]];
-     centroids[i] = triangle_centroid(v1, v2, v3);
+ //
+ // PHASE #1
+ // CONSTRUCT PER-FACE DATA
+ // For each triangle, compute its centroid and its min-max AABB. The centroid
+ // is used to place triangles into bins and the AABBs are used "loosen" boxes
+ // so that they enclose all of their binned triangles.
+ //
+
+ // temporary per-face data
+ std::unique_ptr<vector3D[]> min_face(new vector3D[n_faces]);
+ std::unique_ptr<vector3D[]> max_face(new vector3D[n_faces]);
+ std::unique_ptr<vector3D[]> centroid(new vector3D[n_faces]);
+
+ // compute per-face data
+ size_t vindex = 0;
+ for(size_t i = 0; i < n_faces; i++)
+    {
+     // centroids
+     vector3D v1 = verts[faces[vindex++]];
+     vector3D v2 = verts[faces[vindex++]];
+     vector3D v3 = verts[faces[vindex++]];
+     centroid[i] = triangle_centroid(v1, v2, v3);
+
+     // AABBs
+     min_face[i][0] = max_face[i][0] = v1[0];
+     min_face[i][1] = max_face[i][1] = v1[1];
+     min_face[i][2] = max_face[i][2] = v1[2];
+     if(v2[0] < min_face[i][0]) min_face[i][0] = v2[0]; else if(max_face[i][0] < v2[0]) max_face[i][0] = v2[0];
+     if(v2[1] < min_face[i][1]) min_face[i][1] = v2[1]; else if(max_face[i][1] < v2[1]) max_face[i][1] = v2[1];
+     if(v2[2] < min_face[i][2]) min_face[i][2] = v2[2]; else if(max_face[i][2] < v2[2]) max_face[i][2] = v2[2];
     }
 
  // debug
- if(debug) {
-    // output triangles
+ if(debug)
+   {
+    // output triangle vertices
     for(size_t i = 0; i < n_verts; i++)
         ofile << "v " << verts[i][0] << " " << verts[i][1] << " " << -verts[i][2] << endl;
+
+    // output triangle faces
+    vindex = 0;
     for(size_t i = 0; i < n_faces; i++) {
-        int f1 = 1 + faces[3*i];
-        int f2 = 1 + faces[3*i + 1];
-        int f3 = 1 + faces[3*i + 2];
+        int f1 = 1 + faces[vindex++];
+        int f2 = 1 + faces[vindex++];
+        int f3 = 1 + faces[vindex++];
         ofile << "f " << f1 << " " << f2 << " " << f3 << endl;
        }
-    vb_index += n_verts;
+    vb_base += n_verts;
+
     // output centroids
     for(size_t i = 0; i < n_faces; i++)
-        ofile << "v " << centroids[i][0] << " " << centroids[i][1] << " " << -centroids[i][2] << endl;        
-    vb_index += n_faces;
+        ofile << "v " << centroid[i][0] << " " << centroid[i][1] << " " << -centroid[i][2] << endl;        
+    vb_base += n_faces;
    }
 
  // compute min-max bounds
@@ -309,7 +335,7 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
  root->volume.b[0] = max_b[0];
  root->volume.b[1] = max_b[1];
  root->volume.b[2] = max_b[2];
- if(debug) StreamToOBJ(ofile, root->volume, vb_index);
+ if(debug) StreamToOBJ(ofile, root->volume, vb_base);
 
  // loop to split
  node* curr = root.get();
@@ -339,7 +365,7 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
          for(int j = 0; j < n_bin; j++) {
              float a = split_v[0][j];
              float b = split_v[0][j + 1];
-             if(centroids[i][0] >= a && centroids[i][0] <= b) {
+             if(centroid[i][0] >= a && centroid[i][0] <= b) {
                 bin[0][j]++;
                 break;
                }
@@ -348,7 +374,7 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
          for(int j = 0; j < n_bin; j++) {
              float a = split_v[1][j];
              float b = split_v[1][j + 1];
-             if(centroids[i][1] >= a && centroids[i][1] <= b) {
+             if(centroid[i][1] >= a && centroid[i][1] <= b) {
                 bin[1][j]++;
                 break;
                }
@@ -357,7 +383,7 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
          for(int j = 0; j < n_bin; j++) {
              float a = split_v[2][j];
              float b = split_v[2][j + 1];
-             if(centroids[i][2] >= a && centroids[i][2] <= b) {
+             if(centroid[i][2] >= a && centroid[i][2] <= b) {
                 bin[2][j]++;
                 break;
                }
@@ -434,9 +460,9 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
         ofile << "v " << X[1][0] << " " << X[1][1] << " " << -X[1][2] << endl;
         ofile << "v " << X[2][0] << " " << X[2][1] << " " << -X[2][2] << endl;
         ofile << "v " << X[3][0] << " " << X[3][1] << " " << -X[3][2] << endl;
-        int start = vb_index + 1;
+        int start = vb_base + 1;
         ofile << "f " << (start + 0) << " " << (start + 1) << " " << (start + 2) << " " << (start + 3) << endl;
-        vb_index += 4;
+        vb_base += 4;
 
         // split Y-axis
         float Y[4][3] = {
@@ -465,9 +491,9 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
         ofile << "v " << Y[1][0] << " " << Y[1][1] << " " << -Y[1][2] << endl;
         ofile << "v " << Y[2][0] << " " << Y[2][1] << " " << -Y[2][2] << endl;
         ofile << "v " << Y[3][0] << " " << Y[3][1] << " " << -Y[3][2] << endl;
-        start = vb_index + 1;
+        start = vb_base + 1;
         ofile << "f " << (start + 0) << " " << (start + 1) << " " << (start + 2) << " " << (start + 3) << endl;
-        vb_index += 4;
+        vb_base += 4;
 
         // split Z-axis
         float p[4][3] = {
@@ -496,9 +522,9 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
         ofile << "v " << p[1][0] << " " << p[1][1] << " " << -p[1][2] << endl;
         ofile << "v " << p[2][0] << " " << p[2][1] << " " << -p[2][2] << endl;
         ofile << "v " << p[3][0] << " " << p[3][1] << " " << -p[3][2] << endl;
-        start = vb_index + 1;
+        start = vb_base + 1;
         ofile << "f " << (start + 0) << " " << (start + 1) << " " << (start + 2) << " " << (start + 3) << endl;
-        vb_index += 4;
+        vb_base += 4;
        }
     }
 }
