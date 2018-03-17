@@ -1,6 +1,7 @@
 #include<iostream>
 #include<fstream>
 #include<vector>
+#include<deque>
 #include<cmath>
 #include<memory>
 
@@ -32,18 +33,6 @@ inline void StreamToOBJ(std::ostream& os, const AABB_minmax& box, int& base)
  base += 8;
 }
 
-struct vector3D {
- float v[3];
- float& operator [](size_t i) { return v[i]; }
- const float& operator [](size_t i)const { return v[i]; }
- vector3D() {}
- vector3D(float x, float y, float z) {
-  v[0] = x;
-  v[1] = y;
-  v[2] = z;
- }
-};
-
 inline vector3D triangle_centroid(const vector3D& v1, const vector3D& v2, const vector3D& v3)
 {
  vector3D rv;
@@ -55,8 +44,8 @@ inline vector3D triangle_centroid(const vector3D& v1, const vector3D& v2, const 
 
 class boxtree {
  private :
-  static const int n_bin = 8;
-  static const int n_split = n_bin + 1;
+  static const int n_bins = 8;
+  static const int n_split = n_bins + 1;
  private :
   struct node {
    AABB_minmax volume;
@@ -162,6 +151,10 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
     ofile << "o debug.obj" << endl;
    }
 
+ // per-bin data
+ AABB_minmax binlist[n_bins];
+ unsigned int bintris[n_bins];
+
  //
  // PHASE #1
  // CONSTRUCT PER-FACE DATA
@@ -211,17 +204,140 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
         StreamToOBJ(ofile, blist[i], vb_base);
    }
 
- // start with first mesh that has faces
+ //
+ // PHASE #2
+ // NON-RECURSIVE SPACIAL PARITIONING
+ //
+
+ // AABB tree
+ struct AABB_node {
+  AABB_minmax aabb;
+  unsigned int params[2];
+ };
+ std::vector<AABB_node> tree;
+
+ // add root node
+ tree.push_back(AABB_node());
+
+ // add root node to process stack
  struct BVHSTACKITEM {
   unsigned int tree_index;
   unsigned int face_index[2];
  };
- std::vector<BVHSTACKITEM> stack;
+ std::deque<BVHSTACKITEM> stack;
  stack.push_front(BVHSTACKITEM());
  stack.front().tree_index = 0;
  stack.front().face_index[0] = 0;
- stack.front().face_index[1] = mesh.n_face;
+ stack.front().face_index[1] = n_faces;
 
+ // non-recursive partitioning
+ while(stack.size())
+      {
+       //
+       // STEP #1
+       // OBTAIN PARTITION
+       //
+
+       // get and pop item from stack
+       BVHSTACKITEM item = stack.front();
+       unsigned int tree_index = item.tree_index;
+       unsigned int face_index[2] = { item.face_index[0], item.face_index[1] };
+       stack.pop_front();
+
+       //
+       // STEP #2
+       // CALCULATE PARTITION BOUNDS
+       //
+
+       // per-partition data (all triangle bounds, all centroid bounds)
+       AABB_minmax tbounds(blist[face_index[0]]);
+       AABB_minmax cbounds(clist[face_index[0]]);
+       for(unsigned int i = (face_index[0] + 1); i < face_index[1]; i++) {
+           tbounds.grow(blist[i]);
+           cbounds.grow(clist[i]);
+          }
+
+       // debug: display triangle and centroid bounds
+       if(debug) {
+          StreamToOBJ(ofile, tbounds, vb_base);
+          StreamToOBJ(ofile, cbounds, vb_base);
+         }
+
+       //
+       // STEP #3
+       // DOMINANT AXIS
+       //
+
+       // choose dominant axis from "longest-axis" of centroid bounds
+       float dv[3]; // dx, dy, dz saved from computing dominator
+       unsigned int axis = cbounds.dominator(dv);
+
+       // dominant axis is too small, make this is a leaf node
+       // 1.0e-6f is just a suggestion, but it can be made bigger, like 0.01f or something
+       if(dv[axis] < 1.0e-6f) {
+          tree[tree_index].aabb = tbounds;
+          tree[tree_index].params[0] = face_index[0] | 0x80000000ul; // mark as a leaf node
+          tree[tree_index].params[1] = face_index[1] - face_index[0];
+          continue;
+         }
+
+       // print centroid bounds
+       std::cout << "CENTROID BOUNDS" << std::endl;
+       std::cout << "bounds[x] = " << dv[0] << std::endl;
+       std::cout << "bounds[y] = " << dv[1] << std::endl;
+       std::cout << "bounds[z] = " << dv[2] << std::endl;
+       if(axis == 0) std::cout << "dominant axis is X-axis" << std::endl;
+       if(axis == 1) std::cout << "dominant axis is Y-axis" << std::endl;
+       if(axis == 2) std::cout << "dominant axis is Z-axis" << std::endl;
+       std::cout << std::endl;
+
+       // print bin planes
+       std::cout << "BIN PLANES" << std::endl;
+       std::cout << "min plane = " << cbounds.a[axis] << std::endl;
+       std::cout << "max plane = " << cbounds.b[axis] << std::endl;
+       const float bin_dv = dv[axis]/n_bins;
+       for(size_t i = 0; i < (n_bins + 1); i++) std::cout << "plane[ " << i << "] = " << (cbounds.a[axis] + i*bin_dv) << std::endl;
+       std::cout << std::endl;
+
+       //
+       // STEP #4
+       // COMPUTE BINS
+       //
+
+       // start = cbounds.a[axis] + i*(dv[axis]/n_bins)
+       // i = (start - cbounds.a[axis])/(dv[axis]/n_bins)
+       // i = n_bins*(start - cbounds.a[axis])/dv[axis]
+       // let k0 = cbounds.a[axis]
+       // let k1 = n_bins/dv[axis]
+       // i = k1*(start - k0)
+
+       //   0     1     2     3     4     5     6     7     8
+       // 1.7 - 2.5 - 3.3 - 4.1 - 4.9 - 5.7 - 6.5 - 7.3 - 8.1
+       // dv[x] = (8.1 - 1.7) = 6.4
+       // k1 = 8*1/6.4 = 1.25 (1.24999875 with epsilon)
+
+       // for example given, start = 3.0
+       // i = k1*(3.0 - k0)
+       // i = (1.25)*(3.0 - 1.7) = 1.625
+
+       // for example given, start = 3.3
+       // i = k1*(3.3 - k0)
+       // i = (1.25)*(3.3 - 1.7) = 2.0
+
+       // so what the epsilon does is that if anything is on the edge
+       // of the next bin, like for example when start = 8.1, it will
+       // place that triangle in the bin before it
+
+       // binning constants
+       const float k0 = cbounds.a[axis];
+       const float k1 = n_bins*(1.0f - 1.0e-6f)/dv[axis];
+
+       // initialize per-bin data
+       for(unsigned int i = 0; i < n_bins; i++) {
+           bintris[i] = 0;
+           //binlist[i].from(MAXVALUE, MINVALUE);
+          }
+      }
 
 /*
  //

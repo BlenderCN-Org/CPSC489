@@ -1,6 +1,18 @@
 #ifndef __CS_AABB_H
 #define __CS_AABB_H
 
+struct vector3D {
+ float v[3];
+ float& operator [](size_t i) { return v[i]; }
+ const float& operator [](size_t i)const { return v[i]; }
+ vector3D() {}
+ vector3D(float x, float y, float z) {
+  v[0] = x;
+  v[1] = y;
+  v[2] = z;
+ }
+};
+
 struct AABB_minmax {
 
  //
@@ -32,6 +44,9 @@ struct AABB_minmax {
   void from(const float* A);
   void from(const float* A, const float* B);
   void from(const float* A, const float* B, const float* C);
+  void from(const vector3D& A);
+  void from(const vector3D& A, const vector3D& B);
+  void from(const vector3D& A, const vector3D& B, const vector3D& C);
 
  //
  // CONTRACTION/EXPANSION
@@ -57,6 +72,9 @@ struct AABB_minmax {
   explicit AABB_minmax(const float* A);
   AABB_minmax(const float* A, const float* B);
   AABB_minmax(const float* A, const float* B, const float* C);
+  AABB_minmax(const vector3D& A);
+  AABB_minmax(const vector3D& A, const vector3D& B);
+  AABB_minmax(const vector3D& A, const vector3D& B, const vector3D& C);
   AABB_minmax(const AABB_minmax& other);
 };
 
@@ -90,6 +108,21 @@ inline AABB_minmax::AABB_minmax(const float* A, const float* B)
 }
 
 inline AABB_minmax::AABB_minmax(const float* A, const float* B, const float* C)
+{
+ from(A, B, C);
+}
+
+inline AABB_minmax::AABB_minmax(const vector3D& A)
+{
+ from(A);
+}
+
+inline AABB_minmax::AABB_minmax(const vector3D& A, const vector3D& B)
+{
+ from(A, B);
+}
+
+inline AABB_minmax::AABB_minmax(const vector3D& A, const vector3D& B, const vector3D& C)
 {
  from(A, B, C);
 }
@@ -194,6 +227,36 @@ inline void AABB_minmax::from(const float* A, const float* B)
 }
 
 inline void AABB_minmax::from(const float* A, const float* B, const float* C)
+{
+ // test A
+ a[0] = b[0] = A[0];
+ a[1] = b[1] = A[1];
+ a[2] = b[2] = A[2];
+ // test B
+ if(B[0] < a[0]) a[0] = B[0]; else if(b[0] < B[0]) b[0] = B[0];
+ if(B[1] < a[1]) a[1] = B[1]; else if(b[1] < B[1]) b[1] = B[1];
+ if(B[2] < a[2]) a[2] = B[2]; else if(b[2] < B[2]) b[2] = B[2];
+ // test C
+ if(C[0] < a[0]) a[0] = C[0]; else if(b[0] < C[0]) b[0] = C[0];
+ if(C[1] < a[1]) a[1] = C[1]; else if(b[1] < C[1]) b[1] = C[1];
+ if(C[2] < a[2]) a[2] = C[2]; else if(b[2] < C[2]) b[2] = C[2];
+}
+
+inline void AABB_minmax::from(const vector3D& A)
+{
+ a[0] = b[0] = A[0];
+ a[1] = b[1] = A[1];
+ a[2] = b[2] = A[2];
+}
+
+inline void AABB_minmax::from(const vector3D& A, const vector3D& B)
+{
+ if(A[0] < B[0]) { a[0] = A[0]; b[0] = B[0]; } else { a[0] = B[0]; b[0] = A[0]; }
+ if(A[1] < B[1]) { a[1] = A[1]; b[1] = B[1]; } else { a[1] = B[1]; b[1] = A[1]; }
+ if(A[2] < B[2]) { a[2] = A[2]; b[2] = B[2]; } else { a[2] = B[2]; b[2] = A[2]; }
+}
+
+inline void AABB_minmax::from(const vector3D& A, const vector3D& B, const vector3D& C)
 {
  // test A
  a[0] = b[0] = A[0];
