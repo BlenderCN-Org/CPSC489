@@ -3,44 +3,7 @@
 #include<cmath>
 #include<memory>
 
-struct AABB_halfdim {
- float center[3];
- float widths[3];
-};
-
-struct AABB_minmax {
- float a[3];
- float b[3];
-};
-
-inline std::ostream& operator <<(std::ostream& os, const AABB_halfdim& aabb)
-{
- os << "AABB[0]: <" << (aabb.center[0] - aabb.widths[0]) <<
-               ", " << (aabb.center[1] - aabb.widths[1]) <<
-               ", " << (aabb.center[2] - aabb.widths[2]) << ">" << std::endl;
- os << "AABB[1]: <" << (aabb.center[0] + aabb.widths[0]) <<
-               ", " << (aabb.center[1] - aabb.widths[1]) <<
-               ", " << (aabb.center[2] - aabb.widths[2]) << ">" << std::endl;
- os << "AABB[2]: <" << (aabb.center[0] - aabb.widths[0]) <<
-               ", " << (aabb.center[1] + aabb.widths[1]) <<
-               ", " << (aabb.center[2] - aabb.widths[2]) << ">" << std::endl;
- os << "AABB[3]: <" << (aabb.center[0] + aabb.widths[0]) <<
-               ", " << (aabb.center[1] + aabb.widths[1]) <<
-               ", " << (aabb.center[2] - aabb.widths[2]) << ">" << std::endl;
- os << "AABB[4]: <" << (aabb.center[0] - aabb.widths[0]) <<
-               ", " << (aabb.center[1] - aabb.widths[1]) <<
-               ", " << (aabb.center[2] + aabb.widths[2]) << ">" << std::endl;
- os << "AABB[5]: <" << (aabb.center[0] + aabb.widths[0]) <<
-               ", " << (aabb.center[1] - aabb.widths[1]) <<
-               ", " << (aabb.center[2] + aabb.widths[2]) << ">" << std::endl;
- os << "AABB[6]: <" << (aabb.center[0] - aabb.widths[0]) <<
-               ", " << (aabb.center[1] + aabb.widths[1]) <<
-               ", " << (aabb.center[2] + aabb.widths[2]) << ">" << std::endl;
- os << "AABB[7]: <" << (aabb.center[0] + aabb.widths[0]) <<
-               ", " << (aabb.center[1] + aabb.widths[1]) <<
-               ", " << (aabb.center[2] + aabb.widths[2]) << ">" << std::endl;
- return os;
-}
+#include "aabb.h"
 
 inline void StreamToOBJ(std::ostream& os, const AABB_minmax& box, int& base)
 {
@@ -96,7 +59,8 @@ class boxtree {
  private :
   struct node {
    AABB_minmax volume;
-   std::unique_ptr<node> children[8];
+   std::unique_ptr<node> L;
+   std::unique_ptr<node> R;
   };
   std::unique_ptr<node> root;
  public :
@@ -255,6 +219,18 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
     for(size_t i = 0; i < n_faces; i++)
         ofile << "v " << centroid[i][0] << " " << centroid[i][1] << " " << -centroid[i][2] << endl;        
     vb_base += n_faces;
+
+    // output boxes
+    for(size_t i = 0; i < n_faces; i++) {
+        AABB_minmax box;
+        box.a[0] = min_face[i][0];
+        box.a[1] = min_face[i][1];
+        box.a[2] = min_face[i][2];
+        box.b[0] = max_face[i][0];
+        box.b[1] = max_face[i][1];
+        box.b[2] = max_face[i][2];
+        StreamToOBJ(ofile, box, vb_base);
+       }
    }
 
  //
@@ -284,13 +260,31 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
  root->volume.b[0] = max_b[0];
  root->volume.b[1] = max_b[1];
  root->volume.b[2] = max_b[2];
- if(debug) StreamToOBJ(ofile, root->volume, vb_base);
+ //if(debug) StreamToOBJ(ofile, root->volume, vb_base);
 
-/*
+ // determine most-dominant axis
+ float dv[3] = {
+  root->volume.b[0] - root->volume.a[0],
+  root->volume.b[1] - root->volume.a[1],
+  root->volume.b[2] - root->volume.a[2]
+ };
+ int dominant = 0;
+ if(dv[0] < dv[1]) {
+    if(dv[1] < dv[2]) dominant = 2;
+    else dominant = 1;
+   }
+ else if(dv[0] < dv[2])
+    dominant = 2;
+
+ std::cout << "DOMINANT AXIS:" << std::endl;
+ std::cout << "dv[x] = " << dv[0] << std::endl;
+ std::cout << "dv[y] = " << dv[1] << std::endl;
+ std::cout << "dv[z] = " << dv[2] << std::endl;
+ std::cout << std::endl;
 
  //
  // PHASE #3
- // SUBDIVIDE INTO OCTREE
+ // SUBDIVIDE
  //
 
  // loop to split
@@ -299,7 +293,7 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
     {
      //
      // PHASE #3A
-     // DIVIDE EACH AXIS INTO "X" NUMBER OF EVENLY-SPACED BINS
+     // DIVIDE DOMINANT AXIS INTO "X" NUMBER OF EVENLY-SPACED BINS
      //
 
      // split[0] = <1.3000, 0.1, 1.3> // AABB min
@@ -312,32 +306,12 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
      // split[7] = <7.5125, 2.2, 6.9>
      // split[8] = <8.4000, 2.5, 7.7> // AABB max
 
-     // AABB properties
-     const float dx = (curr->volume.b[0] - curr->volume.a[0])/n_bin;
-     const float dy = (curr->volume.b[1] - curr->volume.a[1])/n_bin;
-     const float dz = (curr->volume.b[2] - curr->volume.a[2])/n_bin;
-
      // define split intervals
-     float split_v[n_split][3];
+     const float bin_dv = dv[dominant]/n_bin;
+     float split_v[n_split];
      for(int i = 0; i < n_split; i++) {
-         split_v[i][0] = curr->volume.a[0] + i*dx;
-         split_v[i][1] = curr->volume.a[1] + i*dy;
-         split_v[i][2] = curr->volume.a[2] + i*dz;
-        }
-
-     // keep track of exact bounds for each bin
-     // later on, when we count triangles in each bin, these values will be adjusted
-     float min_bin[n_bin][3];
-     float max_bin[n_bin][3];
-     for(int i = 0; i < n_bin; i++) {
-         // min extents
-         min_bin[i][0] = split_v[i][0];
-         min_bin[i][1] = split_v[i][1];
-         min_bin[i][2] = split_v[i][2];
-         // max extents
-         max_bin[i][0] = split_v[i + 1][0];
-         max_bin[i][1] = split_v[i + 1][1];
-         max_bin[i][2] = split_v[i + 1][2];
+         split_v[i] = curr->volume.a[dominant] + i*bin_dv;
+         std::cout << split_v[i] << std::endl;
         }
 
      //
@@ -349,42 +323,17 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
      //
 
      // keep track of number of faces in each bin
-     int bin[n_bin][3];
-     for(size_t i = 0; i < n_bin; i++) bin[i][0] = bin[i][1] = bin[i][2] = 0;
+     int bin[n_bin];
+     for(size_t i = 0; i < n_bin; i++) bin[i] = 0;
 
      // partition face centroids into bins
-     for(size_t i = 0; i < n_faces; i++)
-        {
-         // split x-axis
+     for(size_t i = 0; i < n_faces; i++) {
+         // split dominant axis
          for(int j = 0; j < n_bin; j++) {
-             float a = split_v[j][0];
-             float b = split_v[j + 1][0];
-             if(centroid[i][0] >= a && centroid[i][0] <= b) {
-                bin[j][0]++;
-                if(min_face[i][0] < min_bin[j][0]) min_bin[j][0] = min_face[i][0];
-                if(max_face[i][0] > max_bin[j][0]) max_bin[j][0] = max_face[i][0];
-                break;
-               }
-            }
-         // split y-axis
-         for(int j = 0; j < n_bin; j++) {
-             float a = split_v[j][1];
-             float b = split_v[j + 1][1];
-             if(centroid[i][1] >= a && centroid[i][1] <= b) {
-                bin[j][1]++;
-                if(min_face[i][1] < min_bin[j][1]) min_bin[j][1] = min_face[i][1];
-                if(max_face[i][1] > max_bin[j][1]) max_bin[j][1] = max_face[i][1];
-                break;
-               }
-            }
-         // split z-axis
-         for(int j = 0; j < n_bin; j++) {
-             float a = split_v[j][2];
-             float b = split_v[j + 1][2];
-             if(centroid[i][2] >= a && centroid[i][2] <= b) {
-                bin[j][2]++;
-                if(min_face[i][2] < min_bin[j][2]) min_bin[j][2] = min_face[i][2];
-                if(max_face[i][2] > max_bin[j][2]) max_bin[j][2] = max_face[i][2];
+             float a = split_v[j];
+             float b = split_v[j + 1];
+             if(centroid[i][dominant] >= a && centroid[i][dominant] <= b) {
+                bin[j]++;
                 break;
                }
             }
@@ -402,42 +351,65 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
      // B =                      X  Y  Z
 
      // determine best axes split
-     int L_count[3] = { bin[0][0], bin[0][1], bin[0][2] };
-     int R_count[3] = { 
-      n_faces - bin[0][0],
-      n_faces - bin[0][1],
-      n_faces - bin[0][2],
-     };
-     std::cout << "L_count[0] = " << L_count[0] << ", " << L_count[1] << ", " << L_count[2] << std::endl;
-     std::cout << "R_count[0] = " << R_count[0] << ", " << R_count[1] << ", " << R_count[2] << std::endl;
+     int L_count = bin[0];
+     int R_count = n_faces - bin[0];
+     std::cout << "SPLITTING INTO BINS" << std::endl;
+     std::cout << "L_count[i] = " << L_count << std::endl;
+     std::cout << "R_count[i] = " << R_count << std::endl;
+
+     int best_d = std::abs(R_count - L_count);
+     int best_i = 0;
+     for(int i = 1; i < n_bin; i++) {
+         L_count += bin[i];
+         R_count -= bin[i];
+         int difference = std::abs(R_count - L_count);
+         if(difference < best_d) {
+            best_d = difference;
+            best_i = i;
+           }
+         std::cout << "L_count[" << i << "] = " << L_count << std::endl;
+         std::cout << "R_count[" << i << "] = " << R_count << std::endl;
+        }
+     std::cout << "best_D = " << best_d << std::endl;
+     std::cout << "best_I (bin index) = " << best_i << std::endl;
      std::cout << std::endl;
 
-     int best_d[3] = {
-      std::abs(R_count[0] - L_count[0]),
-      std::abs(R_count[1] - L_count[1]),
-      std::abs(R_count[2] - L_count[2]),
-     };
-     int best_i[3] = { 0, 0, 0 };
+     // keep track of exact bounds for each bin
+     // later on, when we count triangles in each bin, these values will be adjusted
+     float L_min_bin[3];
+     float L_max_bin[3];
+     L_min_bin[0] = max_b[0]; L_min_bin[1] = max_b[1]; L_min_bin[2] = max_b[2];
+     L_max_bin[0] = min_b[0]; L_max_bin[1] = min_b[1]; L_max_bin[2] = min_b[2];
 
-     for(int i = 1; i < n_bin; i++) {
-         for(int j = 0; j < 3; j++) {
-             L_count[j] += bin[i][j];
-             R_count[j] -= bin[i][j];
-             int difference = std::abs(R_count[j] - L_count[j]);
-             if(difference < best_d[j]) {
-                best_d[j] = difference;
-                best_i[j] = i;
-               }
-            }
-         std::cout << "L_count[" << i << "] = " << L_count[0] << ", " << L_count[1] << ", " << L_count[2] << std::endl;
-         std::cout << "R_count[" << i << "] = " << R_count[0] << ", " << R_count[1] << ", " << R_count[2] << std::endl;
-         std::cout << std::endl;
+     // partition face centroids into bins
+     for(size_t i = 0; i < n_faces; i++)
+        {
+         float a = split_v[0];
+         float b = split_v[best_i + 1];
+         if(centroid[i][dominant] >= a && centroid[i][dominant] <= b) {
+            if(min_face[i][0] < L_min_bin[0]) L_min_bin[0] = min_face[i][0]; if(max_face[i][0] > L_max_bin[0]) L_max_bin[0] = max_face[i][0];
+            if(min_face[i][1] < L_min_bin[1]) L_min_bin[1] = min_face[i][1]; if(max_face[i][1] > L_max_bin[1]) L_max_bin[1] = max_face[i][1];
+            if(min_face[i][2] < L_min_bin[2]) L_min_bin[2] = min_face[i][2]; if(max_face[i][2] > L_max_bin[2]) L_max_bin[2] = max_face[i][2];
+           }
         }
-     std::cout << "best_D = " << std::endl;
-     std::cout << best_d[0] << ", " << best_d[1] << ", " << best_d[2] << std::endl;
-     std::cout << "best_I (bin index) = " << std::endl;
-     std::cout << best_i[0] << ", " << best_i[1] << ", " << best_i[2] << std::endl;
 
+     // child[L]:
+     // <x[min], y[min], z[min]> one axis will be min
+     // <x[max], y[max], z[max]>                  mid
+     AABB_minmax L;
+     if(dominant == 0) {
+        L.a[0] = L_min_bin[0];
+        L.a[1] = L_min_bin[1];
+        L.a[2] = L_min_bin[2];
+        L.b[0] = L_max_bin[0];
+        L.b[1] = L_max_bin[1];
+        L.b[2] = L_max_bin[2];
+       }
+     if(debug) StreamToOBJ(ofile, L, vb_base);
+
+     AABB_minmax R;
+
+/*
      // x[min], y[min], z[min] refer to min_face[0][X], min_face[0][Y], and min_face[0][Z]
      // x[max], y[max], z[max] refer to max_face[0][X], max_face[0][Y], and max_face[0][Z]
      // x[mid], y[mid], z[mid] refer to
@@ -565,8 +537,8 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
         ofile << "f " << (start + 0) << " " << (start + 1) << " " << (start + 2) << " " << (start + 3) << endl;
         vb_base += 4;
        }
-    }
 */
+    }
 }
 
 void boxtree::clear()
