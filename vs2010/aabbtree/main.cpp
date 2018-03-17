@@ -89,7 +89,7 @@ inline vector3D triangle_centroid(const vector3D& v1, const vector3D& v2, const 
  return rv;
 }
 
-class octree {
+class boxtree {
  private :
   static const int n_bin = 8;
   static const int n_split = n_bin + 1;
@@ -103,75 +103,14 @@ class octree {
   void construct(const vector3D* verts, size_t n_verts, const unsigned int* faces, size_t n_indices);
   void clear();
  public :
-  octree& operator =(const octree& other);
-  octree& operator =(octree&& other);
+  boxtree& operator =(const boxtree& other);
+  boxtree& operator =(boxtree&& other);
  public :
-  octree();
-  octree(const octree& other);
-  octree(octree&& other);
- ~octree();
+  boxtree();
+  boxtree(const boxtree& other);
+  boxtree(boxtree&& other);
+ ~boxtree();
 };
-
-void SplitTest(void)
-{
- // box to split
- AABB_minmax mmb;
- mmb.a[0] = 1.0f; mmb.a[1] = 2.0f; mmb.a[2] = 3.0f;
- mmb.b[0] = 5.0f; mmb.b[1] = 4.0f; mmb.b[2] = 6.0f;
-
- // compute median
- float x_mid = (mmb.a[0] + mmb.b[0])/2.0f;
- float y_mid = (mmb.a[1] + mmb.b[1])/2.0f;
- float z_mid = (mmb.a[2] + mmb.b[2])/2.0f;
-
- // for convenience
- float x_min = mmb.a[0]; float x_max = mmb.b[0];
- float y_min = mmb.a[1]; float y_max = mmb.b[1];
- float z_min = mmb.a[2]; float z_max = mmb.b[2];
-
- // split[0]
- AABB_minmax split[8];
- split[0].a[0] = x_mid; split[0].a[1] = y_min; split[0].a[2] = z_mid;
- split[0].b[0] = x_max; split[0].b[1] = y_mid; split[0].b[2] = z_max;
- // split[1]
- split[1].a[0] = x_min; split[1].a[1] = y_min; split[1].a[2] = z_mid;
- split[1].b[0] = x_mid; split[1].b[1] = y_mid; split[1].b[2] = z_max;
- // split[2]
- split[2].a[0] = x_min; split[2].a[1] = y_mid; split[2].a[2] = z_mid;
- split[2].b[0] = x_mid; split[2].b[1] = y_max; split[2].b[2] = z_max;
- // split[3]
- split[3].a[0] = x_mid; split[3].a[1] = y_mid; split[3].a[2] = z_mid;
- split[3].b[0] = x_max; split[3].b[1] = y_max; split[3].b[2] = z_max;
-
- // lower-half (only z values change)
- // split[4]
- split[4].a[0] = x_mid; split[4].a[1] = y_min; split[4].a[2] = z_min;
- split[4].b[0] = x_max; split[4].b[1] = y_mid; split[4].b[2] = z_mid;
- // split[5]
- split[5].a[0] = x_min; split[5].a[1] = y_min; split[5].a[2] = z_min;
- split[5].b[0] = x_mid; split[5].b[1] = y_mid; split[5].b[2] = z_mid;
- // split[6]
- split[6].a[0] = x_min; split[6].a[1] = y_mid; split[6].a[2] = z_min;
- split[6].b[0] = x_mid; split[6].b[1] = y_max; split[6].b[2] = z_mid;
- // split[7]
- split[7].a[0] = x_mid; split[7].a[1] = y_mid; split[7].a[2] = z_min;
- split[7].b[0] = x_max; split[7].b[1] = y_max; split[7].b[2] = z_mid;
-
- using namespace std;
- ofstream ofile("octrees_split.obj");
- ofile << "o octrees_split.obj" << endl;
-
- // stream boxes
- int base = 0;
- for(int i = 0; i < 8; i++) StreamToOBJ(ofile, split[i], base);
- // stream min-max diagonals
- for(int i = 0; i < 8; i++) {
-     ofile << "v " << split[i].a[0] << " " << split[i].a[1] << " " << -split[i].a[2] << endl;
-     ofile << "v " << split[i].b[0] << " " << split[i].b[1] << " " << -split[i].b[2] << endl;
-     ofile << "f " << (base + 1) << " " << (base + 2) << endl;
-     base += 2;
-    }
-}
 
 int main()
 {
@@ -198,41 +137,41 @@ int main()
   21, 22, 23,
  };
 
- octree tree;
+ boxtree tree;
  tree.construct(points, 24, facelist, 24);
  
  return -1;
 }
 
-octree::octree()
+boxtree::boxtree()
 {
 }
 
-octree::octree(const octree& other)
+boxtree::boxtree(const boxtree& other)
 {
 }
 
-octree::octree(octree&& other)
+boxtree::boxtree(boxtree&& other)
 {
 }
 
-octree::~octree()
+boxtree::~boxtree()
 {
 }
 
-octree& octree::operator =(const octree& other)
-{
- if(this == &other) return *this;
- return *this;
-}
-
-octree& octree::operator =(octree&& other)
+boxtree& boxtree::operator =(const boxtree& other)
 {
  if(this == &other) return *this;
  return *this;
 }
 
-void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int* faces, size_t n_indices)
+boxtree& boxtree::operator =(boxtree&& other)
+{
+ if(this == &other) return *this;
+ return *this;
+}
+
+void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned int* faces, size_t n_indices)
 {
  // binning example
  // dv = (max_v - min_v)/n_bin = (2*box_w)/n_bin
@@ -346,6 +285,8 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
  root->volume.b[1] = max_b[1];
  root->volume.b[2] = max_b[2];
  if(debug) StreamToOBJ(ofile, root->volume, vb_base);
+
+/*
 
  //
  // PHASE #3
@@ -498,7 +439,7 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
      std::cout << best_i[0] << ", " << best_i[1] << ", " << best_i[2] << std::endl;
 
      // x[min], y[min], z[min] refer to min_face[0][X], min_face[0][Y], and min_face[0][Z]
-     // x[max], y[max], z[max] refer to max_face[8][X], max_face[8][Y], and max_face[8][Z]
+     // x[max], y[max], z[max] refer to max_face[0][X], max_face[0][Y], and max_face[0][Z]
      // x[mid], y[mid], z[mid] refer to
      //   min_face[best_i[X]], min_face[best_i[Y]], and min_face[best_i[Z]] for R-side
      //   max_face[best_i[X]], max_face[best_i[Y]], and max_face[best_i[Z]] for L-side
@@ -625,8 +566,9 @@ void octree::construct(const vector3D* verts, size_t n_verts, const unsigned int
         vb_base += 4;
        }
     }
+*/
 }
 
-void octree::clear()
+void boxtree::clear()
 {
 }
