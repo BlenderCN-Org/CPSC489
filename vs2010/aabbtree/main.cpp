@@ -54,7 +54,7 @@ class boxtree {
   };
   std::unique_ptr<node> root;
  public :
-  void construct(const vector3D* verts, size_t n_verts, const unsigned int* faces, size_t n_indices);
+  void construct(const vector3D* verts, size_t n_verts, unsigned int* faces, size_t n_indices);
   void clear();
  public :
   boxtree& operator =(const boxtree& other);
@@ -125,7 +125,7 @@ boxtree& boxtree::operator =(boxtree&& other)
  return *this;
 }
 
-void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned int* faces, size_t n_indices)
+void boxtree::construct(const vector3D* verts, size_t n_verts, unsigned int* faces, size_t n_indices)
 {
  // binning example
  // dv = (max_v - min_v)/n_bin = (2*box_w)/n_bin
@@ -427,190 +427,85 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
           StreamToOBJ(ofile, BL[best_index], vb_base);
           StreamToOBJ(ofile, BR[best_index], vb_base);
          }
+
+       //
+       // STEP #6
+       // INDEX BUFFER SORTING
+       //
+
+       auto BIN_INDEX_FROM_FACE = [&](unsigned int face) { return static_cast<unsigned int>(k1*(clist[face][axis] - k0)); };
+
+       // display before sorting
+       if(debug) {
+          std::cout << "PRE-SORT ASSIGNMENT" << std::endl;
+          for(unsigned int i = face_index[0]; i < face_index[1]; i++) {
+              unsigned int binindex = BIN_INDEX_FROM_FACE(i);
+              std::cout << "face[" << i << "] is in bin " << binindex << " and is on ";
+              if(best_index < binindex) std::cout << "R subtree." << std::endl;
+              else std::cout << "L subtree." << std::endl;
+             }
+          std::cout << std::endl;
+         }
+
+       // sort index buffer
+       unsigned int L_count = 0;
+       unsigned int L_pivot = face_index[0];
+       unsigned int R_pivot = face_index[1] - 1;
+
+       // stop when L_count matches with the number of faces on the L-side
+       while(L_count < NL[best_index])
+            {
+             // bin for L_pivot is on R-side
+             unsigned int i = BIN_INDEX_FROM_FACE(L_pivot);
+             if(best_index < i)
+               {
+                for(;;)
+                   {
+                    // bin for R_pivot is on R-side (just move R_pivot over)
+                    unsigned int j = BIN_INDEX_FROM_FACE(R_pivot);
+                    if(best_index < j) R_pivot--;
+                    // bin for R_pivot is on L-side
+                    else
+                      {
+                       // swap faces
+                       unsigned int L_face = 3*L_pivot;
+                       unsigned int R_face = 3*R_pivot;
+                       std::swap(faces[L_face++], faces[R_face++]);
+                       std::swap(faces[L_face++], faces[R_face++]);
+                       std::swap(faces[L_face], faces[R_face]);
+                       // swap per-face centroids
+                       std::swap(clist[L_pivot][0], clist[R_pivot][0]);
+                       std::swap(clist[L_pivot][1], clist[R_pivot][1]);
+                       std::swap(clist[L_pivot][2], clist[R_pivot][2]);
+                       // swap per-face AABBs
+                       std::swap(blist[L_pivot], blist[R_pivot]);
+                       // move pivots
+                       L_pivot++;
+                       R_pivot--;
+                       L_count++;
+                       break;
+                      }
+                   }
+               }
+             // bin for L_pivot is on L-side (just move L_pivot over)
+             else {
+                L_pivot++;
+                L_count++;
+               }
+            }
+
+       // display after sorting
+       if(debug) {
+          std::cout << "POST-SORT ASSIGNMENT" << std::endl;
+          for(unsigned int i = face_index[0]; i < face_index[1]; i++) {
+              unsigned int binindex = BIN_INDEX_FROM_FACE(i);
+              std::cout << "face[" << i << "] is in bin " << binindex << " and is on ";
+              if(best_index < binindex) std::cout << "R subtree." << std::endl;
+              else std::cout << "L subtree." << std::endl;
+             }
+          std::cout << std::endl;
+         }
       }
-
-/*
-     int best_d = std::abs(R_count - L_count);
-     int best_i = 0;
-     for(int i = 1; i < n_bin; i++) {
-         L_count += bin[i];
-         R_count -= bin[i];
-         int difference = std::abs(R_count - L_count);
-         if(difference < best_d) {
-            best_d = difference;
-            best_i = i;
-           }
-         std::cout << "L_count[" << i << "] = " << L_count << std::endl;
-         std::cout << "R_count[" << i << "] = " << R_count << std::endl;
-        }
-     std::cout << "best_D = " << best_d << std::endl;
-     std::cout << "best_I (bin index) = " << best_i << std::endl;
-     std::cout << std::endl;
-
-     // keep track of exact bounds for each bin
-     // later on, when we count triangles in each bin, these values will be adjusted
-     float L_min_bin[3];
-     float L_max_bin[3];
-     L_min_bin[0] = max_b[0]; L_min_bin[1] = max_b[1]; L_min_bin[2] = max_b[2];
-     L_max_bin[0] = min_b[0]; L_max_bin[1] = min_b[1]; L_max_bin[2] = min_b[2];
-
-     // partition face centroids into bins
-     for(size_t i = 0; i < n_faces; i++)
-        {
-         float a = split_v[0];
-         float b = split_v[best_i + 1];
-         if(centroid[i][dominant] >= a && centroid[i][dominant] <= b) {
-            if(min_face[i][0] < L_min_bin[0]) L_min_bin[0] = min_face[i][0]; if(max_face[i][0] > L_max_bin[0]) L_max_bin[0] = max_face[i][0];
-            if(min_face[i][1] < L_min_bin[1]) L_min_bin[1] = min_face[i][1]; if(max_face[i][1] > L_max_bin[1]) L_max_bin[1] = max_face[i][1];
-            if(min_face[i][2] < L_min_bin[2]) L_min_bin[2] = min_face[i][2]; if(max_face[i][2] > L_max_bin[2]) L_max_bin[2] = max_face[i][2];
-           }
-        }
-
-     // child[L]:
-     // <x[min], y[min], z[min]> one axis will be min
-     // <x[max], y[max], z[max]>                  mid
-     AABB_minmax L;
-     if(dominant == 0) {
-        L.a[0] = L_min_bin[0];
-        L.a[1] = L_min_bin[1];
-        L.a[2] = L_min_bin[2];
-        L.b[0] = L_max_bin[0];
-        L.b[1] = L_max_bin[1];
-        L.b[2] = L_max_bin[2];
-       }
-     if(debug) StreamToOBJ(ofile, L, vb_base);
-
-     AABB_minmax R;
-
-     // x[min], y[min], z[min] refer to min_face[0][X], min_face[0][Y], and min_face[0][Z]
-     // x[max], y[max], z[max] refer to max_face[0][X], max_face[0][Y], and max_face[0][Z]
-     // x[mid], y[mid], z[mid] refer to
-     //   min_face[best_i[X]], min_face[best_i[Y]], and min_face[best_i[Z]] for R-side
-     //   max_face[best_i[X]], max_face[best_i[Y]], and max_face[best_i[Z]] for L-side
-     //   x[min] to x[mid] is L-side (for example)
-     //   x[mid] to x[max] is R-side (for example)
-
-     // child[0]: R L R
-     // <x[mid], y[min], z[mid]>
-     // <x[max], y[mid], z[max]>
-     AABB_minmax child;
-     child.a[0] = min_bin[best_i[0]][0];
-     child.a[1] = min_bin[0][1];
-     child.a[2] = min_bin[best_i[2]][2];
-     child.b[0] = max_bin[n_bin - 1][0];
-     child.b[1] = max_bin[best_i[1]][1];
-     child.b[2] = max_bin[n_bin - 1][2];
-     if(debug) StreamToOBJ(ofile, child, vb_base);
-
-
-     // now that we have our split point, we can partition
-     // the AABB into eight parts
-     float split_point[3] = {
-      split_v[best_i[0] + 1][0],
-      split_v[best_i[1] + 1][1],
-      split_v[best_i[2] + 1][2],
-     };
-
-     std::cout << "split point = " << std::endl;
-     std::cout << split_point[0] << ", " << split_point[1] << ", " << split_point[2] << std::endl;
-
-     //
-     if(debug) {
-        // split X-axis
-        float X[4][3] = {
-         {
-          split_point[0],    // split x
-          curr->volume.b[1], // +y
-          curr->volume.a[2], // -z
-         },
-         {
-          split_point[0],    // split x
-          curr->volume.a[1], // -y
-          curr->volume.a[2], // -z
-         },
-         {
-          split_point[0],    // split x
-          curr->volume.a[1], // -y
-          curr->volume.b[2], // +z
-         },
-         {
-          split_point[0],    // split x
-          curr->volume.b[1], // +y
-          curr->volume.b[2], // +z
-         },
-        };
-        ofile << "v " << X[0][0] << " " << X[0][1] << " " << -X[0][2] << endl;
-        ofile << "v " << X[1][0] << " " << X[1][1] << " " << -X[1][2] << endl;
-        ofile << "v " << X[2][0] << " " << X[2][1] << " " << -X[2][2] << endl;
-        ofile << "v " << X[3][0] << " " << X[3][1] << " " << -X[3][2] << endl;
-        int start = vb_base + 1;
-        ofile << "f " << (start + 0) << " " << (start + 1) << " " << (start + 2) << " " << (start + 3) << endl;
-        vb_base += 4;
-
-        // split Y-axis
-        float Y[4][3] = {
-         {
-          curr->volume.b[0], // +x
-          split_point[1],    // split y
-          curr->volume.a[2], // -z
-         },
-         {
-          curr->volume.a[0], // -x
-          split_point[1], // split y
-          curr->volume.a[2], // -z
-         },
-         {
-          curr->volume.a[0], // -x
-          split_point[1], // split y
-          curr->volume.b[2], // +z
-         },
-         {
-          curr->volume.b[0], // +x
-          split_point[1], // split y
-          curr->volume.b[2], // +z
-         },
-        };
-        ofile << "v " << Y[0][0] << " " << Y[0][1] << " " << -Y[0][2] << endl;
-        ofile << "v " << Y[1][0] << " " << Y[1][1] << " " << -Y[1][2] << endl;
-        ofile << "v " << Y[2][0] << " " << Y[2][1] << " " << -Y[2][2] << endl;
-        ofile << "v " << Y[3][0] << " " << Y[3][1] << " " << -Y[3][2] << endl;
-        start = vb_base + 1;
-        ofile << "f " << (start + 0) << " " << (start + 1) << " " << (start + 2) << " " << (start + 3) << endl;
-        vb_base += 4;
-
-        // split Z-axis
-        float p[4][3] = {
-         {
-          curr->volume.b[0], // +x
-          curr->volume.a[1], // -y
-          split_point[2]     // split z
-         },
-         {
-          curr->volume.a[0], // -x
-          curr->volume.a[1], // -y
-          split_point[2]     // split z
-         },
-         {
-          curr->volume.a[0], // -x
-          curr->volume.b[1], // +y
-          split_point[2]     // split z
-         },
-         {
-          curr->volume.b[0], // +x
-          curr->volume.b[1], // +y
-          split_point[2]     // split z
-         },
-        };
-        ofile << "v " << p[0][0] << " " << p[0][1] << " " << -p[0][2] << endl;
-        ofile << "v " << p[1][0] << " " << p[1][1] << " " << -p[1][2] << endl;
-        ofile << "v " << p[2][0] << " " << p[2][1] << " " << -p[2][2] << endl;
-        ofile << "v " << p[3][0] << " " << p[3][1] << " " << -p[3][2] << endl;
-        start = vb_base + 1;
-        ofile << "f " << (start + 0) << " " << (start + 1) << " " << (start + 2) << " " << (start + 3) << endl;
-        vb_base += 4;
-       }
-    }
-*/
 }
 
 void boxtree::clear()
