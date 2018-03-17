@@ -1,5 +1,6 @@
 #include<iostream>
 #include<fstream>
+#include<vector>
 #include<cmath>
 #include<memory>
 
@@ -164,38 +165,23 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
  //
  // PHASE #1
  // CONSTRUCT PER-FACE DATA
- // For each triangle, compute its centroid and its min-max AABB. The centroid
+ // For each triangle, compute its min-max AABB and its centroid. The centroid
  // is used to place triangles into bins and the AABBs are used "loosen" boxes
  // so that they enclose all of their binned triangles.
  //
 
  // temporary per-face data
- std::unique_ptr<vector3D[]> min_face(new vector3D[n_faces]);
- std::unique_ptr<vector3D[]> max_face(new vector3D[n_faces]);
- std::unique_ptr<vector3D[]> centroid(new vector3D[n_faces]);
+ std::unique_ptr<AABB_minmax[]> blist(new AABB_minmax[n_faces]);
+ std::unique_ptr<vector3D[]> clist(new vector3D[n_faces]);
 
  // compute per-face data
  size_t vindex = 0;
- for(size_t i = 0; i < n_faces; i++)
-    {
-     // centroids
+ for(size_t i = 0; i < n_faces; i++) {
      vector3D v1 = verts[faces[vindex++]];
      vector3D v2 = verts[faces[vindex++]];
      vector3D v3 = verts[faces[vindex++]];
-     centroid[i] = triangle_centroid(v1, v2, v3);
-
-     // AABBs (compare v1)
-     min_face[i][0] = max_face[i][0] = v1[0];
-     min_face[i][1] = max_face[i][1] = v1[1];
-     min_face[i][2] = max_face[i][2] = v1[2];
-     // compare v2
-     if(v2[0] < min_face[i][0]) min_face[i][0] = v2[0]; else if(max_face[i][0] < v2[0]) max_face[i][0] = v2[0];
-     if(v2[1] < min_face[i][1]) min_face[i][1] = v2[1]; else if(max_face[i][1] < v2[1]) max_face[i][1] = v2[1];
-     if(v2[2] < min_face[i][2]) min_face[i][2] = v2[2]; else if(max_face[i][2] < v2[2]) max_face[i][2] = v2[2];
-     // compare v3
-     if(v3[0] < min_face[i][0]) min_face[i][0] = v3[0]; else if(max_face[i][0] < v3[0]) max_face[i][0] = v3[0];
-     if(v3[1] < min_face[i][1]) min_face[i][1] = v3[1]; else if(max_face[i][1] < v3[1]) max_face[i][1] = v3[1];
-     if(v3[2] < min_face[i][2]) min_face[i][2] = v3[2]; else if(max_face[i][2] < v3[2]) max_face[i][2] = v3[2];
+     blist[i].from(v1.v, v2.v, v3.v);
+     centroid(blist[i], clist[i].v);
     }
 
  // debug
@@ -217,22 +203,27 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
 
     // output centroids
     for(size_t i = 0; i < n_faces; i++)
-        ofile << "v " << centroid[i][0] << " " << centroid[i][1] << " " << -centroid[i][2] << endl;        
+        ofile << "v " << clist[i][0] << " " << clist[i][1] << " " << -clist[i][2] << endl;        
     vb_base += n_faces;
 
     // output boxes
-    for(size_t i = 0; i < n_faces; i++) {
-        AABB_minmax box;
-        box.a[0] = min_face[i][0];
-        box.a[1] = min_face[i][1];
-        box.a[2] = min_face[i][2];
-        box.b[0] = max_face[i][0];
-        box.b[1] = max_face[i][1];
-        box.b[2] = max_face[i][2];
-        StreamToOBJ(ofile, box, vb_base);
-       }
+    for(size_t i = 0; i < n_faces; i++)
+        StreamToOBJ(ofile, blist[i], vb_base);
    }
 
+ // start with first mesh that has faces
+ struct BVHSTACKITEM {
+  unsigned int tree_index;
+  unsigned int face_index[2];
+ };
+ std::vector<BVHSTACKITEM> stack;
+ stack.push_front(BVHSTACKITEM());
+ stack.front().tree_index = 0;
+ stack.front().face_index[0] = 0;
+ stack.front().face_index[1] = mesh.n_face;
+
+
+/*
  //
  // PHASE #2
  // DEFINE ROOT NODE MIN-MAX AABB
@@ -409,7 +400,6 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
 
      AABB_minmax R;
 
-/*
      // x[min], y[min], z[min] refer to min_face[0][X], min_face[0][Y], and min_face[0][Z]
      // x[max], y[max], z[max] refer to max_face[0][X], max_face[0][Y], and max_face[0][Z]
      // x[mid], y[mid], z[mid] refer to
@@ -537,8 +527,8 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
         ofile << "f " << (start + 0) << " " << (start + 1) << " " << (start + 2) << " " << (start + 3) << endl;
         vb_base += 4;
        }
-*/
     }
+*/
 }
 
 void boxtree::clear()
