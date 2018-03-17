@@ -33,15 +33,6 @@ inline void StreamToOBJ(std::ostream& os, const AABB_minmax& box, int& base)
  base += 8;
 }
 
-inline vector3D triangle_centroid(const vector3D& v1, const vector3D& v2, const vector3D& v3)
-{
- vector3D rv;
- rv[0] = (v1[0] + v2[0] + v3[0])*0.333333333333f;
- rv[1] = (v1[1] + v2[1] + v3[1])*0.333333333333f;
- rv[2] = (v1[2] + v2[2] + v3[2])*0.333333333333f;
- return rv;
-}
-
 class boxtree {
  private :
   static const int n_bins = 8;
@@ -266,8 +257,8 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, unsigned int* fac
 
        // debug: display triangle and centroid bounds
        if(debug) {
-          StreamToOBJ(ofile, tbounds, vb_base);
-          StreamToOBJ(ofile, cbounds, vb_base);
+          //StreamToOBJ(ofile, tbounds, vb_base);
+          //StreamToOBJ(ofile, cbounds, vb_base);
          }
 
        //
@@ -505,6 +496,49 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, unsigned int* fac
              }
           std::cout << std::endl;
          }
+
+       //
+       // STEP #7
+       // DIVIDE AND CONQUER
+       //
+
+       auto BIN_LIMIT_TEST = [](unsigned int a) { return (a < 2ul); };
+
+       // this node
+       tree[tree_index].aabb = tbounds;
+       tree[tree_index].params[0] = tree.size();
+       tree[tree_index].params[1] = tree.size() + 1;
+
+       // L = leaf
+       tree.push_back(AABB_node());
+       if(BIN_LIMIT_TEST(NL[best_index])) {
+          tree.back().params[0] = (face_index[0] | 0x80000000ul);
+          tree.back().params[1] = NL[best_index];
+          tree.back().aabb.from(BL[best_index]);
+         }
+       // L = node
+       else {
+          stack.push_front(BVHSTACKITEM());
+          stack.front().tree_index = tree[tree_index].params[0];
+          stack.front().face_index[0] = face_index[0];
+          stack.front().face_index[1] = face_index[0] + L_count;
+         }
+
+         // R = leaf
+         tree.push_back(AABB_node());
+         if(BIN_LIMIT_TEST(NR[best_index])) {
+            unsigned int pivot = face_index[0] + L_count;
+            tree.back().params[0] = (pivot | 0x80000000ul);
+            tree.back().params[1] = NR[best_index];
+            tree.back().aabb.from(BR[best_index]);
+           }
+         // R = node
+         else {
+            stack.push_front(BVHSTACKITEM());
+            stack.front().tree_index = tree[tree_index].params[1];
+            stack.front().face_index[0] = face_index[0] + L_count;
+            stack.front().face_index[1] = face_index[1];
+           }
       }
 }
 

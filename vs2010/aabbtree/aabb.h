@@ -47,6 +47,7 @@ struct AABB_minmax {
   void from(const vector3D& A);
   void from(const vector3D& A, const vector3D& B);
   void from(const vector3D& A, const vector3D& B, const vector3D& C);
+  void from(const AABB_minmax& A);
   void from(const AABB_minmax& A, const AABB_minmax& B);
 
  //
@@ -265,6 +266,18 @@ inline void AABB_minmax::from(const vector3D& A, const vector3D& B, const vector
  if(C[0] < a[0]) a[0] = C[0]; else if(b[0] < C[0]) b[0] = C[0];
  if(C[1] < a[1]) a[1] = C[1]; else if(b[1] < C[1]) b[1] = C[1];
  if(C[2] < a[2]) a[2] = C[2]; else if(b[2] < C[2]) b[2] = C[2];
+}
+
+inline void AABB_minmax::from(const AABB_minmax& A)
+{
+ // set min (copy)
+ a[0] = A.a[0];
+ a[1] = A.a[1];
+ a[2] = A.a[2];
+ // set max (copy)
+ b[0] = A.b[0];
+ b[1] = A.b[1];
+ b[2] = A.b[2];
 }
 
 inline void AABB_minmax::from(const AABB_minmax& A, const AABB_minmax& B)
