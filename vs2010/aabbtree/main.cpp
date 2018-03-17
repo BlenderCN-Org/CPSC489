@@ -45,7 +45,7 @@ inline vector3D triangle_centroid(const vector3D& v1, const vector3D& v2, const 
 class boxtree {
  private :
   static const int n_bins = 8;
-  static const int n_split = n_bins + 1;
+  static const int n_part = n_bins - 1;
  private :
   struct node {
    AABB_minmax volume;
@@ -154,6 +154,13 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
  // per-bin data
  AABB_minmax binlist[n_bins];
  unsigned int bintris[n_bins];
+
+ // per-partition data
+ float costs[n_part];
+ unsigned int NL[n_part];
+ unsigned int NR[n_part];
+ AABB_minmax BL[n_part];
+ AABB_minmax BR[n_part];
 
  //
  // PHASE #1
@@ -335,135 +342,94 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, const unsigned in
        // initialize per-bin data
        for(unsigned int i = 0; i < n_bins; i++) {
            bintris[i] = 0;
-           //binlist[i].from(MAXVALUE, MINVALUE);
+           binlist[i].from(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest());
           }
+
+       // count number of triangles in bins and grow the bin AABBs to fit the triangles that are in each bin
+       for(unsigned int i = face_index[0]; i < face_index[1]; i++) {
+           unsigned int binindex = static_cast<unsigned int>(k1*(clist[i][axis] - k0));
+           bintris[binindex]++;
+           binlist[binindex].grow(blist[i]);
+          }
+
+       //
+       // STEP #5
+       // PARTITIONING
+       //
+
+       //  bin:   0     1     2     3     4     5     6     7     8
+       // axis: 1.7 - 2.5 - 3.3 - 4.1 - 4.9 - 5.7 - 6.5 - 7.3 - 8.1
+
+       // there are n_bins - 1 cases we need to think about
+       // L part[0]: bin 0         - AND - R part[0]: bin 1 - bin 7
+       // L part[1]: bin 0 - bin 1 - AND - R part[1]: bin 2 - bin 7
+       // L part[2]: bin 0 - bin 2 - AND - R part[2]: bin 3 - bin 7
+       // L part[3]: bin 0 - bin 3 - AND - R part[3]: bin 4 - bin 7
+       // L part[4]: bin 0 - bin 4 - AND - R part[4]: bin 5 - bin 7
+       // L part[5]: bin 0 - bin 5 - AND - R part[5]: bin 6 - bin 7
+       // L part[6]: bin 0 - bin 6 - AND - R part[6]: bin 7
+
+       // L-side computation
+       NL[0] = bintris[0];
+       BL[0] = binlist[0];
+       for(unsigned int i = 1; i < n_part; i++) {
+           NL[i] = NL[i - 1] + bintris[i];
+           BL[i].from(BL[i - 1], binlist[i]);
+          }
+
+       // R-side computation
+       unsigned int j = n_part - 1;
+       unsigned int k = n_part;
+       NR[j] = bintris[k];
+       BR[j] = binlist[k];
+       for(unsigned int i = 1; i < n_part; i++) {
+           j--;
+           k--;           
+           NR[j] = NR[k] + bintris[k];
+           BR[j].from(BR[k], binlist[k]);
+          }
+
+       // if unrolling loops and hardcoding bins
+       // NR[6] = bintris[7];
+       // BR[6] = binlist[7];
+       // NR[5] = NR[6] + bintris[6]; BR[5].from(BR[6], binlist[6]);
+       // NR[4] = NR[5] + bintris[5]; BR[4].from(BR[5], binlist[5]);
+       // NR[3] = NR[4] + bintris[4]; BR[3].from(BR[4], binlist[4]);
+       // NR[2] = NR[3] + bintris[3]; BR[2].from(BR[3], binlist[3]);
+       // NR[1] = NR[2] + bintris[2]; BR[1].from(BR[2], binlist[2]);
+       // NR[0] = NR[1] + bintris[1]; BR[0].from(BR[1], binlist[1]);
+
+       // compute index of best partition
+       unsigned int best_index = 0;
+       costs[0] = NL[0]*half_surface_area(BL[0]) + NR[0]*half_surface_area(BR[0]);
+       for(unsigned int i = 1; i < n_part; i++) {
+           costs[i] = NL[i]*half_surface_area(BL[i]) + NR[i]*half_surface_area(BR[i]);
+           if(costs[i] < costs[best_index]) best_index = i;
+          }
+
+       std::cout << "SURFACE AREA HEURISTIC INFORMATION" << std::endl;
+       std::cout << "best index = " << best_index << std::endl;
+       for(size_t i = 0; i < n_part; i++) {
+           std::cout << "PARTITION[" << i << "]" << std::endl;
+           float AL = half_surface_area(BL[i]);
+           float AR = half_surface_area(BR[i]);
+           std::cout << "NL[" << i << "] = " << NL[i] << std::endl;
+           std::cout << "NR[" << i << "] = " << NR[i] << std::endl;
+           std::cout << "BL[" << i << "] = " << BL[i] << std::endl;
+           std::cout << "BR[" << i << "] = " << BR[i] << std::endl;
+           std::cout << "AL[" << i << "] = " << AL << std::endl;
+           std::cout << "AR[" << i << "] = " << AR << std::endl;
+           std::cout << "costs[" << i << "] = " << costs[i] << std::endl;
+           std::cout << std::endl;
+          }
+
+       if(debug) {
+          StreamToOBJ(ofile, BL[best_index], vb_base);
+          StreamToOBJ(ofile, BR[best_index], vb_base);
+         }
       }
 
 /*
- //
- // PHASE #2
- // DEFINE ROOT NODE MIN-MAX AABB
- //
-
- // compute min-max bounds
- float min_b[3] = { verts[0][0], verts[0][1], verts[0][2] };
- float max_b[3] = { verts[0][0], verts[0][1], verts[0][2] };
- for(size_t i = 1; i < n_verts; i++) {
-     // min bounds
-     if(verts[i][0] < min_b[0]) min_b[0] = verts[i][0];
-     if(verts[i][1] < min_b[1]) min_b[1] = verts[i][1];
-     if(verts[i][2] < min_b[2]) min_b[2] = verts[i][2];
-     // max bounds
-     if(max_b[0] < verts[i][0]) max_b[0] = verts[i][0];
-     if(max_b[1] < verts[i][1]) max_b[1] = verts[i][1];
-     if(max_b[2] < verts[i][2]) max_b[2] = verts[i][2];
-    }
-
- // define root node
- root = std::unique_ptr<node>(new node);
- root->volume.a[0] = min_b[0];
- root->volume.a[1] = min_b[1];
- root->volume.a[2] = min_b[2];
- root->volume.b[0] = max_b[0];
- root->volume.b[1] = max_b[1];
- root->volume.b[2] = max_b[2];
- //if(debug) StreamToOBJ(ofile, root->volume, vb_base);
-
- // determine most-dominant axis
- float dv[3] = {
-  root->volume.b[0] - root->volume.a[0],
-  root->volume.b[1] - root->volume.a[1],
-  root->volume.b[2] - root->volume.a[2]
- };
- int dominant = 0;
- if(dv[0] < dv[1]) {
-    if(dv[1] < dv[2]) dominant = 2;
-    else dominant = 1;
-   }
- else if(dv[0] < dv[2])
-    dominant = 2;
-
- std::cout << "DOMINANT AXIS:" << std::endl;
- std::cout << "dv[x] = " << dv[0] << std::endl;
- std::cout << "dv[y] = " << dv[1] << std::endl;
- std::cout << "dv[z] = " << dv[2] << std::endl;
- std::cout << std::endl;
-
- //
- // PHASE #3
- // SUBDIVIDE
- //
-
- // loop to split
- node* curr = root.get();
- // for(;;)
-    {
-     //
-     // PHASE #3A
-     // DIVIDE DOMINANT AXIS INTO "X" NUMBER OF EVENLY-SPACED BINS
-     //
-
-     // split[0] = <1.3000, 0.1, 1.3> // AABB min
-     // split[1] = <2.1875, 0.4, 2.1>
-     // split[2] = <3.0750, 0.7, 2.9>
-     // split[3] = <3.9625, 1.0, 3.7>
-     // split[4] = <4.8500, 1.3, 4.5>
-     // split[5] = <5.7375, 1.6, 5.3>
-     // split[6] = <6.6250, 1.9, 6.1>
-     // split[7] = <7.5125, 2.2, 6.9>
-     // split[8] = <8.4000, 2.5, 7.7> // AABB max
-
-     // define split intervals
-     const float bin_dv = dv[dominant]/n_bin;
-     float split_v[n_split];
-     for(int i = 0; i < n_split; i++) {
-         split_v[i] = curr->volume.a[dominant] + i*bin_dv;
-         std::cout << split_v[i] << std::endl;
-        }
-
-     //
-     // PHASE #3B
-     // COUNT NUMBER OF TRIANGLES IN EACH BIN
-     // When a triangle is placed in a bin, make sure to check to see if this
-     // triangle crosses over into another bin. If it does, we need to extend
-     // the bin's dimensions.
-     //
-
-     // keep track of number of faces in each bin
-     int bin[n_bin];
-     for(size_t i = 0; i < n_bin; i++) bin[i] = 0;
-
-     // partition face centroids into bins
-     for(size_t i = 0; i < n_faces; i++) {
-         // split dominant axis
-         for(int j = 0; j < n_bin; j++) {
-             float a = split_v[j];
-             float b = split_v[j + 1];
-             if(centroid[i][dominant] >= a && centroid[i][dominant] <= b) {
-                bin[j]++;
-                break;
-               }
-            }
-        }
-
-     //
-     // PHASE #3C
-     // DETERMINE BEST SPLIT FOR EACH AXIS
-     //
-
-     // BIN    [0]       [1]       [2]       [3]       [4]       [5]       [6]       [7]
-     // L = <2, 1, 0> <3, 1, 2> <4, 3, 3> <5, 6, 5> <6, 7, 6> <6, 7, 7> <7, 7, 7> <8, 8, 8>
-     // R = <6, 7, 8> <5, 7, 6> <4, 5, 5> <3, 2, 3> <2, 1, 2> <2, 1, 1> <1, 1, 1> <0, 0, 0>
-     // D = <4, 6, 8> <2, 6, 4> <0, 2, 2> <2, 4, 2> <4, 6, 4> <4, 6, 6> <6, 6, 6> <8, 8, 8>
-     // B =                      X  Y  Z
-
-     // determine best axes split
-     int L_count = bin[0];
-     int R_count = n_faces - bin[0];
-     std::cout << "SPLITTING INTO BINS" << std::endl;
-     std::cout << "L_count[i] = " << L_count << std::endl;
-     std::cout << "R_count[i] = " << R_count << std::endl;
-
      int best_d = std::abs(R_count - L_count);
      int best_i = 0;
      for(int i = 1; i < n_bin; i++) {

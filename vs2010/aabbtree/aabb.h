@@ -47,6 +47,7 @@ struct AABB_minmax {
   void from(const vector3D& A);
   void from(const vector3D& A, const vector3D& B);
   void from(const vector3D& A, const vector3D& B, const vector3D& C);
+  void from(const AABB_minmax& A, const AABB_minmax& B);
 
  //
  // CONTRACTION/EXPANSION
@@ -195,14 +196,8 @@ inline void AABB_minmax::from(float a)
 
 inline void AABB_minmax::from(float a, float b)
 {
- if(a < b) {
-    this->a[0] = this->a[1] = this->a[2] = a;
-    this->b[0] = this->b[1] = this->b[2] = b;
-   }
- else {
-    this->a[0] = this->a[1] = this->a[2] = b;
-    this->b[0] = this->b[1] = this->b[2] = a;
-   }
+ this->a[0] = this->a[1] = this->a[2] = a;
+ this->b[0] = this->b[1] = this->b[2] = b;
 }
 
 inline void AABB_minmax::from(float x1, float y1, float z1, float x2, float y2, float z2)
@@ -270,6 +265,18 @@ inline void AABB_minmax::from(const vector3D& A, const vector3D& B, const vector
  if(C[0] < a[0]) a[0] = C[0]; else if(b[0] < C[0]) b[0] = C[0];
  if(C[1] < a[1]) a[1] = C[1]; else if(b[1] < C[1]) b[1] = C[1];
  if(C[2] < a[2]) a[2] = C[2]; else if(b[2] < C[2]) b[2] = C[2];
+}
+
+inline void AABB_minmax::from(const AABB_minmax& A, const AABB_minmax& B)
+{
+ // compare minimums
+ if(A.a[0] < B.a[0]) a[0] = A.a[0]; else a[0] = B.a[0];
+ if(A.a[1] < B.a[1]) a[1] = A.a[1]; else a[1] = B.a[1];
+ if(A.a[2] < B.a[2]) a[2] = A.a[2]; else a[2] = B.a[2];
+ // compare maximums
+ if(A.b[0] < B.b[0]) b[0] = B.b[0]; else b[0] = A.b[0];
+ if(A.b[1] < B.b[1]) b[1] = B.b[1]; else b[1] = A.b[1];
+ if(A.b[2] < B.b[2]) b[2] = B.b[2]; else b[2] = A.b[2];
 }
 
 //
