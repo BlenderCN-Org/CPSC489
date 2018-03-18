@@ -173,6 +173,9 @@
     <ClCompile Include="testing\t_aabb.cpp">
       <Filter>Source Files\Testing</Filter>
     </ClCompile>
+    <ClCompile Include="sphere3.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -309,6 +312,9 @@
     </ClInclude>
     <ClInclude Include="testing\t_aabb.h">
       <Filter>Source Files\Testing</Filter>
+    </ClInclude>
+    <ClInclude Include="sphere3.h">
+      <Filter>Source Files\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

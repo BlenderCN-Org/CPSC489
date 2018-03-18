@@ -1,46 +1,8 @@
-#ifndef __CS_COLLISION_H
-#define __CS_COLLISION_H
+#ifndef __CS489_COLLISION_H
+#define __CS489_COLLISION_H
 
-// AABB
-#pragma region AABB
-
-struct alignas(16) AABB_halfdim {
- float center[4];
- float widths[4];
-};
-
-inline void load_unit(AABB_halfdim& b)
-{
- b.center[0] = 0.0f;
- b.center[1] = 0.0f;
- b.center[2] = 0.0f;
- b.widths[0] = 1.0f;
- b.widths[1] = 1.0f;
- b.widths[2] = 1.0f;
-}
-
-inline void scale(AABB_halfdim& b, float value)
-{
- b.widths[0] *= value;
- b.widths[1] *= value;
- b.widths[2] *= value;
-}
-
-inline void scale(AABB_halfdim& b, const float* v)
-{
- b.widths[0] *= v[0];
- b.widths[1] *= v[1];
- b.widths[2] *= v[2];
-}
-
-inline void translate(AABB_halfdim& b, const float* v)
-{
- b.center[0] += v[0];
- b.center[1] += v[1];
- b.center[2] += v[2];
-}
-
-#pragma endregion AABB
+#include "aabb.h"
+#include "sphere3.h"
 
 // OBB
 #pragma region OBB

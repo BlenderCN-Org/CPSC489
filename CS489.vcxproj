@@ -195,6 +195,7 @@
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="sampler.cpp" />
     <ClCompile Include="shaders.cpp" />
+    <ClCompile Include="sphere3.cpp" />
     <ClCompile Include="stc.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="stdgfx.cpp" />
@@ -242,6 +243,7 @@
     <ClInclude Include="ray.h" />
     <ClInclude Include="sampler.h" />
     <ClInclude Include="shaders.h" />
+    <ClInclude Include="sphere3.h" />
     <ClInclude Include="stc.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="stdgfx.h" />
