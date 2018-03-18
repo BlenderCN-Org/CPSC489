@@ -11,7 +11,7 @@
 #include "../gfx.h"
 #include "../axes.h"
 #include "tests.h"
-#include "aabb.h"
+#include "t_aabb.h"
 
 struct AABB_halfdim {
  real32 position[4];
