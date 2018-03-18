@@ -10,5 +10,6 @@ ErrorCode RenderAxes(ID3D11Buffer* instance, UINT n);
 ErrorCode InitAABBModel(void);
 void FreeAABBModel(void);
 ErrorCode RenderAABB(ID3D11Buffer* instance, UINT n);
+ErrorCode RenderAABBMinMax(ID3D11Buffer* instance, UINT n);
 
 #endif

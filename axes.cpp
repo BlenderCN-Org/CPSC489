@@ -264,4 +264,43 @@ ErrorCode RenderAABB(ID3D11Buffer* instance, UINT n)
  return EC_SUCCESS;
 }
 
+ErrorCode RenderAABBMinMax(ID3D11Buffer* instance, UINT n)
+{
+/*
+ // must have instance buffer (OK if there is nothing to do)
+ if(!instance) return EC_SUCCESS;
+ if(!n) return EC_SUCCESS;
+
+ // must have device context
+ auto context = GetD3DDeviceContext();
+ if(!context) return EC_D3D_DEVICE_CONTEXT;
+
+ // two slots
+ UINT strides[2] = { BB_vb_stride, BB_id_stride };
+ UINT offsets[2] = { 0, 0 };
+ ID3D11Buffer* buffers[2] = { BB_vbuffer, instance };
+
+ // set input layout
+ ErrorCode code = SetInputLayout(IL_AABB_MINMAX);
+ if(Fail(code)) return code;
+
+ // set vertex shader
+ code = SetVertexShader(VS_AABB_MINMAX);
+ if(Fail(code)) return code;
+
+ // set pixel shader
+ code = SetPixelShader(PS_CONST_COLOR);
+ if(Fail(code)) return code;
+
+ // set input assembly
+ context->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+ context->IASetIndexBuffer(BB_ibuffer, DXGI_FORMAT_R16_UINT, 0);
+ context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+ // render
+ context->DrawIndexedInstanced(BB_indices, n, 0, 0, 0);
+*/
+ return EC_SUCCESS;
+}
+
 #pragma endregion AABB_FUNCTIONS

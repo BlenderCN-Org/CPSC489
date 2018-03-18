@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "bvh.h"
 
-void BVH::construct(const vector3D* verts, size_t n_verts, unsigned int* faces, size_t n_indices)
+void BVH::construct(const vector3D* verts, uint32 n_verts, unsigned int* faces, uint32 n_indices)
 {
  // binning example
  // dv = (max_v - min_v)/n_bin = (2*box_w)/n_bin

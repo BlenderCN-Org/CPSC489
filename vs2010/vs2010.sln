@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aabbtree", "aabbtree\aabbtr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rayAABB", "rayAABB\rayAABB.vcxproj", "{9A27A0F9-71D7-40A2-9656-5529F556596B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bonechar", "bonechar\bonechar.vcxproj", "{E683F03B-9602-4FC8-A082-4FA16D86EB8F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -31,6 +33,10 @@ Global
 		{9A27A0F9-71D7-40A2-9656-5529F556596B}.Debug|Win32.Build.0 = Debug|Win32
 		{9A27A0F9-71D7-40A2-9656-5529F556596B}.Release|Win32.ActiveCfg = Release|Win32
 		{9A27A0F9-71D7-40A2-9656-5529F556596B}.Release|Win32.Build.0 = Release|Win32
+		{E683F03B-9602-4FC8-A082-4FA16D86EB8F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E683F03B-9602-4FC8-A082-4FA16D86EB8F}.Debug|Win32.Build.0 = Debug|Win32
+		{E683F03B-9602-4FC8-A082-4FA16D86EB8F}.Release|Win32.ActiveCfg = Release|Win32
+		{E683F03B-9602-4FC8-A082-4FA16D86EB8F}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
