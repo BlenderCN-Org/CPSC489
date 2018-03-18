@@ -1,5 +1,8 @@
-#ifndef __CPSC489_RAY_H
-#define __CPSC489_RAY_H
+#ifndef __CS489_RAY_H
+#define __CS489_RAY_H
+
+#include "math.h"
+#include "vector3.h"
 
 #pragma region INTERSECTION_FUNCTIONS
 

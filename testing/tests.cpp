@@ -10,7 +10,7 @@
 #include "t_map.h"
 #include "t_portal.h"
 #include "sk_axes.h"
-#include "aabb.h"
+#include "t_aabb.h"
 
 typedef BOOL (*InitFunc)(void);
 typedef void (*FreeFunc)(void);

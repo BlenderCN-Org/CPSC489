@@ -167,11 +167,13 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="aabb.cpp" />
     <ClCompile Include="app.cpp" />
     <ClCompile Include="ascii.cpp" />
     <ClCompile Include="axes.cpp" />
     <ClCompile Include="blending.cpp" />
     <ClCompile Include="bmp.cpp" />
+    <ClCompile Include="bvh.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="collision.cpp" />
     <ClCompile Include="door.cpp" />
@@ -198,7 +200,7 @@
     <ClCompile Include="stdgfx.cpp" />
     <ClCompile Include="stdwin.cpp" />
     <ClCompile Include="stencil.cpp" />
-    <ClCompile Include="testing\aabb.cpp" />
+    <ClCompile Include="testing\t_aabb.cpp" />
     <ClCompile Include="testing\flyby.cpp" />
     <ClCompile Include="testing\sk_axes.cpp" />
     <ClCompile Include="testing\tests.cpp" />
@@ -212,11 +214,13 @@
     <ClCompile Include="xinput.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="aabb.h" />
     <ClInclude Include="app.h" />
     <ClInclude Include="ascii.h" />
     <ClInclude Include="axes.h" />
     <ClInclude Include="blending.h" />
     <ClInclude Include="bmp.h" />
+    <ClInclude Include="bvh.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="collision.h" />
     <ClInclude Include="door.h" />
@@ -244,7 +248,7 @@
     <ClInclude Include="stdres.h" />
     <ClInclude Include="stdwin.h" />
     <ClInclude Include="stencil.h" />
-    <ClInclude Include="testing\aabb.h" />
+    <ClInclude Include="testing\t_aabb.h" />
     <ClInclude Include="testing\flyby.h" />
     <ClInclude Include="testing\sk_axes.h" />
     <ClInclude Include="testing\tests.h" />

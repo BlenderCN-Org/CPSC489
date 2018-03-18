@@ -1,5 +1,8 @@
-#ifndef __CPSC489_MATRIX4_H
-#define __CPSC489_MATRIX4_H
+#ifndef __CS489_MATRIX4_H
+#define __CS489_MATRIX4_H
+
+#include "math.h"
+#include "vector3.h"
 
 class matrix4D;
 

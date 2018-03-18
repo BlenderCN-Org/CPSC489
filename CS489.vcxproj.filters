@@ -158,13 +158,19 @@
     <ClCompile Include="portal.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="testing\aabb.cpp">
-      <Filter>Source Files\Testing</Filter>
-    </ClCompile>
     <ClCompile Include="collision.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
     <ClCompile Include="testing\t_map.cpp">
+      <Filter>Source Files\Testing</Filter>
+    </ClCompile>
+    <ClCompile Include="bvh.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="aabb.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="testing\t_aabb.cpp">
       <Filter>Source Files\Testing</Filter>
     </ClCompile>
   </ItemGroup>
@@ -289,13 +295,19 @@
     <ClInclude Include="portal.h">
       <Filter>Source Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="testing\aabb.h">
-      <Filter>Source Files\Testing</Filter>
-    </ClInclude>
     <ClInclude Include="collision.h">
       <Filter>Source Files\Math</Filter>
     </ClInclude>
     <ClInclude Include="testing\t_map.h">
+      <Filter>Source Files\Testing</Filter>
+    </ClInclude>
+    <ClInclude Include="bvh.h">
+      <Filter>Source Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="aabb.h">
+      <Filter>Source Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="testing\t_aabb.h">
       <Filter>Source Files\Testing</Filter>
     </ClInclude>
   </ItemGroup>

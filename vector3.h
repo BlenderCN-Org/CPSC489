@@ -1,6 +1,8 @@
 #ifndef __CPSC489_VECTOR3_H
 #define __CPSC489_VECTOR3_H
 
+#include "math.h"
+
 #pragma region VECTOR3D_CLASS_DEFINITIONS
 
 // c_svector3D sv;

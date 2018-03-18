@@ -1,5 +1,5 @@
-#ifndef __CPSC489_MATH_H
-#define __CPSC489_MATH_H
+#ifndef __CS489_MATH_H
+#define __CS489_MATH_H
 
 // GENERAL FUNCTIONS
 #pragma region GENERAL_FUNCTIONS
