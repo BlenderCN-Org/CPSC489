@@ -33,6 +33,33 @@ inline void StreamToOBJ(std::ostream& os, const AABB_minmax& box, int& base)
  base += 8;
 }
 
+struct sphere3D {
+ float center[3];
+ float radius;
+};
+
+struct PointLinearCollisionTest {
+ // data
+ vector3D point; // point to test
+ vector3D D;     // direction point is moving
+ float t1;       // time interval
+ float t2;       // time interval
+ // results
+ bool collide;   // is there a collision
+ float t;        // time interval
+};
+
+struct SphereLinearCollisionTest {
+ // data
+ sphere3D S;     // sphere to test
+ vector3D D;     // direction point is moving
+ float t1;       // time interval
+ float t2;       // time interval
+ // results
+ bool collide;   // is there a collision
+ float t;        // time interval
+};
+
 class boxtree {
  private :
   static const int n_bins = 8;
@@ -47,6 +74,9 @@ class boxtree {
  public :
   void construct(const vector3D* verts, size_t n_verts, unsigned int* faces, size_t n_indices);
   void clear();
+ public :
+  void collide(PointLinearCollisionTest& info);
+  void collide(SphereLinearCollisionTest& info);
  public :
   boxtree& operator =(const boxtree& other);
   boxtree& operator =(boxtree&& other);
@@ -543,5 +573,22 @@ void boxtree::construct(const vector3D* verts, size_t n_verts, unsigned int* fac
 }
 
 void boxtree::clear()
+{
+}
+
+void boxtree::collide(PointLinearCollisionTest& info)
+{
+ // compute points along timeline
+ vector3D& p1 = info.point;
+ vector3D p2;
+ p2[0] = p1[0] + (info.t2 - info.t1)*info.D[0];
+ p2[1] = p1[1] + (info.t2 - info.t1)*info.D[1];
+ p2[2] = p1[2] + (info.t2 - info.t1)*info.D[2];
+
+
+
+}
+
+void boxtree::collide(SphereLinearCollisionTest& info)
 {
 }
