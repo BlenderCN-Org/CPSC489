@@ -26,6 +26,17 @@ Turntable camera system now fully working.<br />
 02/09/2018<br />
 Added developer menu.<br />
 Added skeleton axes test to developer menu.<br />
+Week 4:<br />
+02/12/2018<br />
+Week 5:<br />
+02/19/2018<br />
+Week 6:<br />
+02/26/2018<br />
+Week 7:<br />
+03/05/2018<br />
+Week 8:<br />
+03/12/2018<br />
+Week 9:<br />
 03/19/2018<br />
 Added a few intersection routines for points, spheres, AABBs, and OBBs.
 Added AABB bounding volume hierarchy class, bvh.h and bvh.cpp.

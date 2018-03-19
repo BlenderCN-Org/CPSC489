@@ -673,8 +673,8 @@ bool LoadArmature(const wchar_t* filename)
         float copy[n_verts][5];
         for(uint32 v = 0; v < n_verts; v++) {
             copy[v][0] =  vb[v][0];
-            copy[v][1] = -vb[v][2];
-            copy[v][2] =  vb[v][1];
+            copy[v][1] = -vb[v][2]; // swap y and z-axis and negate z-axis
+            copy[v][2] =  vb[v][1]; // since lightwave is LHCS
             copy[v][3] =  vb[v][3];
             copy[v][4] =  vb[v][4];
            }
