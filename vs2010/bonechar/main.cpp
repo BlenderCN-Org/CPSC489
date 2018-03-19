@@ -12,7 +12,8 @@ void SaveBoneData(void);
 
 int main()
 {
- cout << "OK" << endl;
+ CreateBoneData();
+ SaveBoneData();
  return -1;
 }
 
@@ -531,9 +532,9 @@ void CreateBoneData(void)
      int uv_c = ib2[i][2] - 1;
 
      // copy to vertex
-     vb1[vb_a][3] = vb2[uv_a][0]; vb1[vb_a][4] = vb2[uv_a][1];
-     vb1[vb_b][3] = vb2[uv_b][0]; vb1[vb_b][4] = vb2[uv_b][1];
-     vb1[vb_c][3] = vb2[uv_c][0]; vb1[vb_c][4] = vb2[uv_c][1];
+     ::vb[vb_a][3] = vb2[uv_a][0]; ::vb[vb_a][4] = vb2[uv_a][1];
+     ::vb[vb_b][3] = vb2[uv_b][0]; ::vb[vb_b][4] = vb2[uv_b][1];
+     ::vb[vb_c][3] = vb2[uv_c][0]; ::vb[vb_c][4] = vb2[uv_c][1];
     }
 }
 
