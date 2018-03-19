@@ -26,3 +26,8 @@ Turntable camera system now fully working.<br />
 02/09/2018<br />
 Added developer menu.<br />
 Added skeleton axes test to developer menu.<br />
+03/19/2018<br />
+Added a few intersection routines for points, spheres, AABBs, and OBBs.
+Added AABB bounding volume hierarchy class, bvh.h and bvh.cpp.
+Works but not implemented ingame yet.
+Added program and code to generate characters from skeletons.
