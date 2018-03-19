@@ -649,6 +649,15 @@ bool LoadArmature(const wchar_t* filename)
 
  ofstream ofile("output.obj");
  ofile << "o output.obj" << endl;
+ ofile << endl;
+
+ ofile << "mtllib output.mtl" << endl;
+
+ ofstream mfile("output.mtl");
+ for(uint32 i = 0; i < n_jnts; i++) {
+     mfile << "newmtl " << ConvertUTF16ToUTF8(joints[i].name.c_str()).c_str() << endl;
+     mfile << endl;
+    } 
 
  // process joints
  for(uint32 i = 0; i < n_jnts; i++)
@@ -706,7 +715,10 @@ bool LoadArmature(const wchar_t* filename)
         // UVs
         for(int v = 0; v < n_verts; v++)
             ofile << "vt " << vb[v][3] << " " << vb[v][4] << endl;
+
         // faces
+        ofile << "usemtl " << ConvertUTF16ToUTF8(joints[parent].name.c_str()).c_str() << endl;
+        ofile << "g " << ConvertUTF16ToUTF8(joints[parent].name.c_str()).c_str() << endl;
         for(int f = 0; f < n_faces; f++)
             ofile << "f " << (vbase + ib[f][0] + 1) << "/" << (vbase + ib[f][0] + 1) << " "
                           << (vbase + ib[f][1] + 1) << "/" << (vbase + ib[f][1] + 1) << " "
@@ -721,6 +733,8 @@ bool LoadArmature(const wchar_t* filename)
         ofile << "v " << joints[i].position[0] << " " << joints[i].position[1] << " " << joints[i].position[2] << endl;
         ofile << "vt 0 0" << endl;
         ofile << "vt 1 1" << endl;
+        ofile << "usemtl " << ConvertUTF16ToUTF8(joints[parent].name.c_str()).c_str() << endl;
+        ofile << "g " << ConvertUTF16ToUTF8(joints[parent].name.c_str()).c_str() << endl;
         ofile << "f " << (vbase + 1) << "/" << (vbase + 1) << " " << (vbase + 2) << "/" << (vbase + 2) << endl;
         vbase += 2;
        }

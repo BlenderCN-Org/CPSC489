@@ -1008,9 +1008,12 @@ ErrorCode MeshUTFInstance::Update(void)
                m = m * R;
 
                // translate
-               m[0x3] += T[0];
-               m[0x7] += T[1];
-               m[0xB] += T[2];
+               matrix4D V;
+               V.load_translation(T[0], T[1], T[2]);
+               m = V * m;
+               // m[0x3] += T[0];
+               // m[0x7] += T[1];
+               // m[0xB] += T[2];
 
                // set matrix
                jm[bi] = m * mesh->joints[bi].m_rel;

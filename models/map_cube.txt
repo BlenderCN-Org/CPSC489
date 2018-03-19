@@ -1,15 +1,16 @@
 1 # number of static models
 models\cube.txt
 
-1 # number of moving models
+2 # number of moving models
 models\door.txt
+models\boss.txt
 
 1 # number of static instances
 0               # model reference
 0.0 0.0 0.0     # position
 1.0 0.0 0.0 0.0 # quaternion
 
-8 # number of moving instances
+9 # number of moving instances
 0                   # model reference
 2.0 -8.0 0.0        # position
 0.707 0.0 0.0 0.707 # quaternion
@@ -33,6 +34,9 @@ models\door.txt
 1.0 0.0 0.0 0.0     # quaternion
 0                   # model reference
 0.0 -8.0 0.0        # position
+1.0 0.0 0.0 0.0     # quaternion
+1                   # model reference
+2.0 0.0 0.0         # position
 1.0 0.0 0.0 0.0     # quaternion
 
 8 # number of door controllers
