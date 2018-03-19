@@ -48,9 +48,9 @@ def MeshExporter():
     file.write("{} # number of meshes\n".format(len(bpy.data.meshes)))
             
     # export meshes
-    for obj in bpy.data.objects:
-         if obj.type == 'MESH':
-            ExportMesh(file, obj, obj.data, armature)
+    # for obj in bpy.data.objects:
+    #     if obj.type == 'MESH':
+    #        ExportMesh(file, obj, obj.data, armature)
     
     #close file
     file.close()

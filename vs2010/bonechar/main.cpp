@@ -1,5 +1,7 @@
 #include<shared/stdafx.h>
 #include<shared/ascii.h>
+#include<shared/vector3.h>
+#include<shared/matrix4.h>
 using namespace std;
 
 static const int n_verts = 125;
@@ -7,13 +9,40 @@ static const int n_faces = 128;
 static float vb[n_verts][5];
 static int ib[n_faces][3];
 
+struct MeshUTFJoint {
+ STDSTRINGW name;
+ uint32 parent;
+ real32 position[3];
+ matrix4D m;
+ matrix4D m_abs;
+};
+static std::vector<MeshUTFJoint> joints;
+static std::vector<uint32> childcount;
+
+//
+struct VERTEX {
+ float position[3];
+ float uv[2]; 
+};
+struct FACE {
+ uint16 data[3];
+};
+static vector<VERTEX> vdata;
+static vector<FACE> fdata;
+static uint32 vbase = 0;
+
 void CreateBoneData(void);
 void SaveBoneData(void);
+bool LoadArmature(const wchar_t* filename);
 
 int main()
 {
  CreateBoneData();
  SaveBoneData();
+ if(!LoadArmature(L"enemy.txt")) {
+    cout << "Failed to load armature." << endl;
+    return -1;
+   }
  return -1;
 }
 
@@ -148,106 +177,106 @@ void CreateBoneData(void)
   {  0.1250f, -0.1250f, -0.1250f },
  };
  float vb2[100][2] = {
-  { 0.013824f, 0.089976 },
-  { 0.013824f, 0.169776 },
-  { 0.013824f, 0.249576 },
-  { 0.013824f, 0.329376 },
-  { 0.013824f, 0.409176 },
-  { 0.033774f, 0.010176 },
-  { 0.033774f, 0.488976 },
-  { 0.053724f, 0.089976 },
-  { 0.053724f, 0.169776 },
-  { 0.053724f, 0.249576 },
-  { 0.053724f, 0.329376 },
-  { 0.053724f, 0.409176 },
-  { 0.073674f, 0.010176 },
-  { 0.073674f, 0.488976 },
-  { 0.093624f, 0.089976 },
-  { 0.093624f, 0.169776 },
-  { 0.093624f, 0.249576 },
-  { 0.093624f, 0.329376 },
-  { 0.093624f, 0.409176 },
-  { 0.113574f, 0.010176 },
-  { 0.113574f, 0.488976 },
-  { 0.133524f, 0.089976 },
-  { 0.133524f, 0.169776 },
-  { 0.133524f, 0.249576 },
-  { 0.133524f, 0.329376 },
-  { 0.133524f, 0.409176 },
-  { 0.153474f, 0.010176 },
-  { 0.153474f, 0.488976 },
-  { 0.173424f, 0.089976 },
-  { 0.173424f, 0.169776 },
-  { 0.173424f, 0.249576 },
-  { 0.173424f, 0.329376 },
-  { 0.173424f, 0.409176 },
-  { 0.193374f, 0.010176 },
-  { 0.193374f, 0.488976 },
-  { 0.213324f, 0.089976 },
-  { 0.213324f, 0.169776 },
-  { 0.213324f, 0.249576 },
-  { 0.213324f, 0.329376 },
-  { 0.213324f, 0.409176 },
-  { 0.233274f, 0.010176 },
-  { 0.233274f, 0.488976 },
-  { 0.253224f, 0.089976 },
-  { 0.253224f, 0.169776 },
-  { 0.253224f, 0.249576 },
-  { 0.253224f, 0.329376 },
-  { 0.253224f, 0.409176 },
-  { 0.273174f, 0.010176 },
-  { 0.273174f, 0.488976 },
-  { 0.293124f, 0.089976 },
-  { 0.293124f, 0.169776 },
-  { 0.293124f, 0.249576 },
-  { 0.293124f, 0.329376 },
-  { 0.293124f, 0.409176 },
-  { 0.313074f, 0.010176 },
-  { 0.313074f, 0.488976 },
-  { 0.333024f, 0.089976 },
-  { 0.333024f, 0.169776 },
-  { 0.333024f, 0.249576 },
-  { 0.333024f, 0.329376 },
-  { 0.333024f, 0.409176 },
-  { 0.352974f, 0.010176 },
-  { 0.352974f, 0.488976 },
-  { 0.372924f, 0.089976 },
-  { 0.372924f, 0.169776 },
-  { 0.372924f, 0.249576 },
-  { 0.372924f, 0.329376 },
-  { 0.372924f, 0.409176 },
-  { 0.392874f, 0.010176 },
-  { 0.392874f, 0.488976 },
-  { 0.412824f, 0.089976 },
-  { 0.412824f, 0.169776 },
-  { 0.412824f, 0.249576 },
-  { 0.412824f, 0.329376 },
-  { 0.412824f, 0.409176 },
-  { 0.432774f, 0.010176 },
-  { 0.432774f, 0.488976 },
-  { 0.452724f, 0.089976 },
-  { 0.452724f, 0.169776 },
-  { 0.452724f, 0.249576 },
-  { 0.452724f, 0.329376 },
-  { 0.452724f, 0.409176 },
-  { 0.472674f, 0.010176 },
-  { 0.472674f, 0.488976 },
-  { 0.492624f, 0.089976 },
-  { 0.492624f, 0.169776 },
-  { 0.492624f, 0.249576 },
-  { 0.492624f, 0.329376 },
-  { 0.492624f, 0.409176 },
-  { 0.493676f, 0.569720 },
-  { 0.609623f, 0.520123 },
-  { 0.677794f, 0.352530 },
-  { 0.677794f, 0.479049 },
-  { 0.735600f, 0.974835 },
-  { 0.736000f, 0.502500 },
-  { 0.741053f, 0.415789 },
-  { 0.804312f, 0.352530 },
-  { 0.804312f, 0.479049 },
-  { 0.863443f, 0.519719 },
-  { 0.980905f, 0.570125 },
+  { 0.013824f, 0.089976f },
+  { 0.013824f, 0.169776f },
+  { 0.013824f, 0.249576f },
+  { 0.013824f, 0.329376f },
+  { 0.013824f, 0.409176f },
+  { 0.033774f, 0.010176f },
+  { 0.033774f, 0.488976f },
+  { 0.053724f, 0.089976f },
+  { 0.053724f, 0.169776f },
+  { 0.053724f, 0.249576f },
+  { 0.053724f, 0.329376f },
+  { 0.053724f, 0.409176f },
+  { 0.073674f, 0.010176f },
+  { 0.073674f, 0.488976f },
+  { 0.093624f, 0.089976f },
+  { 0.093624f, 0.169776f },
+  { 0.093624f, 0.249576f },
+  { 0.093624f, 0.329376f },
+  { 0.093624f, 0.409176f },
+  { 0.113574f, 0.010176f },
+  { 0.113574f, 0.488976f },
+  { 0.133524f, 0.089976f },
+  { 0.133524f, 0.169776f },
+  { 0.133524f, 0.249576f },
+  { 0.133524f, 0.329376f },
+  { 0.133524f, 0.409176f },
+  { 0.153474f, 0.010176f },
+  { 0.153474f, 0.488976f },
+  { 0.173424f, 0.089976f },
+  { 0.173424f, 0.169776f },
+  { 0.173424f, 0.249576f },
+  { 0.173424f, 0.329376f },
+  { 0.173424f, 0.409176f },
+  { 0.193374f, 0.010176f },
+  { 0.193374f, 0.488976f },
+  { 0.213324f, 0.089976f },
+  { 0.213324f, 0.169776f },
+  { 0.213324f, 0.249576f },
+  { 0.213324f, 0.329376f },
+  { 0.213324f, 0.409176f },
+  { 0.233274f, 0.010176f },
+  { 0.233274f, 0.488976f },
+  { 0.253224f, 0.089976f },
+  { 0.253224f, 0.169776f },
+  { 0.253224f, 0.249576f },
+  { 0.253224f, 0.329376f },
+  { 0.253224f, 0.409176f },
+  { 0.273174f, 0.010176f },
+  { 0.273174f, 0.488976f },
+  { 0.293124f, 0.089976f },
+  { 0.293124f, 0.169776f },
+  { 0.293124f, 0.249576f },
+  { 0.293124f, 0.329376f },
+  { 0.293124f, 0.409176f },
+  { 0.313074f, 0.010176f },
+  { 0.313074f, 0.488976f },
+  { 0.333024f, 0.089976f },
+  { 0.333024f, 0.169776f },
+  { 0.333024f, 0.249576f },
+  { 0.333024f, 0.329376f },
+  { 0.333024f, 0.409176f },
+  { 0.352974f, 0.010176f },
+  { 0.352974f, 0.488976f },
+  { 0.372924f, 0.089976f },
+  { 0.372924f, 0.169776f },
+  { 0.372924f, 0.249576f },
+  { 0.372924f, 0.329376f },
+  { 0.372924f, 0.409176f },
+  { 0.392874f, 0.010176f },
+  { 0.392874f, 0.488976f },
+  { 0.412824f, 0.089976f },
+  { 0.412824f, 0.169776f },
+  { 0.412824f, 0.249576f },
+  { 0.412824f, 0.329376f },
+  { 0.412824f, 0.409176f },
+  { 0.432774f, 0.010176f },
+  { 0.432774f, 0.488976f },
+  { 0.452724f, 0.089976f },
+  { 0.452724f, 0.169776f },
+  { 0.452724f, 0.249576f },
+  { 0.452724f, 0.329376f },
+  { 0.452724f, 0.409176f },
+  { 0.472674f, 0.010176f },
+  { 0.472674f, 0.488976f },
+  { 0.492624f, 0.089976f },
+  { 0.492624f, 0.169776f },
+  { 0.492624f, 0.249576f },
+  { 0.492624f, 0.329376f },
+  { 0.492624f, 0.409176f },
+  { 0.493676f, 0.569720f },
+  { 0.609623f, 0.520123f },
+  { 0.677794f, 0.352530f },
+  { 0.677794f, 0.479049f },
+  { 0.735600f, 0.974835f },
+  { 0.736000f, 0.502500f },
+  { 0.741053f, 0.415789f },
+  { 0.804312f, 0.352530f },
+  { 0.804312f, 0.479049f },
+  { 0.863443f, 0.519719f },
+  { 0.980905f, 0.570125f },
  };
  int ib1[n_faces][3] = {
   {  2,   1,  56 },
@@ -553,4 +582,149 @@ void SaveBoneData(void)
      ofile << "f " << (ib[i][0] + 1) << "/" << (ib[i][0] + 1) << " "
                    << (ib[i][1] + 1) << "/" << (ib[i][1] + 1) << " "
                    << (ib[i][2] + 1) << "/" << (ib[i][2] + 1) << endl;
+}
+
+bool LoadArmature(const wchar_t* filename)
+{
+ // read file
+ deque<string> linelist;
+ if(!ASCIIParseFile(filename, linelist)) return false;
+
+ // read number of joints
+ uint32 n_jnts = 0;
+ if(!ASCIIReadUint32(linelist, &n_jnts)) return false;
+ if(!n_jnts) return false;
+
+ // allocate joints
+ joints.resize(n_jnts);
+ childcount.resize(n_jnts, 0ul);
+
+ // read joints
+ for(uint32 i = 0; i < n_jnts; i++)
+    {
+     // read name
+     char buffer[1024];
+     if(!ASCIIReadString(linelist, buffer)) return false;
+
+     // name must be valid
+     joints[i].name = ConvertUTF8ToUTF16(buffer);
+     if(!joints[i].name.length()) return false;
+
+     // read parent
+     if(!ASCIIReadUint32(linelist, &joints[i].parent)) return false;
+
+     // set child count
+     if(joints[i].parent != 0xFFFFFFFFul)
+        childcount[joints[i].parent]++;
+
+     // read position
+     if(!ASCIIReadVector3(linelist, &joints[i].position[0], false)) return false;
+
+     // read matrix
+     if(!ASCIIReadMatrix4(linelist, &joints[i].m[0], false)) return false;
+
+     // save matrix to absolute format
+     joints[i].m_abs[0x0] = joints[i].m[0x0];
+     joints[i].m_abs[0x1] = joints[i].m[0x1];
+     joints[i].m_abs[0x2] = joints[i].m[0x2];
+     joints[i].m_abs[0x3] = joints[i].position[0];
+     joints[i].m_abs[0x4] = joints[i].m[0x4];
+     joints[i].m_abs[0x5] = joints[i].m[0x5];
+     joints[i].m_abs[0x6] = joints[i].m[0x6];
+     joints[i].m_abs[0x7] = joints[i].position[1];
+     joints[i].m_abs[0x8] = joints[i].m[0x8];
+     joints[i].m_abs[0x9] = joints[i].m[0x9];
+     joints[i].m_abs[0xA] = joints[i].m[0xA];
+     joints[i].m_abs[0xB] = joints[i].position[2];
+     joints[i].m_abs[0xC] = joints[i].m[0xC];
+     joints[i].m_abs[0xD] = joints[i].m[0xD];
+     joints[i].m_abs[0xE] = joints[i].m[0xE];
+     joints[i].m_abs[0xF] = joints[i].m[0xF];
+    }
+
+ // clear previous data
+ vdata.clear();
+ fdata.clear();
+ vbase = 0;
+
+ ofstream ofile("output.obj");
+ ofile << "o output.obj" << endl;
+
+ // process joints
+ for(uint32 i = 0; i < n_jnts; i++)
+    {
+     // do nothing for root
+     uint32 parent = joints[i].parent;
+     if(parent == 0xFFFFFFFFul) continue;
+
+     // draw one bone from parent to child
+     if(childcount[parent] == 1)
+       {
+        // copy vertices
+        float copy[n_verts][5];
+        for(uint32 v = 0; v < n_verts; v++) {
+            copy[v][0] =  vb[v][0];
+            copy[v][1] = -vb[v][2];
+            copy[v][2] =  vb[v][1];
+            copy[v][3] =  vb[v][3];
+            copy[v][4] =  vb[v][4];
+           }
+
+        // compute scaling factor
+        float x1 = joints[parent].position[0];
+        float y1 = joints[parent].position[1];
+        float z1 = joints[parent].position[2];
+        float x2 = joints[i].position[0];
+        float y2 = joints[i].position[1];
+        float z2 = joints[i].position[2];
+        float scale = sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1) + (z2 - z1)*(z2 - z1));
+
+        // compute scaling matrix
+        matrix4D S;
+        S.load_scaling(scale, scale, scale);
+
+        // compute rotation matrix
+        matrix4D R(joints[parent].m);
+
+        // compute translation matrix
+        matrix4D T;
+        T.load_translation(joints[parent].position[0], joints[parent].position[1], joints[parent].position[2]); 
+        
+        // scale, then rotate, then translate
+        matrix4D M = T*R*S;
+        for(uint32 v = 0; v < n_verts; v++) {
+            vector3D p(copy[v][0], copy[v][1], copy[v][2]);
+            vector3D r = M*p;
+            copy[v][0] = r[0];
+            copy[v][1] = r[1];
+            copy[v][2] = r[2];
+           }
+
+        // verts
+        for(int v = 0; v < n_verts; v++)
+            ofile << "v " << copy[v][0] << " " << copy[v][1] << " " << copy[v][2] << endl;
+        // UVs
+        for(int v = 0; v < n_verts; v++)
+            ofile << "vt " << vb[v][3] << " " << vb[v][4] << endl;
+        // faces
+        for(int f = 0; f < n_faces; f++)
+            ofile << "f " << (vbase + ib[f][0] + 1) << "/" << (vbase + ib[f][0] + 1) << " "
+                          << (vbase + ib[f][1] + 1) << "/" << (vbase + ib[f][1] + 1) << " "
+                          << (vbase + ib[f][2] + 1) << "/" << (vbase + ib[f][2] + 1) << endl;
+
+        vbase += n_verts;
+       }
+     // draw one line from parent to child
+     else if(childcount[parent] > 1)
+       {
+        ofile << "v " << joints[parent].position[0] << " " << joints[parent].position[1] << " " << joints[parent].position[2] << endl;
+        ofile << "v " << joints[i].position[0] << " " << joints[i].position[1] << " " << joints[i].position[2] << endl;
+        ofile << "vt 0 0" << endl;
+        ofile << "vt 1 1" << endl;
+        ofile << "f " << (vbase + 1) << "/" << (vbase + 1) << " " << (vbase + 2) << "/" << (vbase + 2) << endl;
+        vbase += 2;
+       }
+    }
+ 
+ return true;
 }

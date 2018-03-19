@@ -236,26 +236,26 @@ inline void matrix4D::transpose(void)
 
 inline void matrix4D::load_identity(void)
 {
- this->m[m11] = 1.0f; this->m[m21] = 0.0f; this->m[m31] = 0.0f; this->m[m41] = 0.0f;
- this->m[m12] = 0.0f; this->m[m22] = 1.0f; this->m[m32] = 0.0f; this->m[m42] = 0.0f;
- this->m[m13] = 0.0f; this->m[m23] = 0.0f; this->m[m33] = 1.0f; this->m[m43] = 0.0f;
- this->m[m14] = 0.0f; this->m[m24] = 0.0f; this->m[m34] = 0.0f; this->m[m44] = 1.0f;
+ this->m[0x0] = 1.0f; this->m[0x1] = 0.0f; this->m[0x2] = 0.0f; this->m[0x3] = 0.0f;
+ this->m[0x4] = 0.0f; this->m[0x5] = 1.0f; this->m[0x6] = 0.0f; this->m[0x7] = 0.0f;
+ this->m[0x8] = 0.0f; this->m[0x9] = 0.0f; this->m[0xA] = 1.0f; this->m[0xB] = 0.0f;
+ this->m[0xC] = 0.0f; this->m[0xD] = 0.0f; this->m[0xE] = 0.0f; this->m[0xF] = 1.0f;
 }
 
 inline void matrix4D::load_scaling(real32 x, real32 y, real32 z)
 {
- this->m[m11] =    x; this->m[m21] = 0.0f; this->m[m31] = 0.0f; this->m[m41] = 0.0f;
- this->m[m12] = 0.0f; this->m[m22] =    y; this->m[m32] = 0.0f; this->m[m42] = 0.0f;
- this->m[m13] = 0.0f; this->m[m23] = 0.0f; this->m[m33] =    z; this->m[m43] = 0.0f;
- this->m[m14] = 0.0f; this->m[m24] = 0.0f; this->m[m34] = 0.0f; this->m[m44] = 1.0f;
+ this->m[0x0] =    x; this->m[0x1] = 0.0f; this->m[0x2] = 0.0f; this->m[0x3] = 0.0f;
+ this->m[0x4] = 0.0f; this->m[0x5] =    y; this->m[0x6] = 0.0f; this->m[0x7] = 0.0f;
+ this->m[0x8] = 0.0f; this->m[0x9] = 0.0f; this->m[0xA] =    z; this->m[0xB] = 0.0f;
+ this->m[0xC] = 0.0f; this->m[0xD] = 0.0f; this->m[0xE] = 0.0f; this->m[0xF] = 1.0f;
 }
 
 inline void matrix4D::load_translation(real32 x, real32 y, real32 z)
 {
- this->m[m11] = 1.0f; this->m[m21] = 0.0f; this->m[m31] = 0.0f; this->m[m41] = x;
- this->m[m12] = 0.0f; this->m[m22] = 1.0f; this->m[m32] = 0.0f; this->m[m42] = y;
- this->m[m13] = 0.0f; this->m[m23] = 0.0f; this->m[m33] = 1.0f; this->m[m43] = z;
- this->m[m14] = 0.0f; this->m[m24] = 0.0f; this->m[m34] = 0.0f; this->m[m44] = 1.0f;
+ this->m[0x0] = 1.0f; this->m[0x1] = 0.0f; this->m[0x2] = 0.0f; this->m[0x3] = x;
+ this->m[0x4] = 0.0f; this->m[0x5] = 1.0f; this->m[0x6] = 0.0f; this->m[0x7] = y;
+ this->m[0x8] = 0.0f; this->m[0x9] = 0.0f; this->m[0xA] = 1.0f; this->m[0xB] = z;
+ this->m[0xC] = 0.0f; this->m[0xD] = 0.0f; this->m[0xE] = 0.0f; this->m[0xF] = 1.0f;
 }
 
 inline void matrix4D::load_quaternion(real32 w, real32 x, real32 y, real32 z)
