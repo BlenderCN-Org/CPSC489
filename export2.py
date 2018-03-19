@@ -67,7 +67,17 @@ def InPoseMode(self): return (bpy.context.mode == 'POSE')
 #
 def GetObjects() : return bpy.data.objects
 def GetArmatureObjects(): return bpy.data.armatures
-def GetMeshObjects(): return bpy.data.meshes
+def IsMeshValid(mesh):
+	if mesh is None: return False
+	if mesh.vertices is None: return False
+	if len(mesh.vertices) == 0: return False
+	return True
+def GetMeshObjects():
+	# only return valid meshes, as Blender data contains recently deleted meshes
+    rv = []
+	for mesh in bpy.data.meshes:
+		if IsMeshValid(mesh): rv.append(mesh)
+	return rv
 def GetSelectedArmatureObjects():
 	r = []
 	for obj in GetObjects():
@@ -76,7 +86,8 @@ def GetSelectedArmatureObjects():
 def GetSelectedMeshObjects():
 	r = []
 	for obj in GetObjects():
-		if (IsMesh(obj) and obj.select): r.append(obj)
+		if (IsMesh(obj) and obj.select):
+			if IsMeshValid(obj): r.append(obj)
 	return r
 def IsArmature(obj): return (True if obj.type == 'ARMATURE' else False)
 def IsMesh(obj): return (True if obj.type == 'MESH' else False)
