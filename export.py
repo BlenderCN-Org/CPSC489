@@ -68,10 +68,6 @@ def ExportArmature(file, armature, skeleton):
         for index, bone in enumerate(skeleton.bones):
             indexmap[bone.name] = index
 
-        dx = 0 #armature.location[0]
-        dy = 0 #armature.location[1]
-        dz = 0 #armature.location[2]
-        
         # PHASE 2
         # construct bonelist
         bonelist = []
@@ -80,18 +76,14 @@ def ExportArmature(file, armature, skeleton):
             bonelist[index].name = bone.name
             bonelist[index].parent = -1
             if bone.parent != None: bonelist[index].parent = indexmap[bone.parent.name]
-            bonelist[index].position = [
-                dx + bone.head_local[0],
-                dy + bone.head_local[1],
-                dz + bone.head_local[2]]
+            m = armature.matrix_world * bone.matrix_local
+            bonelist[index].position = [ m[0][3], m[1][3], m[2][3] ]
             bonelist[index].matrix = [
-                [bone.matrix_local[0][0], bone.matrix_local[0][1], bone.matrix_local[0][2]],
-                [bone.matrix_local[1][0], bone.matrix_local[1][1], bone.matrix_local[1][2]],
-                [bone.matrix_local[2][0], bone.matrix_local[2][1], bone.matrix_local[2][2]]]
+                [m[0][0], m[0][1], m[0][2], m[0][3]],
+                [m[1][0], m[1][1], m[1][2], m[1][3]],
+                [m[2][0], m[2][1], m[2][2], m[2][3]],
+                [m[3][0], m[3][1], m[3][2], m[3][3]]]
 
-            print(bone.matrix_local)
-            print(bone.matrix)
-                
         # PHASE 3
         # save bone data
         for bone in bonelist:
@@ -99,10 +91,10 @@ def ExportArmature(file, armature, skeleton):
             file.write("{}\n".format(bone.parent))
             file.write("{} {} {}\n".format(bone.position[0], bone.position[1], bone.position[2]))
             file.write("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
-                bone.matrix[0][0], bone.matrix[0][1], bone.matrix[0][2], 0.0,
-                bone.matrix[1][0], bone.matrix[1][1], bone.matrix[1][2], 0.0,
-                bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2], 0.0,
-                0.0, 0.0, 0.0, 1.0))   
+                bone.matrix[0][0], bone.matrix[0][1], bone.matrix[0][2], bone.matrix[0][3],
+                bone.matrix[1][0], bone.matrix[1][1], bone.matrix[1][2], bone.matrix[1][3],
+                bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2], bone.matrix[2][3],
+                bone.matrix[3][0], bone.matrix[3][1], bone.matrix[3][2], bone.matrix[3][3]))   
 
 def ExportAnimations(file, armature):
 
