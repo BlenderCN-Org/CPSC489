@@ -322,4 +322,24 @@
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shaders\VS\VS_000.hlsl">
+      <Filter>Shader Files\VS</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\VS\VS_001.hlsl">
+      <Filter>Shader Files\VS</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\VS\VS_002.hlsl">
+      <Filter>Shader Files\VS</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\VS\VS_003.hlsl">
+      <Filter>Shader Files\VS</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\VS\VS_004.hlsl">
+      <Filter>Shader Files\VS</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\VS\VS_005.hlsl">
+      <Filter>Shader Files\VS</Filter>
+    </FxCompile>
+  </ItemGroup>
 </Project>

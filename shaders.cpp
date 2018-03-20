@@ -119,7 +119,7 @@ ErrorCode InitVertexShaders(void)
  vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_002.cso")), 2));
  vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_003.cso")), 3));
  vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_004.cso")), 4));
- // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_005.cso")), 5));
+ vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_005.cso")), 5));
  // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_006.cso")), 6));
  // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_007.cso")), 7));
  // vslist.push_back(shader_list_type(path + std::basic_string<wchar_t>(TEXT("shaders\\VS\\VS_008.cso")), 8));
