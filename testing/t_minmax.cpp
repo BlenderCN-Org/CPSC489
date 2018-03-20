@@ -22,14 +22,16 @@ BOOL InitAABBMinMaxTest(void)
 {
  // create AABBs
  AABB_minmax data[n_aabb];
- data[0].a[0] = 1.0f; data[1].b[0] = 2.0f;
- data[0].a[1] = 1.0f; data[1].b[1] = 2.0f;
- data[0].a[2] = 1.0f; data[1].b[2] = 2.0f;
- data[0].a[3] = 1.0f; data[1].b[3] = 1.0f;
- data[0].a[0] = 1.0f; data[1].b[0] = 3.0f;
- data[0].a[1] = 1.0f; data[1].b[1] = 3.0f;
- data[0].a[2] = 1.0f; data[1].b[2] = 3.0f;
- data[0].a[3] = 1.0f; data[1].b[3] = 1.0f;
+
+ data[0].a[0] = 1.0f; data[0].b[0] = 2.0f;
+ data[0].a[1] = 1.0f; data[0].b[1] = 2.0f;
+ data[0].a[2] = 1.0f; data[0].b[2] = 2.0f;
+ data[0].a[3] = 1.0f; data[0].b[3] = 1.0f;
+
+ data[1].a[0] = 1.0f; data[1].b[0] = 3.0f;
+ data[1].a[1] = 1.0f; data[1].b[1] = 3.0f;
+ data[1].a[2] = 1.0f; data[1].b[2] = 3.0f;
+ data[1].a[3] = 1.0f; data[1].b[3] = 1.0f;
 
  // create color buffer
  ErrorCode code = CreateImmutableFloat4ConstBuffer(color, &color_buffer);

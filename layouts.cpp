@@ -40,7 +40,8 @@ ErrorCode InitInputLayouts(void)
  DWORD VS_index = 0xFFFFFFFFul;
 
  // resize list of descriptors
- descriptors.resize(6);
+ const int n_layouts = 6;
+ descriptors.resize(n_layouts);
 
  // INPUT LAYOUT INDEX #0
  // 1: POSITION (real32, real32, real32, real32)
@@ -262,7 +263,7 @@ ErrorCode InitInputLayouts(void)
  descriptors[IL_index][1].AlignedByteOffset = 0;
  descriptors[IL_index][1].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
  descriptors[IL_index][1].InstanceDataStepRate = 1;
- descriptors[IL_index][2].SemanticName = "MINEDGE";
+ descriptors[IL_index][2].SemanticName = "MAXEDGE";
  descriptors[IL_index][2].SemanticIndex = 0;
  descriptors[IL_index][2].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
  descriptors[IL_index][2].InputSlot = 1;
@@ -312,6 +313,9 @@ ErrorCode InitInputLayouts(void)
      ID3D11InputLayout* lpil = nullptr;
      HRESULT result = device->CreateInputLayout(&(descriptors[i][0]), (UINT)descriptors[i].size(), shader->code.get(), shader->size, &lpil);
      if(FAILED(result)) {
+        //std::wstringstream ss;
+        //ss << L"result  = " << std::hex << (uint32)result << std::dec << std::endl;
+        //ErrorBox(ss.str().c_str());
         FreeInputLayouts();
         return EC_D3D_INPUT_LAYOUT_CREATE;
        }
