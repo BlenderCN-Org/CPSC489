@@ -38,7 +38,11 @@ Week 8:<br />
 03/12/2018<br />
 Week 9:<br />
 03/19/2018<br />
-Added a few intersection routines for points, spheres, AABBs, and OBBs.
-Added AABB bounding volume hierarchy class, bvh.h and bvh.cpp.
-Works but not implemented ingame yet.
-Added program and code to generate characters from skeletons.
+Added a few intersection routines for points, spheres, AABBs, and OBBs.<br />
+Added AABB bounding volume hierarchy class, bvh.h and bvh.cpp.<br />
+Works but not implemented ingame yet.<br />
+Added program and code to generate characters from skeletons.<br />
+03/20/2018<br />
+Added a fifth vertex shader, VS_AABB_MINMAX + IL_AABB_MINMAX, for drawing instanced
+minmax AABBs. This is a debugging vertex shader, and will be used to test the AABB
+bounding volume hierarchy tree.

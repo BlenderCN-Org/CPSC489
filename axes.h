@@ -1,5 +1,5 @@
-#ifndef __CPSC489_AXES_H
-#define __CPSC489_AXES_H
+#ifndef __CS489_AXES_H
+#define __CS489_AXES_H
 
 // Axes Model Functions
 ErrorCode InitAxesModel(void);

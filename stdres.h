@@ -6,5 +6,6 @@
 #define CM_PORTAL_TEST 1003
 #define CM_MAP_TEST 1004
 #define CM_AABB_TEST 1005
+#define CM_AABB_MINMAX_TEST 1006
 
 #endif

@@ -38,7 +38,7 @@ class BVH {
   };
   std::vector<AABB_node> tree;
  public :
-  void construct(const vector3D* verts, uint32 n_verts, unsigned int* faces, uint32 n_indices);
+  void construct(const vector3D* verts, uint32 n_verts, uint32* faces, uint32 n_indices);
   void clear();
  public :
   void collide(PointLinearCollisionTest& info);

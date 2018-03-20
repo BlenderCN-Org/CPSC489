@@ -266,7 +266,6 @@ ErrorCode RenderAABB(ID3D11Buffer* instance, UINT n)
 
 ErrorCode RenderAABBMinMax(ID3D11Buffer* instance, UINT n)
 {
-/*
  // must have instance buffer (OK if there is nothing to do)
  if(!instance) return EC_SUCCESS;
  if(!n) return EC_SUCCESS;
@@ -299,7 +298,7 @@ ErrorCode RenderAABBMinMax(ID3D11Buffer* instance, UINT n)
 
  // render
  context->DrawIndexedInstanced(BB_indices, n, 0, 0, 0);
-*/
+
  return EC_SUCCESS;
 }
 

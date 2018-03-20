@@ -1,5 +1,5 @@
-#ifndef __CPSC489_TESTS_H
-#define __CPSC489_TESTS_H
+#ifndef __CS489_TESTS_H
+#define __CS489_TESTS_H
 
 BOOL BeginTest(int cmd);
 void EndTest(void);

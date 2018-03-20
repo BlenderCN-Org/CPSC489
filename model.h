@@ -1,6 +1,8 @@
 #ifndef __CPSC489_MODEL_H
 #define __CPSC489_MODEL_H
 
+#include "matrix4.h"
+
 struct MeshUTFJoint {
  STDSTRINGW name;
  uint32 parent;

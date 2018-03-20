@@ -11,6 +11,7 @@
 #include "t_portal.h"
 #include "sk_axes.h"
 #include "t_aabb.h"
+#include "t_minmax.h"
 
 typedef BOOL (*InitFunc)(void);
 typedef void (*FreeFunc)(void);
@@ -76,6 +77,21 @@ BOOL BeginTest(int cmd)
     init_func = InitAABBTest;
     free_func = FreeAABBTest;
     draw_func = RenderAABBTest;
+    if((*init_func)()) {
+       active_test = cmd;
+       CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);
+       return TRUE;
+      }
+    else {
+       (*free_func)();
+       return FALSE;
+      }
+   }
+ // set test
+ else if(cmd == CM_AABB_MINMAX_TEST) {
+    init_func = InitAABBMinMaxTest;
+    free_func = FreeAABBMinMaxTest;
+    draw_func = RenderAABBMinMaxTest;
     if((*init_func)()) {
        active_test = cmd;
        CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);

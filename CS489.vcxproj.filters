@@ -176,6 +176,9 @@
     <ClCompile Include="sphere3.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
+    <ClCompile Include="testing\t_minmax.cpp">
+      <Filter>Source Files\Testing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -315,6 +318,9 @@
     </ClInclude>
     <ClInclude Include="sphere3.h">
       <Filter>Source Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="testing\t_minmax.h">
+      <Filter>Source Files\Testing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

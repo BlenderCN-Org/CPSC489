@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "bvh.h"
 
-void BVH::construct(const vector3D* verts, uint32 n_verts, unsigned int* faces, uint32 n_indices)
+void BVH::construct(const vector3D* verts, uint32 n_verts, uint32* faces, uint32 n_indices)
 {
  // binning example
  // dv = (max_v - min_v)/n_bin = (2*box_w)/n_bin
@@ -14,7 +14,7 @@ void BVH::construct(const vector3D* verts, uint32 n_verts, unsigned int* faces, 
  if(!faces || !n_indices) return;
 
  // compute number of faces
- size_t n_faces = n_indices/3;
+ uint32 n_faces = n_indices/3;
  if(!n_faces) return;
 
  // per-bin data
@@ -278,8 +278,8 @@ void BVH::construct(const vector3D* verts, uint32 n_verts, unsigned int* faces, 
 
        // this node
        tree[tree_index].aabb = tbounds;
-       tree[tree_index].params[0] = tree.size();
-       tree[tree_index].params[1] = tree.size() + 1;
+       tree[tree_index].params[0] = static_cast<uint32>(tree.size());
+       tree[tree_index].params[1] = static_cast<uint32>(tree.size() + 1);
 
        // L = leaf
        tree.push_back(AABB_node());

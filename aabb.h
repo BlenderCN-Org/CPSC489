@@ -15,8 +15,8 @@ struct AABB_minmax {
  // DATA
  //
  public :
-  float a[3];
-  float b[3];
+  float a[4];
+  float b[4];
 
  //
  // QUERY
