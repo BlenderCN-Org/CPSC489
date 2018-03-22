@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rayAABB", "rayAABB\rayAABB.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bonechar", "bonechar\bonechar.vcxproj", "{E683F03B-9602-4FC8-A082-4FA16D86EB8F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "skeleton", "skeleton\skeleton.vcxproj", "{A68F191C-7BF1-4A21-8A91-A691172B4B26}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -37,6 +39,10 @@ Global
 		{E683F03B-9602-4FC8-A082-4FA16D86EB8F}.Debug|Win32.Build.0 = Debug|Win32
 		{E683F03B-9602-4FC8-A082-4FA16D86EB8F}.Release|Win32.ActiveCfg = Release|Win32
 		{E683F03B-9602-4FC8-A082-4FA16D86EB8F}.Release|Win32.Build.0 = Release|Win32
+		{A68F191C-7BF1-4A21-8A91-A691172B4B26}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A68F191C-7BF1-4A21-8A91-A691172B4B26}.Debug|Win32.Build.0 = Debug|Win32
+		{A68F191C-7BF1-4A21-8A91-A691172B4B26}.Release|Win32.ActiveCfg = Release|Win32
+		{A68F191C-7BF1-4A21-8A91-A691172B4B26}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
