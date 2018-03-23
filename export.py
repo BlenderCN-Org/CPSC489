@@ -57,6 +57,12 @@ def MeshExporter():
 
 def ExportArmature(file, armature, skeleton):
 
+        # get pose
+        pose = armature.pose
+        if pose is None:
+            file.write("0 # number of bones\n")
+            return
+        
         # save number of bones    
         n_bones = len(skeleton.bones)
         file.write("{} # number of bones\n".format(n_bones))
@@ -71,18 +77,18 @@ def ExportArmature(file, armature, skeleton):
         # PHASE 2
         # construct bonelist
         bonelist = []
-        for index, bone in enumerate(skeleton.bones):
+        for index, bone in enumerate(pose.bones):
             bonelist.append(Bone())
             bonelist[index].name = bone.name
             bonelist[index].parent = -1
             if bone.parent != None: bonelist[index].parent = indexmap[bone.parent.name]
-            m = armature.matrix_world * bone.matrix_local
+            m = armature.matrix_world * bone.matrix
             bonelist[index].position = [ m[0][3], m[1][3], m[2][3] ]
             bonelist[index].matrix = [
-                [m[0][0], m[0][1], m[0][2], m[0][3]],
-                [m[1][0], m[1][1], m[1][2], m[1][3]],
-                [m[2][0], m[2][1], m[2][2], m[2][3]],
-                [m[3][0], m[3][1], m[3][2], m[3][3]]]
+                [m[0][0], m[1][0], m[2][0], m[0][3]],
+                [m[0][1], m[1][1], m[2][1], m[1][3]],
+                [m[0][2], m[1][2], m[2][2], m[2][3]],
+                [    0.0,     0.0,     0.0,    1.0]]
 
         # PHASE 3
         # save bone data
@@ -94,8 +100,8 @@ def ExportArmature(file, armature, skeleton):
                 bone.matrix[0][0], bone.matrix[0][1], bone.matrix[0][2], bone.matrix[0][3],
                 bone.matrix[1][0], bone.matrix[1][1], bone.matrix[1][2], bone.matrix[1][3],
                 bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2], bone.matrix[2][3],
-                bone.matrix[3][0], bone.matrix[3][1], bone.matrix[3][2], bone.matrix[3][3]))   
-
+                bone.matrix[3][0], bone.matrix[3][1], bone.matrix[3][2], bone.matrix[3][3]))
+        
 def ExportAnimations(file, armature):
 
     # number of actions
@@ -175,7 +181,7 @@ def ExportAnimations(file, armature):
                 for frame, transforms in sorted(keydict.items()):
                     file.write('{}\n'.format(int(frame)))
                     file.write('{} {} {}\n'.format(transforms[0][0] + dx, transforms[0][1] + dy, transforms[0][2] + dz))
-                    file.write('{} {} {} {}\n'.format(transforms[1][0], transforms[1][1], transforms[1][2], transforms[1][3]))
+                    file.write('{} {} {} {}\n'.format(transforms[1][0], -transforms[1][1], -transforms[1][2], -transforms[1][3]))
                     file.write('{} {} {}\n'.format(transforms[2][0], transforms[2][1], transforms[2][2]))
 
 def ExportMesh(file, obj, mesh, armature):

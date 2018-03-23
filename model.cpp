@@ -257,15 +257,15 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
         joints[i].m_abs[0x0] = joints[i].m[0x0];
         joints[i].m_abs[0x1] = joints[i].m[0x1];
         joints[i].m_abs[0x2] = joints[i].m[0x2];
-        joints[i].m_abs[0x3] = joints[i].position[0];
+        joints[i].m_abs[0x3] = joints[i].m[0x3]; // joints[i].position[0];
         joints[i].m_abs[0x4] = joints[i].m[0x4];
         joints[i].m_abs[0x5] = joints[i].m[0x5];
         joints[i].m_abs[0x6] = joints[i].m[0x6];
-        joints[i].m_abs[0x7] = joints[i].position[1];
+        joints[i].m_abs[0x7] = joints[i].m[0x7]; // joints[i].position[1];
         joints[i].m_abs[0x8] = joints[i].m[0x8];
         joints[i].m_abs[0x9] = joints[i].m[0x9];
         joints[i].m_abs[0xA] = joints[i].m[0xA];
-        joints[i].m_abs[0xB] = joints[i].position[2];
+        joints[i].m_abs[0xB] = joints[i].m[0xB]; // joints[i].position[2];
         joints[i].m_abs[0xC] = joints[i].m[0xC];
         joints[i].m_abs[0xD] = joints[i].m[0xD];
         joints[i].m_abs[0xE] = joints[i].m[0xE];
@@ -1011,12 +1011,9 @@ ErrorCode MeshUTFInstance::Update(void)
                matrix4D V;
                V.load_translation(T[0], T[1], T[2]);
                m = V * m;
-               // m[0x3] += T[0];
-               // m[0x7] += T[1];
-               // m[0xB] += T[2];
 
                // set matrix
-               jm[bi] = m * mesh->joints[bi].m_rel;
+               jm[bi] = mesh->joints[bi].m_rel;
                break;
               }
            }
@@ -1030,7 +1027,7 @@ ErrorCode MeshUTFInstance::Update(void)
      jm[bi] = jm[bi] * jm[parent];
     }
  for(size_t bi = 0; bi < joints.size(); bi++) {
-     jm[bi] = mesh->joints[bi].m_inv * jm[bi];
+     jm[bi] = mesh->joints[bi].m_abs * jm[bi];
      jm[bi].transpose();
     }
 
