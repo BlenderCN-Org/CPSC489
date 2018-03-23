@@ -2,6 +2,11 @@
 #include<cmath>
 using namespace std;
 
+struct EULERXYZ {
+ float x;
+ float y;
+ float z;
+};
 struct QUATERNION {
  float q[4];
 };
@@ -31,28 +36,60 @@ struct JOINT {
  MATRIX m_abs;
  MATRIX m_inv;
  MATRIX m_rel;
+ MATRIX m_pos;
 };
 static const int n_jnts = 3;
 static JOINT jntdata[n_jnts];
 static QUATERNION transforms[3];
+static EULERXYZ euler[3];
 static POINT point;
 static POINT point_transformed;
 static POINT point_blender;
 static POINT joint_blender[3];
 
+
 //
 // REQUIREMENTS
 //
+inline float Radians(float d) { return d*0.01745329252f; }
+inline float Degrees(float r) { return r*57.2957795131f; }
 QUATERNION Normalize(const QUATERNION& q);
 MATRIX QuaternionToMatrix(const QUATERNION& q);
+MATRIX MatrixEulerXYZ(const EULERXYZ& e);
 float MatrixInverse(MATRIX& X, const MATRIX& M);
 MATRIX operator *(const MATRIX& A, const MATRIX& B);
 POINT operator *(const MATRIX& A, const POINT& B);
 void MatrixPrint(const MATRIX& m);
+void Print(const QUATERNION& q);
 void VectorPrint(const POINT& v);
 
 int main()
 {
+ QUATERNION t1;
+ t1.q[0] = 5.0f;
+ t1.q[1] = 3.0f;
+ t1.q[2] = 2.0f;
+ t1.q[3] = 1.0f;
+ t1 = Normalize(t1);
+ Print(t1);
+ MatrixPrint(QuaternionToMatrix(t1));
+ 
+ // C++ (requires conjugate to match Blender)
+ // q<0.800641, 0.480384, 0.320256, 0.160128>
+ // | 0.743590 0.051282  0.666667 | x
+ // | 0.564103 0.487179 -0.666667 | y
+ // |-0.358974 0.871795  0.333333 | z
+ //
+ // Blender
+ // This is verified to be the pose bone matrix.
+ // It is column major order.
+ // w=0.8006, x=0.4804, y=0.3203, z=0.1601
+ //      x       y        z
+ // | 0.7436,  0.0513,  0.6667 |
+ // | 0.3590, -0.8718, -0.3333 |
+ // | 0.5641,  0.4872, -0.6667 |
+
+
  //
  // PHASE #1
  // LOAD JOINT SAMPLE DATA FROM BLENDER
@@ -60,18 +97,18 @@ int main()
 
  // joint[0]
  jntdata[0].parent = 0xFFFFFFFFul;
- jntdata[0].m_abs.m[0x0] = 1.0f;
+ jntdata[0].m_abs.m[0x0] = 1.0f; // x is +x
  jntdata[0].m_abs.m[0x1] = 0.0f;
  jntdata[0].m_abs.m[0x2] = 0.0f;
- jntdata[0].m_abs.m[0x3] = 1.0f;
- jntdata[0].m_abs.m[0x4] = 0.0f;
- jntdata[0].m_abs.m[0x5] = 0.4999999701976776f;
- jntdata[0].m_abs.m[0x6] = -0.866025447845459f;
- jntdata[0].m_abs.m[0x7] = 2.0f;
- jntdata[0].m_abs.m[0x8] = 0.0f;
- jntdata[0].m_abs.m[0x9] = 0.866025447845459f;
- jntdata[0].m_abs.m[0xA] = 0.4999999701976776f;
- jntdata[0].m_abs.m[0xB] = 3.0f;
+ jntdata[0].m_abs.m[0x3] = 0.0f;
+ jntdata[0].m_abs.m[0x4] = 0.0f; // y is +z
+ jntdata[0].m_abs.m[0x5] = 0.0f;
+ jntdata[0].m_abs.m[0x6] = 1.0f;
+ jntdata[0].m_abs.m[0x7] = 0.0f;
+ jntdata[0].m_abs.m[0x8] = 0.0f; // z is -y
+ jntdata[0].m_abs.m[0x9] =-1.0f;
+ jntdata[0].m_abs.m[0xA] = 0.0f;
+ jntdata[0].m_abs.m[0xB] = 0.0f;
  jntdata[0].m_abs.m[0xC] = 0.0f;
  jntdata[0].m_abs.m[0xD] = 0.0f;
  jntdata[0].m_abs.m[0xE] = 0.0f;
@@ -79,18 +116,18 @@ int main()
 
  // joint[1]
  jntdata[1].parent = 0;
- jntdata[1].m_abs.m[0x0] = 1.0f;
+ jntdata[1].m_abs.m[0x0] = 1.0f; // x is +x
  jntdata[1].m_abs.m[0x1] = 0.0f;
  jntdata[1].m_abs.m[0x2] = 0.0f;
- jntdata[1].m_abs.m[0x3] = 1.0f;
- jntdata[1].m_abs.m[0x4] = 0.0f;
- jntdata[1].m_abs.m[0x5] = 0.9551945924758911f;
- jntdata[1].m_abs.m[0x6] = -0.29597848653793335f;
- jntdata[1].m_abs.m[0x7] = 2.5f;
- jntdata[1].m_abs.m[0x8] = 0.0f;
- jntdata[1].m_abs.m[0x9] = 0.29597848653793335f;
- jntdata[1].m_abs.m[0xA] = 0.9551945924758911f;
- jntdata[1].m_abs.m[0xB] = 3.866025447845459f;
+ jntdata[1].m_abs.m[0x3] = 0.0f;
+ jntdata[1].m_abs.m[0x4] = 0.0f; // y is +y
+ jntdata[1].m_abs.m[0x5] = 1.0f;
+ jntdata[1].m_abs.m[0x6] = 0.0f;
+ jntdata[1].m_abs.m[0x7] = 0.0f;
+ jntdata[1].m_abs.m[0x8] = 0.0f; // z is +z
+ jntdata[1].m_abs.m[0x9] = 0.0f;
+ jntdata[1].m_abs.m[0xA] = 1.0f;
+ jntdata[1].m_abs.m[0xB] = 1.0f;
  jntdata[1].m_abs.m[0xC] = 0.0f;
  jntdata[1].m_abs.m[0xD] = 0.0f;
  jntdata[1].m_abs.m[0xE] = 0.0f;
@@ -98,22 +135,32 @@ int main()
 
  // joint[2]
  jntdata[2].parent = 1;
- jntdata[2].m_abs.m[0x0] = 0.9999998211860657f;
- jntdata[2].m_abs.m[0x1] = 0.0f;
- jntdata[2].m_abs.m[0x2] = 0.000640869140625f;
- jntdata[2].m_abs.m[0x3] = 1.0f;
- jntdata[2].m_abs.m[0x4] = -0.00032257664133794606f;
- jntdata[2].m_abs.m[0x5] = 0.8640871047973633f;
- jntdata[2].m_abs.m[0x6] = 0.5033423900604248f;
- jntdata[2].m_abs.m[0x7] = 3.181468963623047f;
- jntdata[2].m_abs.m[0x8] = -0.0005537667311728001f;
- jntdata[2].m_abs.m[0x9] = -0.5033424496650696f;
- jntdata[2].m_abs.m[0xA] = 0.8640868663787842f;
- jntdata[2].m_abs.m[0xB] = 4.077186584472656f;
+ jntdata[2].m_abs.m[0x0] = 0.0f; // x is -y
+ jntdata[2].m_abs.m[0x1] =-1.0f;
+ jntdata[2].m_abs.m[0x2] = 0.0f;
+ jntdata[2].m_abs.m[0x3] = 0.0f;
+ jntdata[2].m_abs.m[0x4] = 1.0f; // y is +x
+ jntdata[2].m_abs.m[0x5] = 0.0f;
+ jntdata[2].m_abs.m[0x6] = 0.0f;
+ jntdata[2].m_abs.m[0x7] = 1.0f;
+ jntdata[2].m_abs.m[0x8] = 0.0f; // z is +z
+ jntdata[2].m_abs.m[0x9] = 0.0f;
+ jntdata[2].m_abs.m[0xA] = 1.0f;
+ jntdata[2].m_abs.m[0xB] = 1.0f;
  jntdata[2].m_abs.m[0xC] = 0.0f;
  jntdata[2].m_abs.m[0xD] = 0.0f;
  jntdata[2].m_abs.m[0xE] = 0.0f;
  jntdata[2].m_abs.m[0xF] = 1.0f;
+
+ // set inverse matrices
+ MatrixInverse(jntdata[0].m_inv, jntdata[0].m_abs);
+ MatrixInverse(jntdata[1].m_inv, jntdata[1].m_abs);
+ MatrixInverse(jntdata[2].m_inv, jntdata[2].m_abs);
+
+ // set relative matrices
+ jntdata[0].m_rel = jntdata[0].m_abs;
+ jntdata[1].m_rel = jntdata[1].m_abs*jntdata[0].m_inv;
+ jntdata[2].m_rel = jntdata[2].m_abs*jntdata[1].m_inv;
 
  //
  // PHASE #2
@@ -121,50 +168,59 @@ int main()
  //
 
  // transform #1
- transforms[0].q[0] = 0.845863f;
- transforms[0].q[1] = 0.007272f;
- transforms[0].q[2] = -0.491491f;
- transforms[0].q[3] = -0.207121f;
+ transforms[0].q[0] = 0.707107f;
+ transforms[0].q[1] = 0.0f;
+ transforms[0].q[2] =-0.707107f;
+ transforms[0].q[3] = 0.0f;
  Normalize(transforms[0]);
+ euler[0].x = Radians( 0.0f);
+ euler[0].y = Radians(-90.0f);
+ euler[0].z = Radians( 0.0f);
 
  // transform #2
- transforms[1].q[0] = 0.490048f;
- transforms[1].q[1] = 0.256793f;
- transforms[1].q[2] = 0.686258f;
- transforms[1].q[3] = 0.472187f;
+ transforms[1].q[0] = 1.0f;
+ transforms[1].q[1] = 0.0f;
+ transforms[1].q[2] = 0.0f;
+ transforms[1].q[3] = 0.0f;
  Normalize(transforms[1]);
+ euler[1].x = Radians(0.0f);
+ euler[1].y = Radians(0.0f);
+ euler[1].z = Radians(0.0f);
 
  // transform #3
- transforms[2].q[0] = 0.443239f;
- transforms[2].q[1] = 0.819386f;
- transforms[2].q[2] = -0.271397f;
- transforms[2].q[3] = 0.241845f;
+ transforms[2].q[0] = 1.0f;
+ transforms[2].q[1] = 0.0f;
+ transforms[2].q[2] = 0.0f;
+ transforms[2].q[3] = 0.0f;
  Normalize(transforms[2]);
+ euler[2].x = Radians(0.0f);
+ euler[2].y = Radians(0.0f);
+ euler[2].z = Radians(0.0f);
 
  // point to transform
- point.v[0] = 1.25f;
- point.v[1] = 3.50f;
- point.v[2] = 4.00f;
+ point.v[0] = 0.601336f;
+ point.v[1] = 0.404549f;
+ point.v[2] = 1.112650f;
 
  // point transformed in Blender
- point_blender.v[0] = 1.61264f;
- point_blender.v[1] = 2.16104f;
- point_blender.v[2] = 4.69789f;
+ point_blender.v[0] = 0.40455f;
+ point_blender.v[1] =-0.601336f;
+ point_blender.v[2] = 1.11265f;
 
  // joint[0] transformed in Blender
- joint_blender[0].v[0] = 1.0f;
- joint_blender[0].v[1] = 2.0f;
- joint_blender[0].v[2] = 3.0f;
+ joint_blender[0].v[0] = 0.0f;
+ joint_blender[0].v[1] = 0.0f;
+ joint_blender[0].v[2] = 0.0f;
 
  // joint[1] transformed in Blender
- joint_blender[1].v[0] = 1.34324f;
- joint_blender[1].v[1] = 2.27007f;
- joint_blender[1].v[2] = 3.89958f;
+ joint_blender[1].v[0] = 0.0f;
+ joint_blender[1].v[1] = 0.0f;
+ joint_blender[1].v[2] = 1.0f;
 
  // joint[2] transformed in Blender
- joint_blender[2].v[0] = 1.31243f;
- joint_blender[2].v[1] = 2.42429f;
- joint_blender[2].v[2] = 4.59546f;
+ joint_blender[2].v[0] = 1.0f;
+ joint_blender[2].v[1] = 0.0f;
+ joint_blender[2].v[2] = 1.0f;
 
  //
  // PHASE #3
@@ -195,21 +251,21 @@ int main()
 //      jntdata[i].m_rel = jntdata[i].m_abs * jntdata[i].m_rel * jntdata[i].m_inv;
 
     // propagate transformation matrices through skeleton tree
-    jntdata[0].m_rel = QuaternionToMatrix(transforms[0]);
+    jntdata[0].m_pos = QuaternionToMatrix(transforms[0]);
     cout << "Concatenated transform[0]" << endl;
-    MatrixPrint(jntdata[0].m_rel);
+    MatrixPrint(jntdata[0].m_pos);
     for(int i = 1; i < n_jnts; i++) {
         MATRIX R = QuaternionToMatrix(transforms[i]);
-        jntdata[i].m_rel = R * jntdata[jntdata[i].parent].m_rel;
+        jntdata[i].m_pos = jntdata[jntdata[i].parent].m_pos * R;
         cout << "Concatenated transform[" << i << "]" << endl;
-        MatrixPrint(jntdata[i].m_rel);
+        MatrixPrint(jntdata[i].m_pos);
        }
 
     // if all transformations are identity matrices, everything returns back to m_abs
     for(int i = 0; i < n_jnts; i++) {
-        jntdata[i].m_rel = jntdata[i].m_abs * jntdata[i].m_rel;
+        jntdata[i].m_pos = jntdata[i].m_abs * jntdata[i].m_pos * jntdata[i].m_inv;
         cout << "Pose transform[" << i << "]" << endl;
-        MatrixPrint(jntdata[i].m_rel);
+        MatrixPrint(jntdata[i].m_pos);
        }
 
  //
@@ -217,12 +273,8 @@ int main()
  // MULTIPLY SAMPLE POINT
  //
 
- point_transformed = jntdata[2].m_rel * (jntdata[2].m_inv * point);
-
- auto R1 = QuaternionToMatrix(transforms[0]);
- auto R2 = QuaternionToMatrix(transforms[1]);
- auto R3 = QuaternionToMatrix(transforms[2]);
- point_transformed = (jntdata[2].m_inv*R1*jntdata[2].m_abs)*(jntdata[1].m_inv*R2*jntdata[1].m_abs)*(jntdata[0].m_inv*R3*jntdata[0].m_abs)*point;
+ POINT p = point;
+ point_transformed = jntdata[0].m_pos * p;
  cout << "Calculated: " << endl;
  VectorPrint(point_transformed);
  cout << "Expected: " << endl;
@@ -284,6 +336,43 @@ MATRIX QuaternionToMatrix(const QUATERNION& q)
  rv.m[0xE] = 0.0f;
  rv.m[0xF] = 1.0f;
  return rv;
+}
+
+MATRIX MatrixEulerXYZ(const EULERXYZ& e)
+{
+ // cached cosines
+ float c1 = cos(e.x);
+ float c2 = cos(e.y);
+ float c3 = cos(e.z);
+
+ // cached sines
+ float s1 = sin(e.x);
+ float s2 = sin(e.y);
+ float s3 = sin(e.z);
+
+ // composite values
+ float c3_s2 = c3 * s2;
+ float s2_s3 = s2 * s3;
+
+ // set matrix
+ MATRIX m;
+ m.m[0x0] =  (c2 * c3);
+ m.m[0x1] = -(c2 * s3);
+ m.m[0x2] =  s2;
+ m.m[0x3] =  0.0f;
+ m.m[0x4] =  (c1 * s3) + (s1 * c3_s2);
+ m.m[0x5] =  (c1 * c3) - (s1 * s2_s3);
+ m.m[0x6] = -(c2 * s1);
+ m.m[0x7] =  0.0f;
+ m.m[0x8] =  (s1 * s3) - (c1 * c3_s2);
+ m.m[0x9] =  (c3 * s1) + (c1 * s2_s3);
+ m.m[0xA] =  (c1 * c2);
+ m.m[0xB] =  0.0f;
+ m.m[0xC] =  0.0f;
+ m.m[0xD] =  0.0f;
+ m.m[0xE] =  0.0f;
+ m.m[0xF] =  1.0f;
+ return m;
 }
 
 float MatrixInverse(MATRIX& X, const MATRIX& M)
@@ -393,6 +482,11 @@ void MatrixPrint(const MATRIX& m)
  cout << "|" << c.m[0x4] << " " << c.m[0x5] << " " << c.m[0x6] << " " << c.m[0x7] << "|" << endl;
  cout << "|" << c.m[0x8] << " " << c.m[0x9] << " " << c.m[0xA] << " " << c.m[0xB] << "|" << endl;
  cout << "|" << c.m[0xC] << " " << c.m[0xD] << " " << c.m[0xE] << " " << c.m[0xF] << "|" << endl;
+}
+
+void Print(const QUATERNION& q)
+{
+ cout << "<" << q.q[0] << ", " << q.q[1] << ", " << q.q[2] << ", " << q.q[3] << ">" << endl;
 }
 
 void VectorPrint(const POINT& v)
