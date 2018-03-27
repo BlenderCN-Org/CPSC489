@@ -257,15 +257,15 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
         joints[i].m_abs[0x0] = joints[i].m[0x0];
         joints[i].m_abs[0x1] = joints[i].m[0x1];
         joints[i].m_abs[0x2] = joints[i].m[0x2];
-        joints[i].m_abs[0x3] = joints[i].m[0x3]; // joints[i].position[0];
+        joints[i].m_abs[0x3] = joints[i].position[0];
         joints[i].m_abs[0x4] = joints[i].m[0x4];
         joints[i].m_abs[0x5] = joints[i].m[0x5];
         joints[i].m_abs[0x6] = joints[i].m[0x6];
-        joints[i].m_abs[0x7] = joints[i].m[0x7]; // joints[i].position[1];
+        joints[i].m_abs[0x7] = joints[i].position[1];
         joints[i].m_abs[0x8] = joints[i].m[0x8];
         joints[i].m_abs[0x9] = joints[i].m[0x9];
         joints[i].m_abs[0xA] = joints[i].m[0xA];
-        joints[i].m_abs[0xB] = joints[i].m[0xB]; // joints[i].position[2];
+        joints[i].m_abs[0xB] = joints[i].position[2];
         joints[i].m_abs[0xC] = joints[i].m[0xC];
         joints[i].m_abs[0xD] = joints[i].m[0xD];
         joints[i].m_abs[0xE] = joints[i].m[0xE];
@@ -298,9 +298,7 @@ ErrorCode MeshUTF::LoadModel(const wchar_t* filename)
            // R*P = A (relative * parent = absolute)
            // R = A*inv(P) (relative = absolute * parent inverse)
            // this is why we store the inverse matrices
-           matrix4D Pinv = joints[joints[i].parent].m_rel;
-           Pinv.invert();
-           joints[i].m_rel = joints[i].m_abs * Pinv;
+           joints[i].m_rel = joints[i].m_abs * joints[joints[i].parent].m_inv;
           }
 
         // add joint to jointmap
@@ -1013,7 +1011,7 @@ ErrorCode MeshUTFInstance::Update(void)
                m = V * m;
 
                // set matrix
-               jm[bi] = mesh->joints[bi].m_rel;
+               jm[bi] = m;
                break;
               }
            }
@@ -1024,10 +1022,10 @@ ErrorCode MeshUTFInstance::Update(void)
  // these transformation matrices are interpolated in relative space
  for(size_t bi = 1; bi < joints.size(); bi++) {
      uint32 parent = mesh->joints[bi].parent;
-     jm[bi] = jm[bi] * jm[parent];
+     jm[bi] = jm[bi] * mesh->joints[bi].m_rel * jm[parent];
     }
  for(size_t bi = 0; bi < joints.size(); bi++) {
-     jm[bi] = mesh->joints[bi].m_abs * jm[bi];
+     jm[bi] = jm[bi] * mesh->joints[bi].m_inv;
      jm[bi].transpose();
     }
 
