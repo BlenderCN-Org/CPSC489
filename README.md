@@ -47,7 +47,10 @@ Added a fifth vertex shader, VS_AABB_MINMAX + IL_AABB_MINMAX, for drawing instan
 minmax AABBs. This is a debugging vertex shader, and will be used to test the AABB
 bounding volume hierarchy tree.<br />
 03/26/2018<br />
-Revised Blender script.
+Revised Blender script.<br />
+Added custom property "path" to Blender script for Texture objects.<br />
+Added custom property "type" to Blender script for Texture objects.<br />
 03/27/2018<br />
 Added custom property "entity_type" to Blender script.<br />
 Added support in Blender script for collision meshes.<br />
+Added a documentation folder to document custom properties in Blender.<br />

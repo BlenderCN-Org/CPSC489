@@ -1,0 +1,30 @@
+###
+### Custom Properties
+###
+
+Mesh Objects
+
+entity_type (string enum)
+ 'CELL'
+ 'ROOM'
+ 'PORTAL'
+ 'DOOR_CONTROLLER'
+ 'COLLISION_MESH'
+
+Texture Objects
+
+path (string)
+ Use this to replace Blender's default pathname conventions, which are quite ugly.
+ For example, a texture named "image.dds", defined with path "models" will result
+ in the script outputting "models/image.dds" as the name rather than the ugly
+ output Blender puts out like "..//..//image.dds" for example.
+
+type (string enum)
+ 'diffuse'  - diffuse map
+ 'normal'   - normal map
+ 'light'    - light map (ambient occlusion map)
+ 'specular' - specular map
+
+
+
+ 
