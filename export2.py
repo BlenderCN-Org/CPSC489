@@ -270,108 +270,129 @@ def GetVertexBufferNormals(mesh):
 		temp[2] = temp[2]
 		buffer.append(temp)
 	return buffer
-def GetVertexBufferTexcoord(mesh):
-	if mesh is None: raise Exception('You cannot use this function on a null mesh.')
-	if IsPortalMesh(mesh): raise Exception('You cannot use this function on portal meshes.')
-	if mesh.vertices is None or mesh.uv_layers is None: return None
-	if len(mesh.vertices) == 0: return None
-	if len(mesh.uv_layers) == 0: return None
-	buffer = [[]] * len(mesh.uv_layers)
-	for i in range(len(mesh.uv_layers)):
-		for j in range(len(mesh.vertices)):
-			buffer[i].append([0.0, 0.0])
-	for poly in mesh.polygons:
-		if poly.loop_total != 3: raise Exception('Mesh geometry contains non-triangles.')
-		for loop_index in poly.loop_indices:
-			vindex = mesh.loops[loop_index].vertex_index
-			for channel in range(len(mesh.uv_layers)):
-				data = mesh.uv_layers[channel].data[loop_index]
-				buffer[channel][vindex] = data.uv
-	return buffer
-def GetVertexBufferColors(mesh):
-	if mesh is None: raise Exception('You cannot use this function on a null mesh.')
-	if IsPortalMesh(mesh): raise Exception('You cannot use this function on portal meshes.')
-	if mesh.vertices is None or mesh.vertex_colors is None: return None
-	n_verts = len(mesh.vertices)
-	n_channels = len(mesh.vertex_colors)
-	if len(mesh.vertices) == 0 or len(mesh.vertex_colors) == 0: return None
-	buffer = [[]] * n_channels
-	for i in range(n_channels):
-		for j in range(len(mesh.vertices)):
-			buffer[i].append([0.0, 0.0, 0.0, 0.0])
-	for poly in mesh.polygons:
-		if poly.loop_total != 3: raise Exception('Mesh geometry contains non-triangles.')
-		for loop_index in poly.loop_indices:
-			vindex = mesh.loops[loop_index].vertex_index
-			for channel in range(n_channels):
-				data = mesh.vertex_colors[channel].data[loop_index]
-				buffer[channel][vindex][0] = data.color[0]
-				buffer[channel][vindex][1] = data.color[1]
-				buffer[channel][vindex][2] = data.color[2]
-	return buffer
-def GetVertexBufferBlendData(mesh):
-	if mesh is None: raise Exception('You cannot use this function on a null mesh.')
-	if IsPortalMesh(mesh): raise Exception('You cannot use this function on portal meshes.')
-	# no vertices 
-	if (mesh.vertices is None): return None
-	n_verts = len(mesh.vertices)
-	if n_verts == 0: return None
-	# get armature object
-	armature = GetArmatureObjectFromMesh(mesh)
-	if not HasBones(armature): return None
-	# get bone map <key = bone name, value = bone index>
-	bonemap = CreateIndexBoneMap(armature)
-	if bonemap is None: return None
-	# get vertex group dictionary <key = vertex group index, value = vertex group name>
-	vg_dict = CreateVertexGroupDictionary(mesh)
-	if vg_dict is None: return None
-	# get blend data
-	buffer = [[], []]
-	for i in range(n_verts):
-		# get list of (vertex group index, weight)
-		vertex = mesh.vertices[i]
-		if len(vertex.groups) > 4: raise Exception('Cannot have more than four weights per vertex.')
-		# for each (vertex group index, weight)
-		bi = [0, 0, 0, 0]
-		bw = [0.0, 0.0, 0.0, 0.0]
-		for i, vg in enumerate(vertex.groups):
-			if vg.group not in vg_dict:
-				raise Exception('The vertex group ({}) was not found in vertex group dictionary.'.format(vg.group))
-			vg_name = vg_dict[vg.group]
-			if vg_name not in bonemap:
-				raise Exception('The vertex group name ({}) was not found in bone dictionary'.format(vg_name))
-			bone_index = bonemap[vg_name]
-			bi[i] = bone_index
-			bw[i] = vg.weight
-		# insert values
-		buffer[0].append(bi)
-		buffer[1].append(bw)
-			
-	return buffer;
-def GetIndexBufferDictionary(mesh):
-	if mesh is None: raise Exception('You cannot use this function on a null mesh.')
-	if IsPortalMesh(mesh): raise Exception('You cannot use this function on portal meshes.')
-	facedict = {}
-	for index in range(len(mesh.materials)): facedict[index] = []
-	for poly in mesh.polygons:
-		if poly.loop_total != 3: raise Exception('Mesh geometry contains non-triangles.')
-		face = [
-			mesh.loops[poly.loop_indices[0]].vertex_index,
-			mesh.loops[poly.loop_indices[1]].vertex_index,
-			mesh.loops[poly.loop_indices[2]].vertex_index]
-		facedict[poly.material_index].append(face)
-	return facedict
+def GetVertexBufferTexcoord(meshobj):
+    if (meshobj is None) or (meshobj.data is None): return None
+    if IsPortalMesh(meshobj): raise Exception('You cannot use this function on portal meshes.')
+    mesh = meshobj.data
+    if mesh.vertices is None or mesh.uv_layers is None: return None
+    if len(mesh.vertices) == 0: return None
+    if len(mesh.uv_layers) == 0: return None
+    buffer = [[]] * len(mesh.uv_layers)
+    for i in range(len(mesh.uv_layers)):
+        for j in range(len(mesh.vertices)):
+            buffer[i].append([0.0, 0.0])
+    for poly in mesh.polygons:
+        if poly.loop_total != 3: raise Exception('Mesh geometry contains non-triangles.')
+        for loop_index in poly.loop_indices:
+            vindex = mesh.loops[loop_index].vertex_index
+            for channel in range(len(mesh.uv_layers)):
+                data = mesh.uv_layers[channel].data[loop_index]
+                buffer[channel][vindex] = data.uv
+    return buffer
+def GetVertexBufferColors(meshobj):
+    if (meshobj is None) or (meshobj.data is None): return None
+    if IsPortalMesh(meshobj): raise Exception('You cannot use this function on portal meshes.')
+    mesh = meshobj.data
+    if mesh.vertices is None or mesh.vertex_colors is None: return None
+    n_verts = len(mesh.vertices)
+    n_channels = len(mesh.vertex_colors)
+    if len(mesh.vertices) == 0 or len(mesh.vertex_colors) == 0: return None
+    buffer = [[]] * n_channels
+    for i in range(n_channels):
+        for j in range(len(mesh.vertices)):
+            buffer[i].append([0.0, 0.0, 0.0, 0.0])
+    for poly in mesh.polygons:
+        if poly.loop_total != 3: raise Exception('Mesh geometry contains non-triangles.')
+        for loop_index in poly.loop_indices:
+            vindex = mesh.loops[loop_index].vertex_index
+            for channel in range(n_channels):
+                data = mesh.vertex_colors[channel].data[loop_index]
+                buffer[channel][vindex][0] = data.color[0]
+                buffer[channel][vindex][1] = data.color[1]
+                buffer[channel][vindex][2] = data.color[2]
+    return buffer
+def GetVertexBufferBlendData(meshobj):
+    if (meshobj is None) or (meshobj.data is None): return None
+    if IsPortalMesh(meshobj): raise Exception('You cannot use this function on portal meshes.')
+    mesh = meshobj.data
+    # no vertices 
+    if (mesh.vertices is None): return None
+    n_verts = len(mesh.vertices)
+    if n_verts == 0: return None
+    # get armature object
+    armature = GetArmatureObjectFromMesh(mesh)
+    if not HasBones(armature): return None
+    # get bone map <key = bone name, value = bone index>
+    bonemap = CreateIndexBoneMap(armature)
+    if bonemap is None: return None
+    # get vertex group dictionary <key = vertex group index, value = vertex group name>
+    vg_dict = CreateVertexGroupDictionary(meshobj)
+    if vg_dict is None: return None
+    # get blend data
+    buffer = [[], []]
+    for i in range(n_verts):
+        # get list of (vertex group index, weight)
+        vertex = mesh.vertices[i]
+        if len(vertex.groups) > 4: raise Exception('Cannot have more than four weights per vertex.')
+        # for each (vertex group index, weight)
+        bi = [0, 0, 0, 0]
+        bw = [0.0, 0.0, 0.0, 0.0]
+        for i, vg in enumerate(vertex.groups):
+            if vg.group not in vg_dict:
+                raise Exception('The vertex group ({}) was not found in vertex group dictionary.'.format(vg.group))
+            vg_name = vg_dict[vg.group]
+            if vg_name not in bonemap:
+                raise Exception('The vertex group name ({}) was not found in bone dictionary'.format(vg_name))
+            bone_index = bonemap[vg_name]
+            bi[i] = bone_index
+            bw[i] = vg.weight
+        # insert values
+        buffer[0].append(bi)
+        buffer[1].append(bw)
+    return buffer;
+def GetIndexBuffer(meshobj):
+    # Returns the index buffer regardless of material. Use this method for col-
+    # lision detection meshes.
+    if (meshobj is None) or (meshobj.data is None): return None
+    mesh = meshobj.data
+    ib = []
+    for poly in mesh.polygons:
+        if poly.loop_total != 3: raise Exception('Mesh geometry contains non-triangles.')
+        face = [
+            mesh.loops[poly.loop_indices[0]].vertex_index,
+            mesh.loops[poly.loop_indices[1]].vertex_index,
+            mesh.loops[poly.loop_indices[2]].vertex_index]
+        ib.append(face)
+    return ib
+def GetIndexBufferDictionary(meshobj):
+    # In Blender, each face can be assigned a different material. We need to be
+    # able to keep the faces that use the same materials together. Given a mat-
+    # erial index, we look it up in a dictionary to obtain a list of faces that
+    # use that material.
+    if (meshobj is None) or (meshobj.data is None): return None
+    if IsPortalMesh(meshobj): raise Exception('You cannot use this function on portal meshes.')
+    mesh = meshobj.data
+    facedict = {}
+    for index in range(len(mesh.materials)): facedict[index] = []
+    for poly in mesh.polygons:
+        if poly.loop_total != 3: raise Exception('Mesh geometry contains non-triangles.')
+        face = [
+            mesh.loops[poly.loop_indices[0]].vertex_index,
+            mesh.loops[poly.loop_indices[1]].vertex_index,
+            mesh.loops[poly.loop_indices[2]].vertex_index]
+        facedict[poly.material_index].append(face)
+    return facedict
 	
 #
 # VERTEX GROUP FUNCTIONS
 #
-def CreateVertexGroupDictionary(mesh):
+def CreateVertexGroupDictionary(meshobj):
     # dictionary<vertex group index, vertex group name>
-	obj = GetObjectFromMesh(mesh)
-	if obj is None: raise Exception('Failed to get object for mesh {}.'.format(mesh.name))
-	vgdict = {}
-	for vg in obj.vertex_groups: vgdict[vg.index] = vg.name
-	return vgdict
+    if (meshobj is None) or (meshobj.data is None): return None
+    if IsPortalMesh(meshobj): raise Exception('You cannot use this function on portal meshes.')
+    vgdict = {}
+    for vg in meshobj.vertex_groups: vgdict[vg.index] = vg.name
+    return vgdict
 	
 #
 # MATERIAL FUNCTIONS
@@ -422,27 +443,25 @@ def GetMeshMaterialTextures(mesh, material):
 #
 # PORTAL FUNCTIONS
 #
-def IsPortalMesh(mesh):
-	# 1st - check custom property
-	if mesh is None: return False
-	if 'is_portal' in mesh:
-		is_portal = mesh['is_portal']
-		if 'is_cell' in mesh and is_portal and mesh['is_cell']:
-			raise Exception('Mesh {} has is_cell and is_portal set to True.'.format(mesh.name))
-		return is_portal
-	# 2nd - check mesh name
-	list = mesh.name.split('_')
-	if (len(list) and list[0] == 'portal'): return True
-	# 3rd - check mesh object name
-	obj = GetObjectFromMeshData(mesh)
-	if obj:
-		list = obj.name.split('_')
-		if len(list): return list[0] == 'portal'
-	return False
-def SetPortalMeshState(state):
+def IsPortalMesh(obj):
+    if IsMeshObject(obj):
+        # 1st - check custom property
+        if obj is None: return False
+        if 'entity_type' in obj:
+            type = obj['entity_type']
+            if type == 'PORTAL': return True
+        # 2nd - check mesh name
+        list = obj.name.split('_')
+        if (len(list) and list[0] == 'portal'): return True
+        # 3rd - check mesh data name
+        mesh = obj.data
+        if mesh is not None:
+            list = mesh.name.split('_')
+            if len(list): return list[0] == 'portal'
+        return False
+def SetPortalMesh():
 	meshlist = GetSelectedMeshObjects()
-	if meshlist is None: return
-	for mesh in meshlist: mesh['is_portal'] = state
+	for mesh in meshlist: mesh['entity_type'] = 'PORTAL'
 def IsCellMesh(mesh):
 	# 1st - check custom property
 	if mesh is None: return False
@@ -468,7 +487,6 @@ def SetCellMeshState(state):
 ###
 ### DOOR CONTROLLER FUNCTIONS
 ###
-
 def IsDoorController(obj):
     if IsMeshObject(obj):
         # 1st - check custom property
@@ -502,6 +520,27 @@ def GetDoorControllerDims(obj):
     rv.rotation = rotation
     rv.halfdims = [(max_v[0] - min_v[0])/2.0, (max_v[1] - min_v[1])/2.0, (max_v[2] - min_v[2])/2.0]
     return rv
+
+###
+### COLLISION MESH FUNCTIONS
+###
+def IsCollisionMesh(obj):
+    if IsMeshObject(obj):
+        # 1st - check custom property
+        if obj is None: return False
+        if 'entity_type' in obj:
+            entity_type = obj['entity_type']
+            return entity_type == 'COLLISION_MESH'
+        # 2nd - check object name
+        list = obj.name.split('_')
+        if (len(list) and list[0] == 'collision'): return True
+    return False
+def GetCollisionMeshObjects():
+    rv = []
+    list = GetMeshObjects()
+    for meshobj in list:
+        if IsCollisionMesh(meshobj) is True: rv.append(meshobj)
+    return rv;
     
 ###
 ### CREATE FILE
@@ -522,9 +561,11 @@ meshlist = GetMeshObjects()
 n_mesh = 0
 n_portal_mesh = 0
 for mesh in meshlist:
-	if IsPortalMesh(mesh): n_portal_mesh = n_portal_mesh + 1
-	else: n_mesh = n_mesh + 1
-	
+    if IsPortalMesh(mesh): n_portal_mesh = n_portal_mesh + 1
+    elif IsCollisionMesh(mesh): pass
+    elif IsDoorController(mesh): pass
+    else: n_mesh = n_mesh + 1
+
 ###
 ### SAVE ARMATURE
 ###
@@ -587,11 +628,56 @@ else:
 	file.write('0 # number of animations\n')
 
 ###
+### SAVE COLLISION MESHES
+###
+
+# count number of collision meshes
+n_collision = 0
+colmesh = []
+for mesh in meshlist:
+    if IsCollisionMesh(mesh):
+        colmesh.append(mesh)
+        n_collision = n_collision + 1
+
+# save collision meshes
+file.write('{} # number of collision meshes\n'.format(n_collision))
+for meshobj in colmesh:
+
+    # mesh data
+    mesh = meshobj.data
+    if IsMeshDataValid(mesh) == False: raise Exception('Collision mesh does not contain valid mesh data.')
+
+    # mesh properties
+    n_verts = len(mesh.vertices)
+    
+    # build vertex buffer positions
+    vb = GetVertexBufferPositions(mesh)
+    if vb is None or len(vb) == 0:
+        raise Exception('The collision mesh {} has no vertex buffer.'.format(mesh.name))
+    if len(vb) != len(mesh.vertices):
+        raise Exception('The number of mesh vertices for collision mesh {} do not match.'.format(mesh.name))
+
+    # write vertex buffers
+    file.write('{} # number of collision vertices\n'.format(n_verts))
+    for i in range(len(vb)): 
+        file.write("{:.4f} {:.4f} {:.4f}\n".format(vb[i][0], vb[i][1], vb[i][2]))
+
+    # index buffer data and properties
+    ib = GetIndexBuffer(meshobj)
+    if ib is None or len(ib) == 0:
+        raise Exception('The collision mesh {} has no index buffer.'.format(mesh.name))
+    n_faces = len(ib)
+
+    # write submesh data
+    file.write('{} # number of collision faces\n'.format(n_faces))
+    for face in ib: file.write('{} {} {}\n'.format(face[0], face[1], face[2]))
+                        
+###
 ### SAVE MESHES
 ###
 
 # save meshes
-file.write('{} # number of non-portal meshes\n'.format(n_mesh))
+file.write('{} # number of meshes\n'.format(n_mesh))
 for meshobj in meshlist:
 
     # mesh data
@@ -603,18 +689,11 @@ for meshobj in meshlist:
     n_channels = len(mesh.uv_layers)
     n_colors = len(mesh.vertex_colors)
 		
-    # if portal
-    if IsPortalMesh(mesh):
-    
-        pass
-
-    # if door controller
-    elif IsDoorController(meshobj):
-    
-        GetDoorControllerDims(meshobj)
-        pass
-    
-    # if not a portal
+    # DO NOT PROCESS
+    if IsPortalMesh(meshobj): pass
+    elif IsCollisionMesh(meshobj): pass
+    elif IsDoorController(meshobj): pass
+    # DO PROCESS
     else:
 
         # build mesh materials
@@ -639,7 +718,7 @@ for meshobj in meshlist:
         # build vertex buffer texture coordinates
         vbuffer3 = []
         vbuffer4 = []
-        uvdata = GetVertexBufferTexcoord(mesh)
+        uvdata = GetVertexBufferTexcoord(meshobj)
         if uvdata:
             if n_channels > 0: vbuffer3 = uvdata[0]
             if n_channels > 1: vbuffer4 = uvdata[1]
@@ -647,7 +726,7 @@ for meshobj in meshlist:
         # build vertex buffer blend data
         vbuffer5 = None
         vbuffer6 = None
-        blenddata = GetVertexBufferBlendData(mesh)
+        blenddata = GetVertexBufferBlendData(meshobj)
         if blenddata:
             vbuffer5 = blenddata[0]
             vbuffer6 = blenddata[1]
@@ -655,13 +734,13 @@ for meshobj in meshlist:
         # build vertex buffer color coordinates
         vbuffer7 = []
         vbuffer8 = []
-        cdata = GetVertexBufferColors(mesh)
+        cdata = GetVertexBufferColors(meshobj)
         if cdata:
             if n_colors > 0: vbuffer7 = cdata[0]
             if n_colors > 1: vbuffer8 = cdata[1]
 	
         # build index buffers
-        facedict = GetIndexBufferDictionary(mesh)
+        facedict = GetIndexBufferDictionary(meshobj)
 
         # count submeshes and total faces
         n_submesh = 0

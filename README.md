@@ -45,4 +45,9 @@ Added program and code to generate characters from skeletons.<br />
 03/20/2018<br />
 Added a fifth vertex shader, VS_AABB_MINMAX + IL_AABB_MINMAX, for drawing instanced
 minmax AABBs. This is a debugging vertex shader, and will be used to test the AABB
-bounding volume hierarchy tree.
+bounding volume hierarchy tree.<br />
+03/26/2018<br />
+Revised Blender script.
+03/27/2018<br />
+Added custom property "entity_type" to Blender script.<br />
+Added support in Blender script for collision meshes.<br />
