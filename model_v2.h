@@ -8,9 +8,10 @@ class MeshData {
   typedef struct _c_point2D { real32 v[2]; } c_point2D;
   typedef struct _c_point3D { real32 v[3]; } c_point3D;
   typedef struct _c_color4D { real32 v[4]; } c_color4D;
-  typedef struct _c_blend8i { uint16 v[8]; } c_blend8i;
-  typedef struct _c_blend8w { real32 v[8]; } c_blend8w;
+  typedef struct _c_blend4i { uint16 v[8]; } c_blend4i;
+  typedef struct _c_blend4w { real32 v[8]; } c_blend4w;
   typedef struct _c_triface { uint32 v[3]; } c_triface;
+  static const uint16 DIFFUSE_MAP = 0;
  private :
   struct MeshBone {
    STDSTRINGW name;
@@ -55,7 +56,8 @@ class MeshData {
   struct MeshTexture {
    STDSTRINGW filename;
    uint32 semantic;
-   uint32 uv_index;
+   uint16 uv_index;
+   uint16 resource;
    struct TextureProperties {
    };
   };
@@ -69,6 +71,12 @@ class MeshData {
    std::unique_ptr<c_point3D[]> position;
    std::unique_ptr<c_triface[]> facelist;
   };
+  struct MeshSurface {
+   uint32 n_faces;
+   uint32 m_index;
+   uint32 start;
+   std::unique_ptr<c_triface[]> facelist;
+  };
   struct MeshBuffers {
    STDSTRINGW name;
    std::vector<MeshMaterial> materials;
@@ -77,16 +85,16 @@ class MeshData {
    std::unique_ptr<c_point3D[]> position;
    std::unique_ptr<c_point3D[]> normal;
    std::unique_ptr<c_point2D[]> uvs[2];
-   std::unique_ptr<c_blend8i[]> bi;
-   std::unique_ptr<c_blend8w[]> bw;
+   std::unique_ptr<c_blend4i[]> bi;
+   std::unique_ptr<c_blend4w[]> bw;
    std::unique_ptr<c_color4D[]> colors[2];
-   std::unique_ptr<c_triface[]> facelist;
+   std::vector<MeshSurface> surfaces;
   };
   struct MeshGraphics {
     std::unique_ptr<ID3D11Buffer*[]> vbuffer;
     std::unique_ptr<ID3D11Buffer*[]> ibuffer;
     ID3D11Buffer* jbuffer;
-    std::unique_ptr<ID3D11ShaderResourceView*[]> rvlist;
+    std::vector<ID3D11ShaderResourceView*> resources;
   };
  private :
   bool skeletal;

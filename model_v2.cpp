@@ -3,6 +3,7 @@
 
 #include "errors.h"
 #include "gfx.h"
+#include "texture.h"
 #include "ascii.h"
 
 static const uint32 FRAMES_PER_SECOND = 60ul;
@@ -447,9 +448,9 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
 
      // read collision faces
      if(collisions[i].n_faces) {
-        meshes[i].facelist.reset(new c_triface[collisions[i].n_faces]);
+        collisions[i].facelist.reset(new c_triface[collisions[i].n_faces]);
         for(size_t j = 0; j < meshes[i].n_faces; j++) {
-            code = ASCIIReadVector3(linelist, &meshes[i].facelist[j].v[0], false);
+            code = ASCIIReadVector3(linelist, &collisions[i].facelist[j].v[0], false);
             if(Fail(code)) return Fail(code, __LINE__, __FILE__);
            }
        } 
@@ -460,6 +461,223 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
  // READ MESHES
  //
 
+ // read number of meshes
+ uint32 n_mesh = 0;
+ code = ASCIIReadUint32(linelist, &n_mesh);
+ if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+ if(!n_mesh) return Fail(EC_MODEL_MESH, __LINE__, __FILE__); // TODO: Remove. It is OK to have nothing to draw.
+
+ // read mesh list
+ meshes.resize(n_mesh);
+ for(uint32 i = 0; i < n_mesh; i++)
+    {
+     // read name
+     char buffer[1024];
+     code = ASCIIReadString(linelist, buffer);
+     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+
+     // name must be valid
+     meshes[i].name = ConvertUTF8ToUTF16(buffer);
+     if(!meshes[i].name.length()) return Fail(EC_MODEL_MESHNAME, __LINE__, __FILE__);
+
+     // read number of materials
+     uint32 n_materials = 0;
+     code = ASCIIReadUint32(linelist, &n_materials);
+     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+
+     // TODO:
+     // Remove this constraint. If there are no materials defined for a mesh, a
+     // default material could be applied.
+     if(!n_materials) return Fail(EC_MODEL_MATERIAL, __LINE__, __FILE__);
+
+     // read materials
+     if(n_materials) meshes[i].materials.resize(n_materials);
+     for(uint32 j = 0; j < n_materials; j++)
+        {
+         // read material name
+         code = ASCIIReadString(linelist, buffer);
+         if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+
+         // name must be valid
+         MeshMaterial mat;
+         mat.name = ConvertUTF8ToUTF16(buffer);
+         if(!mat.name.length()) return Fail(EC_MODEL_MATERIAL_NAME, __LINE__, __FILE__);
+
+         // read number of textures
+         uint32 n_textures = 0;
+         code = ASCIIReadUint32(linelist, &n_textures);
+         if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+
+         // TODO: Remove this constraint and assign a default texture in this case.
+         if(!n_textures) return Fail(EC_MODEL_TEXTURES, __LINE__, __FILE__);
+
+         // read textures
+         if(n_textures) mat.textures.resize(n_textures);
+         for(uint32 k = 0; k < n_textures; k++)
+            {
+             // read texture semantic
+             code = ASCIIReadString(linelist, buffer);
+             if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+
+             // assign texture semantic
+             if(strcmpi(buffer, "diffuse") == 0) mat.textures[k].semantic = DIFFUSE_MAP;
+             else return Fail(EC_MODEL_TEXTURE_SEMANTIC, __LINE__, __FILE__);
+
+             // read UV channel
+             code = ASCIIReadUint16(linelist, &mat.textures[k].uv_index);
+             if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+
+             // read texture filename
+             code = ASCIIReadString(linelist, buffer);
+             if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+
+             // assign filename
+             mat.textures[k].filename = ConvertUTF8ToUTF16(buffer);
+             if(!mat.name.length()) return Fail(EC_MODEL_MATERIAL_NAME, __LINE__, __FILE__);
+            }
+
+         // move material
+         meshes[i].materials[j] = std::move(mat);
+        }
+    }
+
+/*
+
+
+     // read number of vertices
+     meshes[i].n_verts = 0;
+     code = ASCIIReadUint32(linelist, &meshes[i].n_verts);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+     if(!meshes[i].n_verts) return EC_MODEL_VERTICES;
+
+     // read number of UV channels
+     uint32 n_uvs = 0;
+     code = ASCIIReadUint32(linelist, &n_uvs);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+     if(n_uvs > 2) return EC_MODEL_UV_CHANNELS;
+
+     // read number of color channels
+     uint32 n_colors = 0;
+     code = ASCIIReadUint32(linelist, &n_colors);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+     if(n_colors > 2) return EC_MODEL_COLOR_CHANNELS;
+
+     // read number of textures
+     uint32 n_textures = 0;
+     code = ASCIIReadUint32(linelist, &n_textures);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+     if(n_textures > 8) return EC_MODEL_TEXTURES;
+
+     // read textures
+     if(n_textures) meshes[i].textures.resize(n_textures);
+     for(uint32 j = 0; j < n_textures; j++)
+        {
+         // read semantic
+         char buffer[1024];
+         code = ASCIIReadString(linelist, buffer);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+         // semantic must be valid
+         meshes[i].textures[j].semantic = ConvertUTF8ToUTF16(buffer);
+         if(!meshes[i].textures[j].semantic.length()) return EC_MODEL_TEXTURE_SEMANTIC;
+
+         // read channel used
+         uint32 n_use = 0;
+         code = ASCIIReadUint32(linelist, &n_use);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+         if(!(n_use < n_uvs)) return EC_MODEL_TEXTURE_CHANNEL;
+         meshes[i].textures[j].channel = n_use;
+
+         // read filename
+         code = ASCIIReadString(linelist, buffer);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+         // filename must be valid
+         meshes[i].textures[j].filename = ConvertUTF8ToUTF16(buffer);
+         if(!meshes[i].textures[j].filename.length()) return EC_MODEL_TEXTURE_FILENAME;
+        }
+
+     // create mesh data
+     meshes[i].position.reset(new std::array<real32, 3>[meshes[i].n_verts]);
+     meshes[i].normal.reset(new std::array<real32, 3>[meshes[i].n_verts]);
+     meshes[i].uvs[0].reset(new std::array<real32, 2>[meshes[i].n_verts]);
+     meshes[i].uvs[1].reset(new std::array<real32, 2>[meshes[i].n_verts]);
+     if(joints.size()) {
+        meshes[i].bi.reset(new std::array<uint16, 4>[meshes[i].n_verts]);
+        meshes[i].bw.reset(new std::array<real32, 4>[meshes[i].n_verts]);
+       }
+     meshes[i].colors[0].reset(new std::array<real32, 3>[meshes[i].n_verts]);
+     meshes[i].colors[1].reset(new std::array<real32, 3>[meshes[i].n_verts]);
+
+     // read mesh data
+     for(uint32 j = 0; j < meshes[i].n_verts; j++)
+        {
+         // read position
+         code = ASCIIReadVector3(linelist, &meshes[i].position[j][0], false);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+         // read normal
+         code = ASCIIReadVector3(linelist, &meshes[i].normal[j][0], false);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+         // read UVs
+         meshes[i].uvs[0][j][0] = meshes[i].uvs[0][j][1] = 0.0f;
+         meshes[i].uvs[1][j][0] = meshes[i].uvs[1][j][1] = 0.0f;
+         for(uint32 k = 0; k < n_uvs; k++) {
+             code = ASCIIReadVector2(linelist, &meshes[i].uvs[k][j][0], false);
+             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+             meshes[i].uvs[k][j][1] = 1.0f - meshes[i].uvs[k][j][1]; // TODO: have Blender do this instead
+            }
+
+         // initialize blendindices and blendweights just in case we only have one auto-generated bone
+         meshes[i].bi[j][0] = 0;
+         meshes[i].bi[j][1] = 0;
+         meshes[i].bi[j][2] = 0;
+         meshes[i].bi[j][3] = 0;
+         meshes[i].bw[j][0] = 1.0f;
+         meshes[i].bw[j][1] = 0.0f;
+         meshes[i].bw[j][2] = 0.0f;
+         meshes[i].bw[j][3] = 0.0f;
+
+         // read blendindices and blendweights
+         // only read if actual has a skeleton defined, if autogenerated, there are no weights
+         if(has_weights) {
+            code = ASCIIReadVector4(linelist, &meshes[i].bi[j][0], false); // set to repeat?
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+            code = ASCIIReadVector4(linelist, &meshes[i].bw[j][0], false); // set to repeat?
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+           }
+
+         // read colors
+         meshes[i].colors[0][j][0] = meshes[i].colors[0][j][1] = meshes[i].colors[0][j][2] = 0.5f;
+         meshes[i].colors[1][j][0] = meshes[i].colors[1][j][1] = meshes[i].colors[1][j][2] = 0.0f;
+         for(uint32 k = 0; k < n_colors; k++) {
+             code = ASCIIReadVector3(linelist, &meshes[i].colors[k][j][0], false);
+             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+            }
+        }
+
+     // read number of faces
+     code = ASCIIReadUint32(linelist, &meshes[i].n_faces);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+     // allocate faces
+     if(meshes[i].n_faces)
+       {
+        // allocate indices
+        uint32 n_indices = meshes[i].n_faces*3;
+        meshes[i].facelist.reset(new uint32[n_indices]);
+
+        // read index buffer
+        size_t curr = 0;
+        for(size_t j = 0; j < meshes[i].n_faces; j++) {
+            code = ASCIIReadVector3(linelist, &meshes[i].facelist[curr], false);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+            curr += 3;
+           }
+       }     
+    }
+*/
  return true;
 }
 
@@ -470,14 +688,25 @@ bool MeshData::LoadMeshBIN(const wchar_t* filename)
 
 void MeshData::Free(void)
 {
- // delete graphics data
+ // delete graphics buffers
  for(size_t i = 0; i < meshes.size(); i++) {
      if(graphics.vbuffer[i]) graphics.vbuffer[i]->Release();
      if(graphics.ibuffer[i]) graphics.ibuffer[i]->Release();
-    std::unique_ptr<ID3D11ShaderResourceView*[]> rvlist;
     }
  if(graphics.jbuffer) graphics.jbuffer->Release();
  graphics.jbuffer = nullptr;
+
+ // delete graphics resources
+ // do not call Release(), texture manager will do it when reference count goes to zero
+ for(size_t i = 0; i < meshes.size(); i++) {
+     for(size_t j = 0; j < meshes[i].materials.size(); j++) {
+         for(size_t k = 0; k < meshes[i].materials[j].textures.size(); k++) {
+             ErrorCode code = FreeTexture(meshes[i].materials[j].textures[k].filename.c_str());
+             if(Fail(code)) DebugErrorCode(code, __LINE__, __FILE__);
+            }
+        }
+    }
+ graphics.resources.clear();
 
  // delete meshes
  meshes.clear();
