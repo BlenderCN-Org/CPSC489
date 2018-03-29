@@ -179,6 +179,9 @@
     <ClCompile Include="testing\t_minmax.cpp">
       <Filter>Source Files\Testing</Filter>
     </ClCompile>
+    <ClCompile Include="model_v2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -321,6 +324,9 @@
     </ClInclude>
     <ClInclude Include="testing\t_minmax.h">
       <Filter>Source Files\Testing</Filter>
+    </ClInclude>
+    <ClInclude Include="model_v2.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
