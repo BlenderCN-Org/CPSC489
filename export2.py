@@ -407,7 +407,7 @@ def GetIndexBufferDictionary(meshobj):
             mesh.loops[poly.loop_indices[2]].vertex_index]
         facedict[poly.material_index].append(face)
     return facedict
-	
+
 #
 # VERTEX GROUP FUNCTIONS
 #
@@ -418,14 +418,19 @@ def CreateVertexGroupDictionary(meshobj):
     vgdict = {}
     for vg in meshobj.vertex_groups: vgdict[vg.index] = vg.name
     return vgdict
-	
+
 #
 # MATERIAL FUNCTIONS
 #
-def GetMaterialObjects():
-    # Only return material objects that reference textures, since empty material
-    # declarations are useless. Since there are always (16) texture slots, slots
-    # should be queried to see if they are used.
+#region MATERIAL_FUNCTIONS
+
+## GetTexturedMaterials
+#  Returns a list of material objects that reference one or more textures since
+#  empty material declarations are useless. Because there are always (16) slots
+#  reserved for textures in Blender, slots should be queried to see if they are
+#  being used.
+#  @return A list of material objects that reference textures.
+def GetTexturedMaterials():
     rv = []
     for material in bpy.data.materials:
         if material.texture_slots is not None:
@@ -434,6 +439,24 @@ def GetMaterialObjects():
                 if (slot is not None) and (slot.use == True): used_slots = used_slots + 1
             if used_slots > 0: rv.append(material)
     return rv
+
+## GetTexturedMeshMaterials(meshlist)
+#  Same function as above, but only collects materials associated with meshes
+#  provided in the meshlish parameter.
+#  @param meshlist An array of Blender mesh objects (not mesh data).
+#  @return A list of material objects that reference textures.
+def GetTexturedMeshMaterials(meshlist):
+    if (meshlist is None) or (len(meshlist) == 0): return None
+    rv = set()
+    for meshobj in meshlist:
+        mesh = meshobj.data
+        for material in mesh.materials:
+            for slot in material.texture_slots:
+                if(slot is not None) and (slot.use == True):
+                    rv.add(material)
+                    break
+    return rv
+
 ## GetMaterialDictionary(meshlist)
 #  Given a list of mesh objects, iterate through the list extracting any materials
 #  that they reference. A dictionary is used to avoid storing duplicate materials.
@@ -495,7 +518,8 @@ def GetMeshMaterialTextures(mesh, material):
             else: mt.filename = 'default.bmp'
             rv.append(mt)
     return rv
-        
+#endregion MATERIAL_FUNCTIONS
+
 #
 # PORTAL FUNCTIONS
 #
@@ -597,243 +621,140 @@ def GetCollisionMeshObjects():
     for meshobj in list:
         if IsCollisionMesh(meshobj) is True: rv.append(meshobj)
     return rv;
-    
-###
-### CREATE FILE
-###
 
-# create file
-splitpath = GetFilePathSplitExt()
-filename = splitpath[0] + "_test.txt"
-file = open(filename, 'w')
+## ExportMeshUTF
+#  
+def ExportMeshUTF():
 
-###
-### PRELIMINARIES
-###
+    ###
+    ### PHASE #1
+    ### CREATE FILE
+    ###
 
-# separate meshes by type
-meshlist1 = [] # portal meshes
-meshlist2 = [] # normal meshes
-meshlist3 = [] # collision meshes
-meshlist4 = [] # door controllers
+    # create file
+    splitpath = GetFilePathSplitExt()
+    filename = splitpath[0] + "_test.txt"
+    file = open(filename, 'w')
 
-# count number of portal and non-portal meshes
-n_mesh = 0
-n_portal_mesh = 0
-n_door_controllers = 0
-n_collision = 0
-for mesh in GetMeshObjects():
-    # portal mesh
-    if IsPortalMesh(mesh):
-        meshlist1.append(mesh)
-        n_portal_mesh = n_portal_mesh + 1
-    # door controller mesh
-    elif IsDoorController(mesh):
-        meshlist2.append(mesh)
-        n_door_controllers = n_door_controllers + 1
-    # collision mesh
-    elif IsCollisionMesh(mesh):
-        meshlist3.append(mesh)
-        n_collision = n_collision + 1
-    # normal mesh
+    ###
+    ### PHASE #2
+    ### SEPARATE MESHES BY TYPE
+    ###
+
+    # mesh types
+    meshlist1 = [] # portal meshes
+    meshlist2 = [] # normal meshes
+    meshlist3 = [] # collision meshes
+    meshlist4 = [] # door controllers
+
+    # count number of portal and non-portal meshes
+    n_mesh = 0
+    n_portal_mesh = 0
+    n_door_controllers = 0
+    n_collision = 0
+    for mesh in GetMeshObjects():
+        # portal mesh
+        if IsPortalMesh(mesh):
+            meshlist1.append(mesh)
+            n_portal_mesh = n_portal_mesh + 1
+        # door controller mesh
+        elif IsDoorController(mesh):
+            meshlist2.append(mesh)
+            n_door_controllers = n_door_controllers + 1
+        # collision mesh
+        elif IsCollisionMesh(mesh):
+            meshlist3.append(mesh)
+            n_collision = n_collision + 1
+        # normal mesh
+        else:
+            meshlist4.append(mesh)
+            n_mesh = n_mesh + 1
+
+    ###
+    ### PHASE #3
+    ### SAVE ARMATURE
+    ###
+
+    # track skeletons used by meshes
+    skellist = []
+    for mesh in meshlist4:
+    	armature = GetArmatureObjectFromMesh(mesh)
+    	if(not armature is None): skellist.append(armature)
+    n_skeleton = len(skellist)
+    if n_skeleton > 1: raise Exception('Meshes cannot be controlled by more than one skeleton object.')
+
+    # construct and save armature
+    if n_skeleton:
+    	data = ConstructArmatureDataFromPose(skellist[0])
+    	file.write('{} # number of bones\n'.format(data.n_bones))
+    	for bone in data.bonelist:
+    		file.write(bone.name + "\n")
+    		file.write("{}\n".format(bone.parent))
+    		WriteVector3(file, bone.position)
+    		file.write("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
+    			bone.matrix[0][0], bone.matrix[0][1], bone.matrix[0][2], 0.0,
+    			bone.matrix[1][0], bone.matrix[1][1], bone.matrix[1][2], 0.0,
+    			bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2], 0.0,
+    			0.0, 0.0, 0.0, 1.0))
     else:
-        meshlist4.append(mesh)
-        n_mesh = n_mesh + 1
+    	file.write('0 # number of bones\n')
 
-###
-### SAVE ARMATURE
-###
+    ###
+    ### PHASE #4
+    ### SAVE ANIMATIONS
+    ###
 
-# track skeletons used by meshes
-skellist = []
-for mesh in meshlist4:
-	armature = GetArmatureObjectFromMesh(mesh)
-	if(not armature is None): skellist.append(armature)
-n_skeleton = len(skellist)
-if n_skeleton > 1: raise Exception('Meshes cannot be controlled by more than one skeleton object.')
+    # construct and save animations
+    animdata = None
+    n_anim = 0
+    if n_skeleton:
+    	# get animation data
+    	animdata = ConstructAnimationData(skellist[0])
+    	if animdata is None: n_anim = 0
+    	else: n_anim = len(animdata)
+    	# print animations
+    	file.write('{} # number of animations\n'.format(n_anim))
+    	for anim in animdata:
+    		file.write(anim.name + '\n')
+    		file.write('{}'.format(anim.n_keyable) + ' # number of keyframed bones\n')
+    		# offsets (just in case)
+    		offset = [0.0, 0.0, 0.0] # armature.location[0]
+    		# iterate through <bone, keys> dictionary
+    		for name, keydict in anim.bonemap.items():
+    			n_keys = len(keydict)
+    			if n_keys > 0:
+    				file.write(name + '\n')
+    				file.write('{}'.format(len(keydict)) + ' # number of keys\n')
+    				for frame, keyval in sorted(keydict.items()):
+    					file.write('{}\n'.format(int(frame)))
+    					WriteOffsetVector3(file, keyval.position, offset)
+    					WriteVector4(file, keyval.rotation)
+    					WriteVector3(file, keyval.scale)
+    else:
+    	file.write('0 # number of animations\n')
 
-# construct and save armature
-if n_skeleton:
-	data = ConstructArmatureDataFromPose(skellist[0])
-	file.write('{} # number of bones\n'.format(data.n_bones))
-	for bone in data.bonelist:
-		file.write(bone.name + "\n")
-		file.write("{}\n".format(bone.parent))
-		WriteVector3(file, bone.position)
-		file.write("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n".format(
-			bone.matrix[0][0], bone.matrix[0][1], bone.matrix[0][2], 0.0,
-			bone.matrix[1][0], bone.matrix[1][1], bone.matrix[1][2], 0.0,
-			bone.matrix[2][0], bone.matrix[2][1], bone.matrix[2][2], 0.0,
-			0.0, 0.0, 0.0, 1.0))
-else:
-	file.write('0 # number of bones\n')
+    ###
+    ### PHASE #5
+    ### SAVE MATERIALS
+    ###
 
-###
-### SAVE ANIMATIONS
-###
+    matdict = GetMaterialDictionary(meshlist4)
+    matlist = []
 
-# construct and save animations
-animdata = None
-n_anim = 0
-if n_skeleton:
-	# get animation data
-	animdata = ConstructAnimationData(skellist[0])
-	if animdata is None: n_anim = 0
-	else: n_anim = len(animdata)
-	# print animations
-	file.write('{} # number of animations\n'.format(n_anim))
-	for anim in animdata:
-		file.write(anim.name + '\n')
-		file.write('{}'.format(anim.n_keyable) + ' # number of keyframed bones\n')
-		# offsets (just in case)
-		offset = [0.0, 0.0, 0.0] # armature.location[0]
-		# iterate through <bone, keys> dictionary
-		for name, keydict in anim.bonemap.items():
-			n_keys = len(keydict)
-			if n_keys > 0:
-				file.write(name + '\n')
-				file.write('{}'.format(len(keydict)) + ' # number of keys\n')
-				for frame, keyval in sorted(keydict.items()):
-					file.write('{}\n'.format(int(frame)))
-					WriteOffsetVector3(file, keyval.position, offset)
-					WriteVector4(file, keyval.rotation)
-					WriteVector3(file, keyval.scale)
-else:
-	file.write('0 # number of animations\n')
+    # write number of materials
+    n_materials = 0
+    if matdict is not None: n_materials = len(matdict)
+    file.write('{} # of materials\n'.format(n_materials))
 
-###
-### SAVE MATERIALS
-###
-
-matdict = GetMaterialDictionary(meshlist4)
-matlist = []
-if matdict is not None:
-    n_materials = len(matdict)
-    print('There are {} materials in mesh list.'.format(n_materials))
-    for name, mat in matdict.items(): matlist.append(mat)
-    matlist = sorted(matlist, key=lambda item: item.index)
-    for mat in matlist:
-        print('material[{}] = {}'.format(mat.index, mat.name))
-
-###
-### SAVE COLLISION MESHES
-###
-
-# save collision meshes
-file.write('{} # number of collision meshes\n'.format(n_collision))
-for meshobj in meshlist3:
-
-    # mesh data
-    mesh = meshobj.data
-    if IsMeshDataValid(mesh) == False: raise Exception('Collision mesh does not contain valid mesh data.')
-
-    # mesh properties
-    n_verts = len(mesh.vertices)
-    
-    # build vertex buffer positions
-    vb = GetVertexBufferPositions(mesh)
-    if vb is None or len(vb) == 0:
-        raise Exception('The collision mesh {} has no vertex buffer.'.format(mesh.name))
-    if len(vb) != len(mesh.vertices):
-        raise Exception('The number of mesh vertices for collision mesh {} do not match.'.format(mesh.name))
-
-    # write vertex buffers
-    file.write('{} # number of collision vertices\n'.format(n_verts))
-    for i in range(len(vb)): 
-        file.write("{:.4f} {:.4f} {:.4f}\n".format(vb[i][0], vb[i][1], vb[i][2]))
-
-    # index buffer data and properties
-    ib = GetIndexBuffer(meshobj)
-    if ib is None or len(ib) == 0:
-        raise Exception('The collision mesh {} has no index buffer.'.format(mesh.name))
-    n_faces = len(ib)
-
-    # write submesh data
-    file.write('{} # number of collision faces\n'.format(n_faces))
-    for face in ib: file.write('{} {} {}\n'.format(face[0], face[1], face[2]))
-                        
-###
-### SAVE MESHES
-###
-
-# save meshes
-file.write('{} # number of meshes\n'.format(n_mesh))
-for meshobj in meshlist4:
-
-    # mesh data
-    mesh = meshobj.data
-    if IsMeshDataValid(mesh) == False: continue
-        
-    # mesh properties
-    n_verts = len(mesh.vertices)
-    n_channels = len(mesh.uv_layers)
-    n_colors = len(mesh.vertex_colors)
-		
-    # build mesh materials
-    matlist = GetMeshMaterials(mesh)
-    if (matlist is None) or (len(matlist) == 0):
-        raise Exception('The mesh {} does not have a material.'.format(mesh.name))
-
-    # build vertex buffer positions
-    vbuffer1 = GetVertexBufferPositions(mesh)
-    if vbuffer1 is None or len(vbuffer1) == 0:
-        raise Exception('The mesh {} has no vertex buffer.'.format(mesh.name))
-    if len(vbuffer1) != len(mesh.vertices):
-        raise Exception('The number of mesh vertices for mesh {} do not match.'.format(mesh.name))
-
-    # build vertex buffer normals
-    vbuffer2 = GetVertexBufferNormals(mesh)
-    if vbuffer2 is None or len(vbuffer2) == 0:
-        raise Exception('The mesh {} has no vertex buffer.'.format(mesh.name))
-    if len(vbuffer2) != len(mesh.vertices):
-        raise Exception('The number of mesh vertices for mesh {} do not match.'.format(mesh.name))
-
-    # build vertex buffer texture coordinates
-    vbuffer3 = []
-    vbuffer4 = []
-    uvdata = GetVertexBufferTexcoord(meshobj)
-    if uvdata:
-        if n_channels > 0: vbuffer3 = uvdata[0]
-        if n_channels > 1: vbuffer4 = uvdata[1]
-
-    # build vertex buffer blend data
-    vbuffer5 = None
-    vbuffer6 = None
-    blenddata = GetVertexBufferBlendData(meshobj)
-    if blenddata:
-        vbuffer5 = blenddata[0]
-        vbuffer6 = blenddata[1]
-
-    # build vertex buffer color coordinates
-    vbuffer7 = []
-    vbuffer8 = []
-    cdata = GetVertexBufferColors(meshobj)
-    if cdata:
-        if n_colors > 0: vbuffer7 = cdata[0]
-        if n_colors > 1: vbuffer8 = cdata[1]
-
-    # build index buffers
-    facedict = GetIndexBufferDictionary(meshobj)
-
-    # count submeshes and total faces
-    n_submesh = 0
-    n_faces = 0
-    if facedict != None:
-        for i, facelist in facedict.items():
-            if len(facelist) > 0:
-                n_submesh = n_submesh + 1
-                n_faces = n_faces + len(facelist)
-
-    # output mesh if valid
-    if facedict != None:
-
-        # write mesh name
-        file.write('{}\n'.format(mesh.name))
-
+    # write material data
+    if matdict is not None:
+        # convert dictionary to an array and sort
+        for name, mat in matdict.items(): matlist.append(mat)
+        matlist = sorted(matlist, key=lambda item: item.index)
         # write material data
-        file.write('{} # of materials\n'.format(len(matlist)))
         for mat in matlist:
             file.write('{}\n'.format(mat.name))
+            file.write('{} # material index\n'.format(mat.index))
             if mat.textures != None:
                 file.write('{} # of textures\n'.format(len(mat.textures)))
                 for texture in mat.textures:
@@ -844,32 +765,157 @@ for meshobj in meshlist4:
             else:
                 file.write('0 # of textures\n')
 
-        # write vertex buffers header
-        file.write('{} # number of vertices\n'.format(n_verts))
-        file.write('{} # number of UV channels\n'.format(n_channels))
-        file.write('{} # number of color channels\n'.format(n_colors))
+    ###
+    ### PHASE #6
+    ### SAVE COLLISION MESHES
+    ###
 
-        # write vertex buffers
-        for i in range(len(vbuffer1)): 
-            file.write("{:.4f} {:.4f} {:.4f}\n".format(vbuffer1[i][0], vbuffer1[i][1], vbuffer1[i][2]))
-            file.write("{:.4f} {:.4f} {:.4f}\n".format(vbuffer2[i][0], vbuffer2[i][1], vbuffer2[i][2]))
-            if n_channels > 0: file.write("{:.4f} {:.4f}\n".format(vbuffer3[i][0], vbuffer3[i][1]))  
-            if n_channels > 1: file.write("{:.4f} {:.4f}\n".format(vbuffer4[i][0], vbuffer4[i][1]))
-            if vbuffer5 is not None and vbuffer6 is not None:
-                file.write("{} {} {} {}\n".format(vbuffer5[i][0], vbuffer5[i][1], vbuffer5[i][2], vbuffer5[i][3]))  
-                file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer6[i][0], vbuffer6[i][1], vbuffer6[i][2], vbuffer6[i][3]))
-            if n_colors > 0: file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer7[i][0], vbuffer7[i][1], vbuffer7[i][2], vbuffer7[i][3]))  
-            if n_colors > 1: file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer8[i][0], vbuffer8[i][1], vbuffer8[i][2], vbuffer8[i][3]))
+    # save collision meshes
+    file.write('{} # number of collision meshes\n'.format(n_collision))
+    for meshobj in meshlist3:
 
-        # write submesh data
-        file.write('{} # number of total faces\n'.format(n_faces))
-        file.write('{} # number of submeshes\n'.format(n_submesh))
-        for i, facelist in facedict.items():
-            if len(facelist) > 0:
-                file.write('{} # number of faces\n'.format(len(facelist)))
-                file.write('{} # material index\n'.format(i))
-                for face in facelist:
-                    file.write('{} {} {}\n'.format(face[0], face[1], face[2]))
+        # mesh data
+        mesh = meshobj.data
+        if IsMeshDataValid(mesh) == False: raise Exception('Collision mesh does not contain valid mesh data.')
 
-# close file
-file.close()
+        # mesh properties
+        n_verts = len(mesh.vertices)
+        file.write('{} # number of collision vertices\n'.format(n_verts))
+    
+        # build vertex buffer positions
+        vb = GetVertexBufferPositions(mesh)
+        if vb is None or len(vb) == 0:
+            raise Exception('The collision mesh {} has no vertex buffer.'.format(mesh.name))
+        if len(vb) != len(mesh.vertices):
+            raise Exception('The number of mesh vertices for collision mesh {} do not match.'.format(mesh.name))
+
+        # write vertex buffer
+        for i in range(len(vb)): 
+            file.write("{:.4f} {:.4f} {:.4f}\n".format(vb[i][0], vb[i][1], vb[i][2]))
+
+        # index buffer data and properties
+        ib = GetIndexBuffer(meshobj)
+        if ib is None or len(ib) == 0:
+            raise Exception('The collision mesh {} has no index buffer.'.format(mesh.name))
+        n_faces = len(ib)
+
+        # write index buffer
+        file.write('{} # number of collision faces\n'.format(n_faces))
+        for face in ib: file.write('{} {} {}\n'.format(face[0], face[1], face[2]))
+                        
+    ###
+    ### PHASE #7
+    ### SAVE MESHES
+    ###
+
+    # save meshes
+    file.write('{} # number of meshes\n'.format(n_mesh))
+    for meshobj in meshlist4:
+
+        # mesh data
+        mesh = meshobj.data
+        if IsMeshDataValid(mesh) == False: continue
+        
+        # mesh properties
+        n_verts = len(mesh.vertices)
+        n_channels = len(mesh.uv_layers)
+        n_colors = len(mesh.vertex_colors)
+
+        # build mesh materials
+        matlist = GetMeshMaterials(mesh)
+        if (matlist is None) or (len(matlist) == 0):
+            raise Exception('The mesh {} does not have a material.'.format(mesh.name))
+
+        # build vertex buffer positions
+        vbuffer1 = GetVertexBufferPositions(mesh)
+        if vbuffer1 is None or len(vbuffer1) == 0:
+            raise Exception('The mesh {} has no vertex buffer.'.format(mesh.name))
+        if len(vbuffer1) != len(mesh.vertices):
+            raise Exception('The number of mesh vertices for mesh {} do not match.'.format(mesh.name))
+
+        # build vertex buffer normals
+        vbuffer2 = GetVertexBufferNormals(mesh)
+        if vbuffer2 is None or len(vbuffer2) == 0:
+            raise Exception('The mesh {} has no vertex buffer.'.format(mesh.name))
+        if len(vbuffer2) != len(mesh.vertices):
+            raise Exception('The number of mesh vertices for mesh {} do not match.'.format(mesh.name))
+
+        # build vertex buffer texture coordinates
+        vbuffer3 = []
+        vbuffer4 = []
+        uvdata = GetVertexBufferTexcoord(meshobj)
+        if uvdata:
+            if n_channels > 0: vbuffer3 = uvdata[0]
+            if n_channels > 1: vbuffer4 = uvdata[1]
+
+        # build vertex buffer blend data
+        vbuffer5 = None
+        vbuffer6 = None
+        blenddata = GetVertexBufferBlendData(meshobj)
+        if blenddata:
+            vbuffer5 = blenddata[0]
+            vbuffer6 = blenddata[1]
+
+        # build vertex buffer color coordinates
+        vbuffer7 = []
+        vbuffer8 = []
+        cdata = GetVertexBufferColors(meshobj)
+        if cdata:
+            if n_colors > 0: vbuffer7 = cdata[0]
+            if n_colors > 1: vbuffer8 = cdata[1]
+
+        # build index buffers
+        facedict = GetIndexBufferDictionary(meshobj)
+
+        # count submeshes and total faces
+        n_submesh = 0
+        n_faces = 0
+        if facedict != None:
+            for i, facelist in facedict.items():
+                if len(facelist) > 0:
+                    n_submesh = n_submesh + 1
+                    n_faces = n_faces + len(facelist)
+
+        # output mesh if valid
+        if facedict != None:
+
+            # write mesh name
+            file.write('{}\n'.format(mesh.name))
+
+            # remap mesh material indices to global material indices
+            remap = {}
+            for i, material in enumerate(mesh.materials):
+                if material.name in matdict:
+                    remap[i] = matdict[material.name].index
+
+            # write vertex buffers header
+            file.write('{} # number of vertices\n'.format(n_verts))
+            file.write('{} # number of UV channels\n'.format(n_channels))
+            file.write('{} # number of color channels\n'.format(n_colors))
+
+            # write vertex buffers
+            for i in range(len(vbuffer1)): 
+                file.write("{:.4f} {:.4f} {:.4f}\n".format(vbuffer1[i][0], vbuffer1[i][1], vbuffer1[i][2]))
+                file.write("{:.4f} {:.4f} {:.4f}\n".format(vbuffer2[i][0], vbuffer2[i][1], vbuffer2[i][2]))
+                if n_channels > 0: file.write("{:.4f} {:.4f}\n".format(vbuffer3[i][0], vbuffer3[i][1]))  
+                if n_channels > 1: file.write("{:.4f} {:.4f}\n".format(vbuffer4[i][0], vbuffer4[i][1]))
+                if vbuffer5 is not None and vbuffer6 is not None:
+                    file.write("{} {} {} {}\n".format(vbuffer5[i][0], vbuffer5[i][1], vbuffer5[i][2], vbuffer5[i][3]))  
+                    file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer6[i][0], vbuffer6[i][1], vbuffer6[i][2], vbuffer6[i][3]))
+                if n_colors > 0: file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer7[i][0], vbuffer7[i][1], vbuffer7[i][2], vbuffer7[i][3]))  
+                if n_colors > 1: file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer8[i][0], vbuffer8[i][1], vbuffer8[i][2], vbuffer8[i][3]))
+
+            # write index buffers
+            file.write('{} # number of total faces\n'.format(n_faces))
+            file.write('{} # number of submeshes\n'.format(n_submesh))
+            for i, facelist in facedict.items():
+                if len(facelist) > 0:
+                    file.write('{} # number of faces\n'.format(len(facelist)))
+                    file.write('{} # material index\n'.format(remap[i]))
+                    for face in facelist:
+                        file.write('{} {} {}\n'.format(face[0], face[1], face[2]))
+
+    # close file
+    file.close()
+
+ExportMeshUTF()
