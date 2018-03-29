@@ -186,6 +186,8 @@
     <ClCompile Include="map.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="matrix4.cpp" />
+    <ClCompile Include="meshbin.cpp" />
+    <ClCompile Include="meshinst.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="model_v2.cpp" />
     <ClCompile Include="orbit.cpp" />
@@ -236,6 +238,8 @@
     <ClInclude Include="map.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="matrix4.h" />
+    <ClInclude Include="meshbin.h" />
+    <ClInclude Include="meshinst.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="model_v2.h" />
     <ClInclude Include="orbit.h" />

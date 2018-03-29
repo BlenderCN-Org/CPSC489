@@ -89,9 +89,6 @@
     <ClCompile Include="ascii.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="matrix4.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
@@ -179,7 +176,16 @@
     <ClCompile Include="testing\t_minmax.cpp">
       <Filter>Source Files\Testing</Filter>
     </ClCompile>
+    <ClCompile Include="model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="model_v2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="meshbin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="meshinst.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -233,9 +239,6 @@
       <Filter>Source Files\Testing</Filter>
     </ClInclude>
     <ClInclude Include="ascii.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="model.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="matrix4.h">
@@ -325,7 +328,16 @@
     <ClInclude Include="testing\t_minmax.h">
       <Filter>Source Files\Testing</Filter>
     </ClInclude>
+    <ClInclude Include="model.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="model_v2.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meshbin.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meshinst.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

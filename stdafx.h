@@ -57,6 +57,7 @@
 #include<unordered_set>
 #include<map>
 #include<set>
+#include<regex>
 #endif
 
 //
