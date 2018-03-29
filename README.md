@@ -54,3 +54,5 @@ Added custom property "type" to Blender script for Texture objects.<br />
 Added custom property "entity_type" to Blender script.<br />
 Added support in Blender script for collision meshes.<br />
 Added a documentation folder to document custom properties in Blender.<br />
+03/28/2018<br />
+Started rewriting mesh class.<br />
