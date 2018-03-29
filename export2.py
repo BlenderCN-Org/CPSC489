@@ -178,6 +178,30 @@ def ConstructArmatureData(armature):
 			[bone.matrix_local[1][0], bone.matrix_local[1][1], bone.matrix_local[1][2]],
 			[bone.matrix_local[2][0], bone.matrix_local[2][1], bone.matrix_local[2][2]]]
 	return data
+def ConstructArmatureDataFromPose(armature):
+    if armature is None: raise Exception('Invalid argument.')
+    if armature.data is None: raise Exception('Invalid argument.')
+    if armature.pose is None: raise Exception('Invalid argument.')
+    # save number of bones    
+    data = ArmatureData()
+    data.n_bones = len(armature.pose.bones)
+    data.bonelist = []
+    if data.n_bones == 0: return data
+    # save bones
+    bmap = CreateIndexBoneMap(armature)
+    for index, bone in enumerate(armature.pose.bones):
+        data.bonelist.append(Bone())
+        data.bonelist[index].name = bone.name
+        data.bonelist[index].parent = -1
+        if bone.parent != None: data.bonelist[index].parent = bmap[bone.parent.name]
+        m = armature.matrix_world * bone.matrix
+        data.bonelist[index].position = [ m[0][3], m[1][3], m[2][3] ]
+        data.bonelist[index].matrix = [
+            [m[0][0], m[1][0], m[2][0], m[0][3]],
+            [m[0][1], m[1][1], m[2][1], m[1][3]],
+            [m[0][2], m[1][2], m[2][2], m[2][3]],
+            [    0.0,     0.0,     0.0,    1.0]]
+    return data
 
 #
 # ANIMATION FUNCTIONS
@@ -580,7 +604,7 @@ if n_skeleton > 1: raise Exception('Meshes cannot be controlled by more than one
 
 # construct and save armature
 if n_skeleton:
-	data = ConstructArmatureData(skellist[0])
+	data = ConstructArmatureDataFromPose(skellist[0])
 	file.write('{} # number of bones\n'.format(data.n_bones))
 	for bone in data.bonelist:
 		file.write(bone.name + "\n")

@@ -38,6 +38,7 @@ void InitErrorStrings(void)
 
  // Common Errors
  InsertErrorString(EC_SUCCESS, LC_ENGLISH, L"");
+ InsertErrorString(EC_UNKNOWN, LC_ENGLISH, L"Unknown error.");
  InsertErrorString(EC_FILE_OPEN, LC_ENGLISH, L"Failed to open file.");
  InsertErrorString(EC_FILE_SEEK, LC_ENGLISH, L"Failed to seek file position.");
  InsertErrorString(EC_FILE_READ, LC_ENGLISH, L"Failed to read file.");
@@ -210,6 +211,30 @@ ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file, LanguageCod
     debug << " File: " << file << std::endl;
    }
  return code;
+}
+
+bool Fail(const ErrorCode& code, int line, const char* file)
+{
+ if(do_debug && debug.is_open()) {
+    STDSTRINGW error = FindError(code, GetLanguageCode());
+    auto str = ConvertUTF16ToUTF8(error.c_str());
+    debug << str.c_str() << std::endl;
+    debug << " Line: " << line << std::endl;
+    debug << " File: " << file << std::endl;
+   }
+ return false;
+}
+
+bool Fail(ErrorCode code, int line, const char* file, LanguageCode language)
+{
+ if(do_debug && debug.is_open()) {
+    STDSTRINGW error = FindError(code, language);
+    auto str = ConvertUTF16ToUTF8(error.c_str());
+    debug << str.c_str() << std::endl;
+    debug << " Line: " << line << std::endl;
+    debug << " File: " << file << std::endl;
+   }
+ return false;
 }
 
 LanguageCode GetLanguageCode(void)

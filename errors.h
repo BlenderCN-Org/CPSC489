@@ -4,6 +4,7 @@
 enum ErrorCode {
  // Common Errors
  EC_SUCCESS = 0,
+ EC_UNKNOWN = 1,
  EC_FILE_OPEN,
  EC_FILE_SEEK,
  EC_FILE_READ,
@@ -116,6 +117,8 @@ bool Error(ErrorCode code, LanguageCode language);
 void EnableErrorDebugging(bool state);
 ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file);
 ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file, LanguageCode language);
+bool Fail(const ErrorCode& code, int line, const char* file);
+bool Fail(ErrorCode code, int line, const char* file, LanguageCode language);
 
 // language code functions
 LanguageCode GetLanguageCode(void);

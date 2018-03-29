@@ -5,6 +5,12 @@
 
 class MeshData {
   friend class MeshInstance;
+  typedef struct _c_point2D { real32 v[2]; } c_point2D;
+  typedef struct _c_point3D { real32 v[3]; } c_point3D;
+  typedef struct _c_color4D { real32 v[4]; } c_color4D;
+  typedef struct _c_blend8i { uint16 v[8]; } c_blend8i;
+  typedef struct _c_blend8w { real32 v[8]; } c_blend8w;
+  typedef struct _c_triface { uint32 v[3]; } c_triface;
  private :
   struct MeshBone {
    STDSTRINGW name;
@@ -57,35 +63,42 @@ class MeshData {
    STDSTRINGW name;
    std::vector<MeshTexture> textures;
   };
+  struct MeshCollision {
+   uint32 n_verts;
+   uint32 n_faces;
+   std::unique_ptr<c_point3D[]> position;
+   std::unique_ptr<c_triface[]> facelist;
+  };
   struct MeshBuffers {
    STDSTRINGW name;
    std::vector<MeshMaterial> materials;
    uint32 n_verts;
-   std::unique_ptr<std::array<real32, 3>[]> position;
-   std::unique_ptr<std::array<real32, 3>[]> normal;
-   std::unique_ptr<std::array<real32, 2>[]> uvs[2];
-   std::unique_ptr<std::array<uint16, 4>[]> bi;
-   std::unique_ptr<std::array<real32, 4>[]> bw;
-   std::unique_ptr<std::array<real32, 3>[]> colors[2];
    uint32 n_faces;
-   std::unique_ptr<uint32[]> facelist;
+   std::unique_ptr<c_point3D[]> position;
+   std::unique_ptr<c_point3D[]> normal;
+   std::unique_ptr<c_point2D[]> uvs[2];
+   std::unique_ptr<c_blend8i[]> bi;
+   std::unique_ptr<c_blend8w[]> bw;
+   std::unique_ptr<c_color4D[]> colors[2];
+   std::unique_ptr<c_triface[]> facelist;
   };
   struct MeshGraphics {
-    ID3D11Buffer* vbuffer;
-    ID3D11Buffer* ibuffer;
+    std::unique_ptr<ID3D11Buffer*[]> vbuffer;
+    std::unique_ptr<ID3D11Buffer*[]> ibuffer;
     ID3D11Buffer* jbuffer;
     std::unique_ptr<ID3D11ShaderResourceView*[]> rvlist;
   };
  private :
+  bool skeletal;
   std::map<STDSTRINGW, uint32> bonemap;
   std::vector<MeshBone> bones;
   std::vector<MeshAnimation> animations;
+  std::vector<MeshCollision> collisions;
   std::vector<MeshBuffers> meshes;
-  std::unique_ptr<MeshGraphics[]> buffers;
-  bool has_weights;
+  MeshGraphics graphics;
  private :
- private :
-  bool ConstructAnimationData(void);
+  void ConstructAnimationData(void);
+  bool ConstructGraphics(void);
  public :
   bool LoadMeshUTF(const wchar_t* filename);
   bool LoadMeshBIN(const wchar_t* filename);
