@@ -469,6 +469,7 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
  // read mesh list
  std::vector<MeshMaterial> matlist;
  if(n_mats) matlist.resize(n_mats);
+ uint16 resource = 0;
  for(uint32 i = 0; i < n_mats; i++)
     {
      // read name
@@ -519,11 +520,15 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
          // assign filename
          matlist[i].textures[j].filename = ConvertUTF8ToUTF16(buffer);
          if(!matlist[i].name.length()) return Fail(EC_MODEL_TEXTURE_FILENAME, __LINE__, __FILE__);
-        }
 
-     // move material
-     materials = std::move(matlist);
+         // assign resource index
+         matlist[i].textures[j].resource = resource;
+         resource += n_textures;
+        }
     }
+
+ // move material data
+ materials = std::move(matlist);
 
  //
  // PHASE #6
@@ -682,7 +687,7 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
      meshlist[i].surfaces = std::move(surfaces);
     }
 
- // assign data
+ // move mesh data
  meshes = std::move(meshlist);
 
  return true;
