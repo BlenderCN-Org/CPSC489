@@ -118,6 +118,7 @@ void InitErrorStrings(void)
  InsertErrorString(EC_MODEL_KEYFRAMED_BONES, LC_ENGLISH, L"Animations must have at least one keyframed bone.");
  InsertErrorString(EC_MODEL_KEYFRAMES, LC_ENGLISH, L"Keyframed bones must have at least one keyframe.");
  InsertErrorString(EC_MODEL_MATERIAL, LC_ENGLISH, L"Model contains a mesh that has no materials defined.");
+ InsertErrorString(EC_MODEL_MATERIAL_INDEX, LC_ENGLISH, L"Model contains a material with an out-of-range material index.");
  InsertErrorString(EC_MODEL_MATERIAL_NAME, LC_ENGLISH, L"Model contains a mesh with an invalid material name.");
  InsertErrorString(EC_MODEL_MESH, LC_ENGLISH, L"Model contains no meshes.");
  InsertErrorString(EC_MODEL_MESHNAME, LC_ENGLISH, L"Invalid model mesh name.");

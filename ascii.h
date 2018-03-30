@@ -6,6 +6,7 @@ ErrorCode ASCIIParseFile(const wchar_t* filename, std::deque<std::string>& linel
 ErrorCode ASCIIReadString(std::deque<std::string>& linelist, char* str);
 ErrorCode ASCIIReadUTF8String(std::deque<std::string>& linelist, STDSTRINGW& str);
 ErrorCode ASCIIReadSint32(std::deque<std::string>& linelist, sint32* x);
+ErrorCode ASCIIReadUint16(std::deque<std::string>& linelist, uint16* x);
 ErrorCode ASCIIReadUint32(std::deque<std::string>& linelist, uint32* x);
 ErrorCode ASCIIReadVector4(std::deque<std::string>& linelist, uint08* v, bool repeat = false);
 ErrorCode ASCIIReadVector4(std::deque<std::string>& linelist, uint16* v, bool repeat = false);

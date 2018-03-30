@@ -79,7 +79,6 @@ class MeshData {
   };
   struct MeshBuffers {
    STDSTRINGW name;
-   std::vector<MeshMaterial> materials;
    uint32 n_verts;
    uint32 n_faces;
    std::unique_ptr<c_point3D[]> position;
@@ -102,6 +101,7 @@ class MeshData {
   std::vector<MeshBone> bones;
   std::vector<MeshAnimation> animations;
   std::vector<MeshCollision> collisions;
+  std::vector<MeshMaterial> materials;
   std::vector<MeshBuffers> meshes;
   MeshGraphics graphics;
  private :

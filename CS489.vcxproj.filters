@@ -36,6 +36,9 @@
     <Filter Include="Source Files\Game">
       <UniqueIdentifier>{834185c6-d36e-446f-8c81-f428a9e11983}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Script Files">
+      <UniqueIdentifier>{d3033ca5-c4f4-4bea-93e0-b94a987a026e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winmain.cpp">
@@ -365,5 +368,13 @@
     <FxCompile Include="shaders\VS\VS_005.hlsl">
       <Filter>Shader Files\VS</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="export.py">
+      <Filter>Script Files</Filter>
+    </None>
+    <None Include="export2.py">
+      <Filter>Script Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

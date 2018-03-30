@@ -622,6 +622,11 @@ def GetCollisionMeshObjects():
         if IsCollisionMesh(meshobj) is True: rv.append(meshobj)
     return rv;
 
+##
+## EXPORT FUNCTIONS
+##
+#region EXPORT_FUNCTIONS
+
 ## ExportMeshUTF
 #  
 def ExportMeshUTF():
@@ -735,38 +740,6 @@ def ExportMeshUTF():
 
     ###
     ### PHASE #5
-    ### SAVE MATERIALS
-    ###
-
-    matdict = GetMaterialDictionary(meshlist4)
-    matlist = []
-
-    # write number of materials
-    n_materials = 0
-    if matdict is not None: n_materials = len(matdict)
-    file.write('{} # of materials\n'.format(n_materials))
-
-    # write material data
-    if matdict is not None:
-        # convert dictionary to an array and sort
-        for name, mat in matdict.items(): matlist.append(mat)
-        matlist = sorted(matlist, key=lambda item: item.index)
-        # write material data
-        for mat in matlist:
-            file.write('{}\n'.format(mat.name))
-            file.write('{} # material index\n'.format(mat.index))
-            if mat.textures != None:
-                file.write('{} # of textures\n'.format(len(mat.textures)))
-                for texture in mat.textures:
-                    file.write('{}\n'.format(texture.name))
-                    file.write('{}\n'.format(texture.type))
-                    file.write('{}\n'.format(texture.channel))
-                    file.write('{}\n'.format(texture.filename))
-            else:
-                file.write('0 # of textures\n')
-
-    ###
-    ### PHASE #6
     ### SAVE COLLISION MESHES
     ###
 
@@ -802,6 +775,38 @@ def ExportMeshUTF():
         # write index buffer
         file.write('{} # number of collision faces\n'.format(n_faces))
         for face in ib: file.write('{} {} {}\n'.format(face[0], face[1], face[2]))
+
+    ###
+    ### PHASE #6
+    ### SAVE MATERIALS
+    ###
+
+    matdict = GetMaterialDictionary(meshlist4)
+    matlist = []
+
+    # write number of materials
+    n_materials = 0
+    if matdict is not None: n_materials = len(matdict)
+    file.write('{} # of materials\n'.format(n_materials))
+
+    # write material data
+    if matdict is not None:
+        # convert dictionary to an array and sort
+        for name, mat in matdict.items(): matlist.append(mat)
+        matlist = sorted(matlist, key=lambda item: item.index)
+        # write material data
+        for mat in matlist:
+            file.write('{}\n'.format(mat.name))
+            file.write('{} # material index\n'.format(mat.index))
+            if mat.textures != None:
+                file.write('{} # of textures\n'.format(len(mat.textures)))
+                for texture in mat.textures:
+                    file.write('{}\n'.format(texture.name))
+                    file.write('{}\n'.format(texture.type))
+                    file.write('{}\n'.format(texture.channel))
+                    file.write('{}\n'.format(texture.filename))
+            else:
+                file.write('0 # of textures\n')
                         
     ###
     ### PHASE #7
@@ -917,5 +922,7 @@ def ExportMeshUTF():
 
     # close file
     file.close()
+
+#endregion EXPORT_FUNCTIONS
 
 ExportMeshUTF()

@@ -58,6 +58,15 @@ ErrorCode ASCIIReadSint32(std::deque<std::string>& linelist, sint32* x)
  return EC_SUCCESS;
 }
 
+ErrorCode ASCIIReadUint16(std::deque<std::string>& linelist, uint16* x)
+{
+ if(linelist.empty()) return EC_FILE_EOF;
+ uint32 temp = strtoul(linelist.front().c_str(), nullptr, 10);
+ *x = static_cast<uint16>(temp);
+ linelist.pop_front();
+ return EC_SUCCESS;
+}
+
 ErrorCode ASCIIReadUint32(std::deque<std::string>& linelist, uint32* x)
 {
  if(linelist.empty()) return EC_FILE_EOF;
