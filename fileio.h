@@ -2,29 +2,6 @@
 #define __CS489_FILEIO_H
 
 //
-// BYTE ORDER FUNCTIONS
-//
-#pragma region BYTE_ORDER_FUNCTIONS
-
-template<class T>
-inline void reverse_byte_order(T* data)
-{
- uint08* ptr = reinterpret_cast<uint08*>(data);
- std::reverse(ptr, ptr + sizeof(T)); 
-}
-
-template<class T>
-inline void reverse_byte_order(T* data, size_t elem)
-{
- for(size_t i = 0; i < elem; i++) {
-     uint08* ptr = reinterpret_cast<uint08*>(&data[i]);
-     std::reverse(ptr, ptr + sizeof(T));
-    }
-}
-
-#pragma endregion BYTE_ORDER_FUNCTIONS
-
-//
 // READING FUNCTIONS
 //
 #pragma region READING_FUNCTIONS

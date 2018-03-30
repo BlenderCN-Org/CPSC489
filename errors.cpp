@@ -131,6 +131,7 @@ void InitErrorStrings(void)
  InsertErrorString(EC_MODEL_TEXTURE_CHANNEL, LC_ENGLISH, L"Texture reference out of bounds.");
  InsertErrorString(EC_MODEL_TEXTURE_FILENAME, LC_ENGLISH, L"Invalid texture filename.");
  InsertErrorString(EC_MODEL_TEXTURE_NAME, LC_ENGLISH, L"Invalid texture name.");
+ InsertErrorString(EC_MODEL_TEXTURE_RESOURCES, LC_ENGLISH, L"Invalid number of texture resources.");
 
  // Animation Errors
  InsertErrorString(EC_ANIM_INDEX, LC_ENGLISH, L"Animation index out of bounds.");

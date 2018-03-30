@@ -60,3 +60,5 @@ Started rewriting mesh class.<br />
 Changed the way materials were defined in the mesh file format.<br />
 Added a mesh test to test opening, loading and saving meshes.<br />
 Began work on sound controllers.<br />
+Added functions for file input/output with big endian support.<br />
+Added a binary stream stream class to read binary file data efficiently.<br />

@@ -122,7 +122,30 @@ typedef std::basic_stringstream<CHAR>  STDSTRINGSTREAMA;
 typedef std::basic_stringstream<WCHAR> STDSTRINGSTREAMW;
 
 //
-// String Functions
+// BYTE ORDER FUNCTIONS
+//
+#pragma region BYTE_ORDER_FUNCTIONS
+
+template<class T>
+inline void reverse_byte_order(T* data)
+{
+ uint08* ptr = reinterpret_cast<uint08*>(data);
+ std::reverse(ptr, ptr + sizeof(T)); 
+}
+
+template<class T>
+inline void reverse_byte_order(T* data, size_t elem)
+{
+ for(size_t i = 0; i < elem; i++) {
+     uint08* ptr = reinterpret_cast<uint08*>(&data[i]);
+     std::reverse(ptr, ptr + sizeof(T));
+    }
+}
+
+#pragma endregion BYTE_ORDER_FUNCTIONS
+
+//
+// STRING FUNCTIONS
 //
 #pragma region STRING_FUNCTIONS
 

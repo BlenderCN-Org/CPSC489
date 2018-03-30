@@ -203,6 +203,9 @@
     <ClCompile Include="fileio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bstream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -362,6 +365,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="fileio.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bstream.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

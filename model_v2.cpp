@@ -5,6 +5,8 @@
 #include "gfx.h"
 #include "texture.h"
 #include "ascii.h"
+#include "fileio.h"
+#include "bstream.h"
 
 static const uint32 FRAMES_PER_SECOND = 60ul;
 static const real32 SECONDS_PER_FRAME = 1.0f/60.0f;
@@ -307,6 +309,24 @@ ErrorCode MeshData::ConstructGraphics(void)
     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
    }
 
+ // allocate resource list
+ size_t rsize = 0;
+ for(size_t i = 0; i < materials.size(); i++) rsize += materials[i].textures.size();
+ if(rsize > 0xFFFFul) return DebugErrorCode(EC_MODEL_TEXTURE_RESOURCES, __LINE__, __FILE__);
+ if(rsize) graphics.resources.resize(rsize, nullptr);
+
+ // create shader resource views (shared textures)
+ uint16 resource_index = 0;
+ for(size_t i = 0; i < materials.size(); i++) {
+     size_t n = materials[i].textures.size();
+     for(size_t j = 0; j < n; j++) {
+         ID3D11ShaderResourceView* resource = NULL;
+         auto code = LoadTexture(materials[i].textures[j].filename.c_str(), &resource);         
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+         graphics.resources[resource_index++] = resource;
+        }
+    }
+
  return EC_SUCCESS;
 }
 
@@ -597,7 +617,7 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
  // read mesh list
  std::vector<MeshMaterial> matlist;
  if(n_mats) matlist.resize(n_mats);
- uint16 resource = 0;
+ uint32 resource = 0;
  for(uint32 i = 0; i < n_mats; i++)
     {
      // read name
@@ -658,8 +678,9 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
          if(!matlist[i].name.length()) return DebugErrorCode(EC_MODEL_TEXTURE_FILENAME, __LINE__, __FILE__);
 
          // assign resource index
-         matlist[i].textures[j].resource = resource;
+         matlist[i].textures[j].resource = static_cast<uint16>(resource);
          resource += n_textures;
+         if(resource > 0xFFFFul) return DebugErrorCode(EC_MODEL_TEXTURE_RESOURCES, __LINE__, __FILE__);
         }
     }
 

@@ -173,6 +173,7 @@
     <ClCompile Include="axes.cpp" />
     <ClCompile Include="blending.cpp" />
     <ClCompile Include="bmp.cpp" />
+    <ClCompile Include="bstream.cpp" />
     <ClCompile Include="bvh.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="collision.cpp" />
@@ -228,6 +229,7 @@
     <ClInclude Include="axes.h" />
     <ClInclude Include="blending.h" />
     <ClInclude Include="bmp.h" />
+    <ClInclude Include="bstream.h" />
     <ClInclude Include="bvh.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="collision.h" />
