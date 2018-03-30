@@ -56,6 +56,7 @@ class MeshData {
   };
   struct MeshTexture {
    STDSTRINGW filename;
+   STDSTRINGW name;
    uint32 semantic;
    uint16 uv_index;
    uint16 resource;

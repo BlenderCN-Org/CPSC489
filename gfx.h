@@ -38,6 +38,17 @@ ErrorCode CreateIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** b
 ErrorCode CreateDynamicIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
 ErrorCode CreateImmutableIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11Buffer** buffer);
 
+// Axes Buffer Functions
+struct AXISBUFFER {
+ real32 m[16];
+ real32 scale[4];
+};
+ErrorCode CreateAxisBuffer(const AXISBUFFER* data, DWORD n, ID3D11Buffer** buffer, D3D11_USAGE usage);
+ErrorCode CreateAxisBuffer(const AXISBUFFER* data, DWORD n, ID3D11Buffer** buffer);
+ErrorCode CreateDynamicAxisBuffer(const AXISBUFFER* data, DWORD n, ID3D11Buffer** buffer);
+ErrorCode CreateImmutableAxisBuffer(const AXISBUFFER* data, DWORD n, ID3D11Buffer** buffer);
+ErrorCode UpdateImmutableAxisBuffer(ID3D11Buffer* buffer, const AXISBUFFER* data, DWORD n);
+
 // Constant Buffer Functions
 ErrorCode CreateDynamicConstBuffer(ID3D11Buffer** buffer, UINT size);
 ErrorCode CreateDynamicConstBuffer(ID3D11Buffer** buffer, UINT size, const void* data);

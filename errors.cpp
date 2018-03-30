@@ -115,6 +115,7 @@ void InitErrorStrings(void)
  InsertErrorString(EC_MODEL_BONENAME, LC_ENGLISH, L"Invalid bone name.");
  InsertErrorString(EC_MODEL_BONE_LOOKUP, LC_ENGLISH, L"Bone lookup failed.");
  InsertErrorString(EC_MODEL_ANIMATION_NAME, LC_ENGLISH, L"Invalid animation name.");
+ InsertErrorString(EC_MODEL_FACELIST, LC_ENGLISH, L"Invalid facelist.");
  InsertErrorString(EC_MODEL_KEYFRAMED_BONES, LC_ENGLISH, L"Animations must have at least one keyframed bone.");
  InsertErrorString(EC_MODEL_KEYFRAMES, LC_ENGLISH, L"Keyframed bones must have at least one keyframe.");
  InsertErrorString(EC_MODEL_MATERIAL, LC_ENGLISH, L"Model contains a mesh that has no materials defined.");
@@ -129,6 +130,7 @@ void InitErrorStrings(void)
  InsertErrorString(EC_MODEL_TEXTURE_SEMANTIC, LC_ENGLISH, L"Invalid texture semantic (e.g. diffuse, normal).");
  InsertErrorString(EC_MODEL_TEXTURE_CHANNEL, LC_ENGLISH, L"Texture reference out of bounds.");
  InsertErrorString(EC_MODEL_TEXTURE_FILENAME, LC_ENGLISH, L"Invalid texture filename.");
+ InsertErrorString(EC_MODEL_TEXTURE_NAME, LC_ENGLISH, L"Invalid texture name.");
 
  // Animation Errors
  InsertErrorString(EC_ANIM_INDEX, LC_ENGLISH, L"Animation index out of bounds.");

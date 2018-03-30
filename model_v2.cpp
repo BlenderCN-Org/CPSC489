@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "model_v2.h"
 
+#include "win.h"
 #include "gfx.h"
 #include "texture.h"
 #include "ascii.h"
@@ -10,6 +11,7 @@ static const real32 SECONDS_PER_FRAME = 1.0f/60.0f;
 
 MeshData::MeshData() : skeletal(false)
 {
+ graphics.jbuffer = nullptr;
 }
 
 MeshData::~MeshData()
@@ -177,6 +179,133 @@ ErrorCode MeshData::ConstructGraphics(void)
  // must have device
  ID3D11Device* device = GetD3DDevice();
  if(!device) return DebugErrorCode(EC_D3D_DEVICE, __LINE__, __FILE__);
+
+ // initialize mesh buffers
+ graphics.vbuffer.reset(new ID3D11Buffer*[meshes.size()]);
+ graphics.ibuffer.reset(new ID3D11Buffer*[meshes.size()]);
+ for(size_t i = 0; i < meshes.size(); i++) {
+     graphics.vbuffer[i] = nullptr;
+     graphics.ibuffer[i] = nullptr;
+    } 
+ graphics.jbuffer = nullptr;
+
+ // prepare mesh buffer
+ struct MESHBUFFER {
+  real32 position[4];
+  real32 normal[4];
+  real32 uv1[2];
+  real32 uv2[2];
+  uint16 bi[4];
+  real32 bw[4];
+  real32 color1[4];
+  real32 color2[4];
+ };
+
+ // create mesh buffers
+ for(size_t i = 0; i < meshes.size(); i++)
+    {
+     // copy vertex data
+     std::unique_ptr<MESHBUFFER[]> data(new MESHBUFFER[meshes[i].n_verts]);
+     for(size_t j = 0; j < meshes[i].n_verts; j++) {
+         // position
+         data[j].position[0] = meshes[i].position[j].v[0];
+         data[j].position[1] = meshes[i].position[j].v[1];
+         data[j].position[2] = meshes[i].position[j].v[2];
+         data[j].position[3] = 1.0f;
+         // normal
+         data[j].normal[0] = meshes[i].normal[j].v[0];
+         data[j].normal[1] = meshes[i].normal[j].v[1];
+         data[j].normal[2] = meshes[i].normal[j].v[2];
+         data[j].normal[3] = 1.0f;
+         // uvs
+         data[j].uv1[0] = meshes[i].uvs[0][j].v[0];
+         data[j].uv1[1] = meshes[i].uvs[0][j].v[1];
+         data[j].uv2[0] = meshes[i].uvs[1][j].v[0];
+         data[j].uv2[1] = meshes[i].uvs[1][j].v[1];
+         // blend indices
+         data[j].bi[0] = meshes[i].bi[j].v[0];
+         data[j].bi[1] = meshes[i].bi[j].v[1];
+         data[j].bi[2] = meshes[i].bi[j].v[2];
+         data[j].bi[3] = meshes[i].bi[j].v[3];
+         // blend weights
+         data[j].bw[0] = meshes[i].bw[j].v[0];
+         data[j].bw[1] = meshes[i].bw[j].v[1];
+         data[j].bw[2] = meshes[i].bw[j].v[2];
+         data[j].bw[3] = meshes[i].bw[j].v[3];
+         // colors
+         data[j].color1[0] = meshes[i].colors[0][j].v[0];
+         data[j].color1[1] = meshes[i].colors[0][j].v[1];
+         data[j].color1[2] = meshes[i].colors[0][j].v[2];
+         data[j].color1[3] = 1.0f;
+         data[j].color2[0] = meshes[i].colors[1][j].v[0];
+         data[j].color2[1] = meshes[i].colors[1][j].v[1];
+         data[j].color2[2] = meshes[i].colors[1][j].v[2];
+         data[j].color2[3] = 1.0f;
+        }
+
+     // create face data
+     std::unique_ptr<uint32[]> facebuffer;
+     uint32 face_indices = 3*meshes[i].n_faces;
+     if(face_indices) facebuffer.reset(new uint32[face_indices]);
+
+     // copy face data
+     size_t curr = 0;
+     for(size_t j = 0; j < meshes[i].surfaces.size(); j++) {
+         for(size_t k = 0; k < meshes[i].surfaces[j].n_faces; k++) {
+             facebuffer[curr++] = meshes[i].surfaces[j].facelist[k].v[0];
+             facebuffer[curr++] = meshes[i].surfaces[j].facelist[k].v[1];
+             facebuffer[curr++] = meshes[i].surfaces[j].facelist[k].v[2];
+            }
+        }
+
+     // create vertex buffer
+     ID3D11Buffer* vb = nullptr;
+     if(meshes[i].n_verts) {
+        auto code = CreateVertexBuffer((LPVOID)data.get(), meshes[i].n_verts, sizeof(MESHBUFFER), &vb);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+       }
+
+     // create index buffer
+     ID3D11Buffer* ib = nullptr;
+     if(face_indices) {
+        auto code = CreateIndexBuffer((LPVOID)facebuffer.get(), face_indices, sizeof(uint32), &ib);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+       }
+
+     // assign buffers
+     graphics.vbuffer[i] = vb;
+     graphics.ibuffer[i] = ib;
+    }
+
+ // prepare bone buffer
+ if(bones.size()) {
+    std::unique_ptr<AXISBUFFER[]> data(new AXISBUFFER[bones.size()]);
+    for(size_t i = 0; i < bones.size(); i++) {
+        data[i].m[0x0] = bones[i].m_abs[0x0];
+        data[i].m[0x1] = bones[i].m_abs[0x1];
+        data[i].m[0x2] = bones[i].m_abs[0x2];
+        data[i].m[0x3] = bones[i].m_abs[0x3];
+        data[i].m[0x4] = bones[i].m_abs[0x4];
+        data[i].m[0x5] = bones[i].m_abs[0x5];
+        data[i].m[0x6] = bones[i].m_abs[0x6];
+        data[i].m[0x7] = bones[i].m_abs[0x7];
+        data[i].m[0x8] = bones[i].m_abs[0x8];
+        data[i].m[0x9] = bones[i].m_abs[0x9];
+        data[i].m[0xA] = bones[i].m_abs[0xA];
+        data[i].m[0xB] = bones[i].m_abs[0xB];
+        data[i].m[0xC] = bones[i].m_abs[0xC];
+        data[i].m[0xD] = bones[i].m_abs[0xD];
+        data[i].m[0xE] = bones[i].m_abs[0xE];
+        data[i].m[0xF] = bones[i].m_abs[0xF];
+        data[i].scale[0] = 1.0f;
+        data[i].scale[1] = 1.0f;
+        data[i].scale[2] = 1.0f;
+        data[i].scale[3] = 1.0f;
+       }
+    // create buffer
+    auto code = CreateImmutableAxisBuffer(data.get(), (DWORD)bones.size(), &graphics.jbuffer);
+    if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+   }
 
  return EC_SUCCESS;
 }
@@ -448,7 +577,7 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
      // read collision faces
      if(collisions[i].n_faces) {
         collisions[i].facelist.reset(new c_triface[collisions[i].n_faces]);
-        for(size_t j = 0; j < meshes[i].n_faces; j++) {
+        for(size_t j = 0; j < collisions[i].n_faces; j++) {
             code = ASCIIReadVector3(linelist, &collisions[i].facelist[j].v[0], false);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
            }
@@ -500,6 +629,14 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
      if(n_textures) matlist[i].textures.resize(n_textures);
      for(uint32 j = 0; j < n_textures; j++)
         {
+         // read texture name
+         code = ASCIIReadString(linelist, buffer);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+         // assign texture name
+         matlist[i].textures[j].name = ConvertUTF8ToUTF16(buffer);
+         if(!matlist[i].textures[j].name.length()) return DebugErrorCode(EC_MODEL_TEXTURE_NAME, __LINE__, __FILE__);
+
          // read texture semantic
          code = ASCIIReadString(linelist, buffer);
          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
@@ -671,6 +808,10 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
            }     
         }
 
+     // the sum of all faces must equal total number of faces
+     if(start != n_faces)
+        return DebugErrorCode(EC_MODEL_FACELIST, __LINE__, __FILE__);
+
      // assign data
      meshlist[i].name = name;
      meshlist[i].n_verts = n_verts;
@@ -689,7 +830,10 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
  // move mesh data
  meshes = std::move(meshlist);
 
- return EC_SUCCESS;
+ // construct graphics data and move on
+ code = ConstructGraphics();
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ return code;
 }
 
 ErrorCode MeshData::LoadMeshBIN(const wchar_t* filename)
@@ -719,14 +863,10 @@ void MeshData::Free(void)
 
  // delete meshes
  meshes.clear();
-
- // delete collision meshes
  collisions.clear();
 
  // delete animations
  animations.clear();
-
- // delete bones
  bones.clear();
  bonemap.clear();
 

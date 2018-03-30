@@ -620,6 +620,103 @@ ErrorCode CreateImmutableIndexBuffer(LPVOID data, DWORD n, DWORD stride, ID3D11B
 
 #pragma endregion DIRECT3D_INDEX_BUFFER_FUNCTIONS
 
+#pragma region AXIS_BUFFER_FUNCTIONS
+
+// Axes Buffer Functions
+ErrorCode CreateAxisBuffer(const AXISBUFFER* data, DWORD n, ID3D11Buffer** buffer, D3D11_USAGE usage)
+{
+ // must have device
+ ID3D11Device* device = GetD3DDevice();
+ if(!device) return EC_D3D_DEVICE;
+
+ // buffer descriptor
+ D3D11_BUFFER_DESC bd;
+ ZeroMemory(&bd, sizeof(bd));
+ bd.Usage = usage;
+ bd.ByteWidth = n * sizeof(AXISBUFFER);
+ bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ bd.CPUAccessFlags = 0;
+
+ // create index buffer
+ D3D11_SUBRESOURCE_DATA srd;
+ ZeroMemory(&srd, sizeof(srd));
+ srd.pSysMem = data;
+ HRESULT result = device->CreateBuffer(&bd, &srd, buffer);
+ return (SUCCEEDED(result) ? EC_SUCCESS : EC_D3D_CREATE_BUFFER);
+}
+
+ErrorCode CreateAxisBuffer(const AXISBUFFER* data, DWORD n, ID3D11Buffer** buffer)
+{
+ return CreateAxisBuffer(data, n, buffer, D3D11_USAGE_DEFAULT);
+}
+
+ErrorCode CreateDynamicAxisBuffer(const AXISBUFFER* data, DWORD n, ID3D11Buffer** buffer)
+{
+ // must have device
+ ID3D11Device* lpd = GetD3DDevice();
+ if(!lpd) return EC_D3D_DEVICE;
+
+ // must have device context
+ ID3D11DeviceContext* lpdc = GetD3DDeviceContext();
+ if(!lpdc) return EC_D3D_DEVICE_CONTEXT;
+
+ // buffer descriptor
+ D3D11_BUFFER_DESC bd;
+ ZeroMemory(&bd, sizeof(bd));
+ bd.Usage = D3D11_USAGE_DYNAMIC;
+ bd.ByteWidth = n * sizeof(AXISBUFFER);
+ bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+ bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+ // create buffer
+ HRESULT result = lpd->CreateBuffer(&bd, NULL, buffer);
+ if(FAILED(result)) return EC_D3D_CREATE_BUFFER;
+
+ // map buffer data
+ // D3D11_USAGE_DYNAMIC REQUIRES initialization via ID3D11DeviceContext::Map
+ if(data) {
+    D3D11_MAPPED_SUBRESOURCE msr;
+    ZeroMemory(&msr, sizeof(msr));
+    if(!FAILED(lpdc->Map(*buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) {
+       memcpy(msr.pData, data, bd.ByteWidth);
+       lpdc->Unmap(*buffer, 0);
+      }
+    else {
+       // failed!
+       (*buffer)->Release();
+       (*buffer) = NULL;
+       return EC_D3D_MAP_RESOURCE;
+      }
+   }
+
+ return EC_SUCCESS;
+}
+
+ErrorCode CreateImmutableAxisBuffer(const AXISBUFFER* data, DWORD n, ID3D11Buffer** buffer)
+{
+ return CreateAxisBuffer(data, n, buffer, D3D11_USAGE_IMMUTABLE);
+}
+
+ErrorCode UpdateImmutableAxisBuffer(ID3D11Buffer* buffer, const AXISBUFFER* data, DWORD n)
+{
+ // must have device context
+ ID3D11DeviceContext* lpdc = GetD3DDeviceContext();
+ if(!lpdc) return EC_D3D_DEVICE_CONTEXT;
+
+ // update data
+ if(data) {
+    D3D11_MAPPED_SUBRESOURCE msr;
+    ZeroMemory(&msr, sizeof(msr));
+    if(FAILED(lpdc->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr))) return EC_D3D_MAP_RESOURCE;
+    UINT size = n * sizeof(AXISBUFFER);
+    memcpy(msr.pData, data, size);
+    lpdc->Unmap(buffer, 0);
+   }
+ return EC_SUCCESS;
+}
+
+#pragma endregion AXIS_BUFFER_FUNCTIONS
+
 #pragma region DIRECT3D_CONSTANT_BUFFER_FUNCTIONS
 
 ErrorCode CreateDynamicConstBuffer(ID3D11Buffer** buffer, UINT size)
