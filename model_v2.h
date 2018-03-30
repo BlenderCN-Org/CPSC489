@@ -1,6 +1,7 @@
 #ifndef __CS489_MODEL_V2_H
 #define __CS489_MODEL_V2_H
 
+#include "errors.h"
 #include "matrix4.h"
 
 class MeshData {
@@ -106,14 +107,14 @@ class MeshData {
   MeshGraphics graphics;
  private :
   void ConstructAnimationData(void);
-  bool ConstructGraphics(void);
+  ErrorCode ConstructGraphics(void);
  public :
-  bool LoadMeshUTF(const wchar_t* filename);
-  bool LoadMeshBIN(const wchar_t* filename);
+  ErrorCode LoadMeshUTF(const wchar_t* filename);
+  ErrorCode LoadMeshBIN(const wchar_t* filename);
   void Free(void);
  public :
-  bool SaveMeshUTF(const wchar_t* filename);
-  bool SaveMeshBIN(const wchar_t* filename);
+  ErrorCode SaveMeshUTF(const wchar_t* filename);
+  ErrorCode SaveMeshBIN(const wchar_t* filename);
  public : 
   MeshData();
   virtual ~MeshData();

@@ -197,6 +197,9 @@
     <ClCompile Include="testing\t_mesh.cpp">
       <Filter>Source Files\Testing\General</Filter>
     </ClCompile>
+    <ClCompile Include="xaudio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -351,6 +354,9 @@
     </ClInclude>
     <ClInclude Include="testing\t_mesh.h">
       <Filter>Source Files\Testing\General</Filter>
+    </ClInclude>
+    <ClInclude Include="xaudio.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

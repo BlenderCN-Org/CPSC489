@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "model_v2.h"
 
-#include "errors.h"
 #include "gfx.h"
 #include "texture.h"
 #include "ascii.h"
@@ -173,21 +172,21 @@ void MeshData::ConstructAnimationData(void)
     }
 }
 
-bool MeshData::ConstructGraphics(void)
+ErrorCode MeshData::ConstructGraphics(void)
 {
  // must have device
  ID3D11Device* device = GetD3DDevice();
- if(!device) return Fail(EC_D3D_DEVICE, __LINE__, __FILE__);
+ if(!device) return DebugErrorCode(EC_D3D_DEVICE, __LINE__, __FILE__);
 
- return true;
+ return EC_SUCCESS;
 }
 
-bool MeshData::LoadMeshUTF(const wchar_t* filename)
+ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
 {
  // read UTF8 file
  std::deque<std::string> linelist;
  ErrorCode code = ASCIIParseFile(filename, linelist);
- if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  //
  // PHASE #1
@@ -197,7 +196,7 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
  // read number of bones
  uint32 n_bones = 0;
  code = ASCIIReadUint32(linelist, &n_bones);
- if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // read bones
  if(n_bones)
@@ -212,24 +211,24 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
         // read name
         char buffer[1024];
         code = ASCIIReadString(linelist, buffer);
-        if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // name must be valid
         bones[i].name = ConvertUTF8ToUTF16(buffer);
-        if(!bones[i].name.length()) return Fail(EC_MODEL_BONENAME, __LINE__, __FILE__);
+        if(!bones[i].name.length()) return DebugErrorCode(EC_MODEL_BONENAME, __LINE__, __FILE__);
 
         // read parent
         code = ASCIIReadUint32(linelist, &bones[i].parent);
-        if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // read position
         code = ASCIIReadVector3(linelist, &bones[i].position[0], false);
-        if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // read matrix
         real32 m[16];
         code = ASCIIReadMatrix4(linelist, &m[0], false);
-        if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // save matrix to absolute format
         bones[i].m_abs[0x0] = m[0x0];
@@ -309,7 +308,7 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
  // read number of animations
  uint32 n_anim = 0;
  code = ASCIIReadUint32(linelist, &n_anim);
- if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // read animations
  if(n_anim) animations.resize(n_anim);
@@ -318,11 +317,11 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
      // read name
      char buffer[1024];
      code = ASCIIReadString(linelist, buffer);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // name must be valid
      animations[i].name = ConvertUTF8ToUTF16(buffer);
-     if(!animations[i].name.length()) return Fail(EC_MODEL_ANIMATION_NAME, __LINE__, __FILE__);
+     if(!animations[i].name.length()) return DebugErrorCode(EC_MODEL_ANIMATION_NAME, __LINE__, __FILE__);
 
      // set loop to default value of true
      animations[i].loop = true;
@@ -330,8 +329,8 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
      // read number of keyframed bones
      uint32 n_keyframedbones = 0;
      code = ASCIIReadUint32(linelist, &n_keyframedbones);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
-     if(!n_keyframedbones) return Fail(EC_MODEL_KEYFRAMED_BONES, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+     if(!n_keyframedbones) return DebugErrorCode(EC_MODEL_KEYFRAMED_BONES, __LINE__, __FILE__);
 
      // keep track of start and end frames (per-animation)
      animations[i].minframe = 0xFFFFFFFFul;
@@ -344,22 +343,22 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
          // read name
          char buffer[1024];
          code = ASCIIReadString(linelist, buffer);
-         if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // name must be valid
          STDSTRINGW name = ConvertUTF8ToUTF16(buffer);
-         if(!name.length()) return Fail(EC_MODEL_BONENAME, __LINE__, __FILE__);
+         if(!name.length()) return DebugErrorCode(EC_MODEL_BONENAME, __LINE__, __FILE__);
 
          // lookup bone index
          auto iter = bonemap.find(name);
-         if(iter == bonemap.end()) return Fail(EC_MODEL_BONE_LOOKUP, __LINE__, __FILE__);
+         if(iter == bonemap.end()) return DebugErrorCode(EC_MODEL_BONE_LOOKUP, __LINE__, __FILE__);
          animations[i].bonelist[j].bone_index = iter->second;
 
          // read number of keyframes
          uint32 n_keyframes = 0;
          code = ASCIIReadUint32(linelist, &n_keyframes);
-         if(Fail(code)) return Fail(code, __LINE__, __FILE__);
-         if(!n_keyframes) return Fail(EC_MODEL_KEYFRAMES, __LINE__, __FILE__);;
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+         if(!n_keyframes) return DebugErrorCode(EC_MODEL_KEYFRAMES, __LINE__, __FILE__);;
 
          // read keyframes
          animations[i].bonelist[j].keyframes.resize(n_keyframes);
@@ -367,22 +366,22 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
             {
              // read frame number
              code = ASCIIReadUint32(linelist, &animations[i].bonelist[j].keyframes[k].frame);
-             if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
              // save frame number
              animations[i].keyset.insert(animations[i].bonelist[j].keyframes[k].frame);
 
              // read translation
              code = ASCIIReadVector3(linelist, &animations[i].bonelist[j].keyframes[k].translation[0]);
-             if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
              // read rotation
              code = ASCIIReadVector4(linelist, &animations[i].bonelist[j].keyframes[k].quaternion[0]);
-             if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
              // read scale
              code = ASCIIReadVector3(linelist, &animations[i].bonelist[j].keyframes[k].scale[0]);
-             if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
             }
 
          // set start and end frames (per-bone) (in frames)
@@ -423,7 +422,7 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
  // read number of collision meshes
  uint32 n_collision = 0;
  code = ASCIIReadUint32(linelist, &n_collision);
- if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // read collision mesh list
  collisions.resize(n_collision);
@@ -432,26 +431,26 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
      // read number of collision vertices
      collisions[i].n_verts = 0;
      code = ASCIIReadUint32(linelist, &collisions[i].n_verts);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
-     if(!collisions[i].n_verts) return Fail(EC_MODEL_VERTICES, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+     if(!collisions[i].n_verts) return DebugErrorCode(EC_MODEL_VERTICES, __LINE__, __FILE__);
 
      // read collision mesh data
      collisions[i].position.reset(new c_point3D[collisions[i].n_verts]);
      for(uint32 j = 0; j < collisions[i].n_verts; j++) {
          code = ASCIIReadVector3(linelist, &collisions[i].position[j].v[0], false);
-         if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
         }
 
      // read number of collision faces
      code = ASCIIReadUint32(linelist, &collisions[i].n_faces);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // read collision faces
      if(collisions[i].n_faces) {
         collisions[i].facelist.reset(new c_triface[collisions[i].n_faces]);
         for(size_t j = 0; j < meshes[i].n_faces; j++) {
             code = ASCIIReadVector3(linelist, &collisions[i].facelist[j].v[0], false);
-            if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
            }
        } 
     }
@@ -464,7 +463,7 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
  // read number of materials
  uint32 n_mats = 0;
  code = ASCIIReadUint32(linelist, &n_mats);
- if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // read mesh list
  std::vector<MeshMaterial> matlist;
@@ -475,27 +474,27 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
      // read name
      char buffer[1024];
      code = ASCIIReadString(linelist, buffer);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // name must be valid
      matlist[i].name = ConvertUTF8ToUTF16(buffer);
-     if(!matlist[i].name.length()) return Fail(EC_MODEL_MATERIAL_NAME, __LINE__, __FILE__);
+     if(!matlist[i].name.length()) return DebugErrorCode(EC_MODEL_MATERIAL_NAME, __LINE__, __FILE__);
 
      // read material index
      uint32 matindex = 0;
      code = ASCIIReadUint32(linelist, &matindex);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // validate material index
-     if(!(matindex < n_mats)) return Fail(EC_MODEL_MATERIAL_INDEX, __LINE__, __FILE__);
+     if(!(matindex < n_mats)) return DebugErrorCode(EC_MODEL_MATERIAL_INDEX, __LINE__, __FILE__);
 
      // read number of textures
      uint32 n_textures = 0;
      code = ASCIIReadUint32(linelist, &n_textures);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // TODO: Remove this constraint and assign a default texture in this case.
-     if(!n_textures) return Fail(EC_MODEL_TEXTURES, __LINE__, __FILE__);
+     if(!n_textures) return DebugErrorCode(EC_MODEL_TEXTURES, __LINE__, __FILE__);
 
      // read textures
      if(n_textures) matlist[i].textures.resize(n_textures);
@@ -503,23 +502,23 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
         {
          // read texture semantic
          code = ASCIIReadString(linelist, buffer);
-         if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // assign texture semantic
          if(_strcmpi(buffer, "diffuse") == 0) matlist[i].textures[j].semantic = DIFFUSE_MAP;
-         else return Fail(EC_MODEL_TEXTURE_SEMANTIC, __LINE__, __FILE__);
+         else return DebugErrorCode(EC_MODEL_TEXTURE_SEMANTIC, __LINE__, __FILE__);
 
          // read UV channel
          code = ASCIIReadUint16(linelist, &matlist[i].textures[j].uv_index);
-         if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // read texture filename
          code = ASCIIReadString(linelist, buffer);
-         if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // assign filename
          matlist[i].textures[j].filename = ConvertUTF8ToUTF16(buffer);
-         if(!matlist[i].name.length()) return Fail(EC_MODEL_TEXTURE_FILENAME, __LINE__, __FILE__);
+         if(!matlist[i].name.length()) return DebugErrorCode(EC_MODEL_TEXTURE_FILENAME, __LINE__, __FILE__);
 
          // assign resource index
          matlist[i].textures[j].resource = resource;
@@ -538,8 +537,8 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
  // read number of meshes
  uint32 n_mesh = 0;
  code = ASCIIReadUint32(linelist, &n_mesh);
- if(Fail(code)) return Fail(code, __LINE__, __FILE__);
- if(!n_mesh) return Fail(EC_MODEL_MESH, __LINE__, __FILE__); // TODO: Remove. It is OK to have nothing to draw.
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ if(!n_mesh) return DebugErrorCode(EC_MODEL_MESH, __LINE__, __FILE__); // TODO: Remove. It is OK to have nothing to draw.
 
  // read mesh list
  std::vector<MeshBuffers> meshlist;
@@ -549,29 +548,29 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
      // read name
      char buffer[1024];
      code = ASCIIReadString(linelist, buffer);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // name must be valid
      auto name = ConvertUTF8ToUTF16(buffer);
-     if(!name.length()) return Fail(EC_MODEL_MESHNAME, __LINE__, __FILE__);
+     if(!name.length()) return DebugErrorCode(EC_MODEL_MESHNAME, __LINE__, __FILE__);
 
      // read number of vertices
      uint32 n_verts = 0;
      code = ASCIIReadUint32(linelist, &n_verts);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
-     if(!n_verts) return Fail(EC_MODEL_VERTICES, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+     if(!n_verts) return DebugErrorCode(EC_MODEL_VERTICES, __LINE__, __FILE__);
 
      // read number of UV channels
      uint32 n_uvs = 0;
      code = ASCIIReadUint32(linelist, &n_uvs);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
-     if(n_uvs > 2) return Fail(EC_MODEL_UV_CHANNELS, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+     if(n_uvs > 2) return DebugErrorCode(EC_MODEL_UV_CHANNELS, __LINE__, __FILE__);
 
      // read number of color channels
      uint32 n_colors = 0;
      code = ASCIIReadUint32(linelist, &n_colors);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
-     if(n_colors > 2) return Fail(EC_MODEL_COLOR_CHANNELS, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+     if(n_colors > 2) return DebugErrorCode(EC_MODEL_COLOR_CHANNELS, __LINE__, __FILE__);
 
      // create mesh data
      std::unique_ptr<c_point3D[]> position(new c_point3D[n_verts]);
@@ -590,18 +589,18 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
         {
          // read position
          code = ASCIIReadVector3(linelist, &position[j].v[0], false);
-         if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // read normal
          code = ASCIIReadVector3(linelist, &normal[j].v[0], false);
-         if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // read UVs
          uvs[0][j].v[0] = uvs[0][j].v[1] = 0.0f;
          uvs[1][j].v[0] = uvs[1][j].v[1] = 0.0f;
          for(uint32 k = 0; k < n_uvs; k++) {
              code = ASCIIReadVector2(linelist, &uvs[k][j].v[0], false);
-             if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
              uvs[k][j].v[1] = 1.0f - uvs[k][j].v[1]; // TODO: have Blender do this instead
             }
 
@@ -619,9 +618,9 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
          // only read if actual has a skeleton defined, if autogenerated, there are no weights
          if(skeletal) {
             code = ASCIIReadVector4(linelist, &bi[j].v[0], false); // set to repeat?
-            if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
             code = ASCIIReadVector4(linelist, &bw[j].v[0], false); // set to repeat?
-            if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
            }
 
          // read colors
@@ -629,19 +628,19 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
          colors[1][j].v[0] = colors[1][j].v[1] = colors[1][j].v[2] = colors[1][j].v[3] = 0.0f;
          for(uint32 k = 0; k < n_colors; k++) {
              code = ASCIIReadVector3(linelist, &colors[k][j].v[0], false);
-             if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
             }
         }
 
      // read number of faces
      uint32 n_faces = 0;
      code = ASCIIReadUint32(linelist, &n_faces);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // read number of submeshes
      uint32 n_surfaces = 0;
      code = ASCIIReadUint32(linelist, &n_surfaces);
-     if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      std::vector<MeshSurface> surfaces;
      if(n_surfaces) surfaces.resize(n_surfaces);
@@ -651,12 +650,12 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
          // read number of surface faces
          surfaces[j].n_faces = 0;
          code = ASCIIReadUint32(linelist, &surfaces[j].n_faces);
-         if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // read material index
          surfaces[j].m_index = 0;
          code = ASCIIReadUint32(linelist, &surfaces[j].m_index);
-         if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // set start value and then increment it
          surfaces[j].start = start;
@@ -667,7 +666,7 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
             surfaces[j].facelist.reset(new c_triface[surfaces[j].n_faces]);
             for(size_t k = 0; k < surfaces[j].n_faces; k++) {
                 code = ASCIIReadVector3(linelist, &surfaces[j].facelist[k].v[0], false);
-                if(Fail(code)) return Fail(code, __LINE__, __FILE__);
+                if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
                }
            }     
         }
@@ -690,12 +689,12 @@ bool MeshData::LoadMeshUTF(const wchar_t* filename)
  // move mesh data
  meshes = std::move(meshlist);
 
- return true;
+ return EC_SUCCESS;
 }
 
-bool MeshData::LoadMeshBIN(const wchar_t* filename)
+ErrorCode MeshData::LoadMeshBIN(const wchar_t* filename)
 {
- return true;
+ return EC_SUCCESS;
 }
 
 void MeshData::Free(void)
@@ -735,12 +734,12 @@ void MeshData::Free(void)
  skeletal = false;
 }
 
-bool MeshData::SaveMeshUTF(const wchar_t* filename)
+ErrorCode MeshData::SaveMeshUTF(const wchar_t* filename)
 {
- return true;
+ return EC_SUCCESS;
 }
 
-bool MeshData::SaveMeshBIN(const wchar_t* filename)
+ErrorCode MeshData::SaveMeshBIN(const wchar_t* filename)
 {
- return true;
+ return EC_SUCCESS;
 }

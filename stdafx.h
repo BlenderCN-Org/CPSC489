@@ -9,8 +9,8 @@
 //
 // Windows Version
 //
-#define WINVER 0x0601
-#define _WIN32_WINNT 0x0601
+#define WINVER 0x0602
+#define _WIN32_WINNT 0x0602
 
 //
 // Windows Headers
@@ -29,12 +29,14 @@
 #include<shlwapi.h>
 #include<wincodec.h>
 #include<atlbase.h>
+#include<xaudio2.h>
 #include<xinput.h>
 #endif
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "windowscodecs.lib")
-#pragma comment(lib,"xinput9_1_0.lib")
+#pragma comment(lib, "xaudio2.lib")
+#pragma comment(lib, "xinput9_1_0.lib")
 
 //
 // Standard Headers

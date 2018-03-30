@@ -217,6 +217,7 @@
     <ClCompile Include="vector3.cpp" />
     <ClCompile Include="win.cpp" />
     <ClCompile Include="winmain.cpp" />
+    <ClCompile Include="xaudio.cpp" />
     <ClCompile Include="xinput.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -270,6 +271,7 @@
     <ClInclude Include="tga.h" />
     <ClInclude Include="vector3.h" />
     <ClInclude Include="win.h" />
+    <ClInclude Include="xaudio.h" />
     <ClInclude Include="xinput.h" />
   </ItemGroup>
   <ItemGroup>
