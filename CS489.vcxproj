@@ -178,6 +178,7 @@
     <ClCompile Include="collision.cpp" />
     <ClCompile Include="door.cpp" />
     <ClCompile Include="errors.cpp" />
+    <ClCompile Include="fileio.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="gfx.cpp" />
     <ClCompile Include="grid.cpp" />
@@ -232,6 +233,7 @@
     <ClInclude Include="collision.h" />
     <ClInclude Include="door.h" />
     <ClInclude Include="errors.h" />
+    <ClInclude Include="fileio.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="gfx.h" />
     <ClInclude Include="grid.h" />

@@ -200,6 +200,9 @@
     <ClCompile Include="xaudio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="fileio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -356,6 +359,9 @@
       <Filter>Source Files\Testing\General</Filter>
     </ClInclude>
     <ClInclude Include="xaudio.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fileio.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

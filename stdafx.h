@@ -106,6 +106,11 @@ typedef unsigned long long uint64;
 typedef float real32;
 typedef double real64;
 
+// built-in character types
+typedef unsigned char char08;
+typedef char16_t char16;
+typedef char32_t char32;
+
 // string types
 typedef std::basic_string<TCHAR> STDTSTRING;
 typedef std::basic_string<CHAR>  STDSTRINGA;
