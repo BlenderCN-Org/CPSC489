@@ -13,6 +13,9 @@
 #include "t_aabb.h"
 #include "t_minmax.h"
 
+// General Tests
+#include "t_mesh.h"
+
 typedef BOOL (*InitFunc)(void);
 typedef void (*FreeFunc)(void);
 typedef void (*DrawFunc)(real32 dt);
@@ -107,6 +110,24 @@ BOOL BeginTest(int cmd)
     init_func = InitMapTest;
     free_func = FreeMapTest;
     draw_func = RenderMapTest;
+    if((*init_func)()) {
+       active_test = cmd;
+       CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);
+       return TRUE;
+      }
+    else {
+       (*free_func)();
+       return FALSE;
+      }
+   }
+
+ //
+ // GENERAL TESTS
+ //
+ else if(cmd == CM_MESH_TEST) {
+    init_func = InitMeshTest;
+    free_func = FreeMeshTest;
+    draw_func = RenderMeshTest;
     if((*init_func)()) {
        active_test = cmd;
        CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);

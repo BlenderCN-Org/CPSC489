@@ -54,6 +54,9 @@ static WINDOW_COMMAND(CmSkeletonAxesTest);
 static WINDOW_COMMAND(CmAABBTest);
 static WINDOW_COMMAND(CmAABBMinMaxTest);
 static WINDOW_COMMAND(CmMapTest);
+// Window Commands: General Tests
+static WINDOW_COMMAND(CmMeshTest);
+
 
 #pragma region WINDOW_FUNCTIONS
 
@@ -367,6 +370,7 @@ WINDOW_MESSAGE(EvCommand)
   WINDOW_COMMAND_HANDLER(CM_AABB_TEST, CmAABBTest);
   WINDOW_COMMAND_HANDLER(CM_AABB_MINMAX_TEST, CmAABBMinMaxTest);
   WINDOW_COMMAND_HANDLER(CM_MAP_TEST, CmMapTest);
+  WINDOW_COMMAND_HANDLER(CM_MESH_TEST, CmMeshTest);
   WINDOW_COMMAND_DEFAULT;
  END_COMMAND_HANDLER
  return 0;
@@ -420,11 +424,16 @@ WINDOW_COMMAND(CmAABBMinMaxTest)
 
 WINDOW_COMMAND(CmMapTest)
 {
- // skeleton axes test
  if(GetActiveTest() != CM_MAP_TEST) BeginTest(CM_MAP_TEST);
  else if(GetActiveTest() == CM_MAP_TEST) EndTest();
  return 0;
 }
 
+WINDOW_COMMAND(CmMeshTest)
+{
+ if(GetActiveTest() != CM_MESH_TEST) BeginTest(CM_MESH_TEST);
+ else if(GetActiveTest() == CM_MESH_TEST) EndTest();
+ return 0;
+}
 
 #pragma endregion WINDOW_COMMANDS

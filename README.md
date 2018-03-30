@@ -58,3 +58,4 @@ Added a documentation folder to document custom properties in Blender.<br />
 Started rewriting mesh class.<br />
 03/29/2018<br />
 Changed the way materials were defined in the mesh file format.<br />
+Added a mesh test to test opening, loading and saving meshes.<br />

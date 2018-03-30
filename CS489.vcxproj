@@ -209,6 +209,7 @@
     <ClCompile Include="testing\sk_axes.cpp" />
     <ClCompile Include="testing\tests.cpp" />
     <ClCompile Include="testing\t_map.cpp" />
+    <ClCompile Include="testing\t_mesh.cpp" />
     <ClCompile Include="testing\t_minmax.cpp" />
     <ClCompile Include="testing\t_portal.cpp" />
     <ClCompile Include="texture.cpp" />
@@ -262,6 +263,7 @@
     <ClInclude Include="testing\sk_axes.h" />
     <ClInclude Include="testing\tests.h" />
     <ClInclude Include="testing\t_map.h" />
+    <ClInclude Include="testing\t_mesh.h" />
     <ClInclude Include="testing\t_minmax.h" />
     <ClInclude Include="testing\t_portal.h" />
     <ClInclude Include="texture.h" />

@@ -39,6 +39,9 @@
     <Filter Include="Script Files">
       <UniqueIdentifier>{d3033ca5-c4f4-4bea-93e0-b94a987a026e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Testing\General">
+      <UniqueIdentifier>{e77e82c1-bb82-416a-b777-7b22d8c807eb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winmain.cpp">
@@ -191,6 +194,9 @@
     <ClCompile Include="meshinst.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="testing\t_mesh.cpp">
+      <Filter>Source Files\Testing\General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -342,6 +348,9 @@
     </ClInclude>
     <ClInclude Include="meshinst.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="testing\t_mesh.h">
+      <Filter>Source Files\Testing\General</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
