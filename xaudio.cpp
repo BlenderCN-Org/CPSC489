@@ -9,6 +9,19 @@
  *  is availble on the github https://github.com/Microsoft/DirectXTK website.
  */
 
+// Mastering Voice
+// Represents the audio device.
+
+// Source Voice
+// Used to submit audio data into the XAudio2 pipeline.
+
+// Submix Voice
+// A voice to which many source voices will be sent to. You can use a submix
+// voice to ensure that a particular set of voice data is converted to the same format and to
+// have a particular effect chain processed on the collective result. Submix voices mix audio
+// and operate on the result You will not hear it unless submitted to a mastering voice (the
+// audio device).
+
 // PLAN:
 // Sound Entity
 //  * bool active     (currently active)
@@ -19,7 +32,9 @@
 //  * string name     (name of this entity)
 
 static IXAudio2* xaudio = nullptr;
-static IXAudio2MasteringVoice* xmvoice = nullptr;
+static IXAudio2MasteringVoice* master_voice = nullptr;
+static IUnknown* reverb_effect = nullptr;
+static IXAudio2SubmixVoice* reverb_voice = nullptr;
 
 ErrorCode InitAudio(void)
 {
@@ -35,25 +50,68 @@ ErrorCode InitAudio(void)
    }
 
  // create mastering voice
- result = xaudio->CreateMasteringVoice(&xmvoice);
+ result = xaudio->CreateMasteringVoice(&master_voice);
  if(FAILED(result)) {
     FreeAudio();
     return DebugErrorCode(EC_AUDIO_INIT, __LINE__, __FILE__);
    }
+
+ // extract mastering voice details
+ XAUDIO2_VOICE_DETAILS details;
+ master_voice->GetVoiceDetails(&details);
+
+ // create reverb voice
+ result = XAudio2CreateReverb(&reverb_effect, 0);
+ if(FAILED(result)) {
+    FreeAudio();
+    return DebugErrorCode(EC_AUDIO_REVERB, __LINE__, __FILE__);
+   }
+
+ XAUDIO2_EFFECT_DESCRIPTOR xed[] = { { reverb_effect, TRUE, 1 } };
+ XAUDIO2_EFFECT_CHAIN xec = { 1, xed };
+ result = xaudio->CreateSubmixVoice(&reverb_voice, 1, details.InputSampleRate, XAUDIO2_VOICE_USEFILTER, 0, nullptr, &xec);
+ if(FAILED(result)) return DebugErrorCode(EC_AUDIO_REVERB, __LINE__, __FILE__);
 
  return EC_SUCCESS;
 }
 
 void FreeAudio(void)
 {
- if(xmvoice) {
-    // note: all XAudio2 interfaces are released when the engine is destroyed, this is why
-    // IXAudio2MasteringVoice does not have a Release function.
-    xmvoice->DestroyVoice();
-    xmvoice = nullptr;
+ // release reverb effect
+ if(reverb_voice) {
+    reverb_voice->DestroyVoice();
+    reverb_voice = nullptr;
    }
+ if(reverb_effect) {
+    reverb_effect->Release();
+    reverb_effect = nullptr;
+   }
+ // release mastering voice
+ if(master_voice) {
+    master_voice->DestroyVoice();
+    master_voice = nullptr;
+   }
+ // release xaudio
  if(xaudio) {
     xaudio->Release();
     xaudio = nullptr;
    }
+}
+
+ErrorCode CreateSourceVoice(IXAudio2SourceVoice** voice)
+{
+ SoundData sd;
+
+ WAVEFORMATEX wfex;
+ ZeroMemory(&wfex, sizeof(wfex));
+
+ IXAudio2SourceVoice* asv = nullptr;
+ HRESULT result = xaudio->CreateSourceVoice(&asv, (WAVEFORMATEX*)&wfex);
+ if(FAILED(result)) return DebugErrorCode(EC_AUDIO_SOURCE_VOICE, __LINE__, __FILE__);
+
+ XAUDIO2_BUFFER buffer;
+ result = asv->SubmitSourceBuffer(&buffer);
+ if(FAILED(result)) return DebugErrorCode(EC_AUDIO_SOURCE_VOICE, __LINE__, __FILE__);
+
+ return EC_SUCCESS;
 }

@@ -144,24 +144,27 @@ ErrorCode LoadSound(LPCWSTR filename, SoundData** snd)
 
 ErrorCode FreeSound(LPCWSTR filename)
 {
- // // lookup filename in hash table
- // auto entry = hashmap.find(filename);
- // if(entry == std::end(hashmap)) return DebugErrorCode(EC_D3D_SHADER_RESOURCE, __LINE__, __FILE__);
- //
- // // a free request should NEVER have a reference count of zero
- // TextureResource& resource = entry->second;
- // if(resource.refs == 0) return DebugErrorCode(EC_D3D_SHADER_RESOURCE_REFERENCE_COUNT, __LINE__, __FILE__);
- //
- // // delete texture if no longer referenced
- // resource.refs--;
- // if(resource.refs == 0) {
- //    if(resource.data) resource.data->Release();
- //    resource.data = NULL;
- //    resource.refs = 0;
- //    hashmap.erase(entry);
- //   }
- //
- // return EC_SUCCESS;
+ // lookup filename in hash table
+ auto entry = hashmap.find(filename);
+ if(entry == std::end(hashmap)) return DebugErrorCode(EC_AUDIO_RESOURCE, __LINE__, __FILE__);
+
+ // a free request should NEVER have a reference count of zero
+ SoundResource& resource = entry->second;
+ if(resource.refs == 0) return DebugErrorCode(EC_AUDIO_RESOURCE_REFERENCE_COUNT, __LINE__, __FILE__);
+
+ // delete audio resource if no longer referenced
+ resource.refs--;
+ if(resource.refs == 0) {
+    if(resource.data) {
+       resource.data->format.reset();
+       resource.data->data.reset();
+      }
+    resource.data = nullptr;
+    resource.refs = 0;
+    hashmap.erase(entry);
+   }
+ 
+ return EC_SUCCESS;
 }
 
 SoundData* FindSound(LPCWSTR filename)

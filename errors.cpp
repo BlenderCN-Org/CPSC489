@@ -45,6 +45,10 @@ void InitErrorStrings(void)
  InsertErrorString(EC_AUDIO_INIT, LC_ENGLISH, L"Failed to initialize XAudio 2.9.");
  InsertErrorString(EC_AUDIO_INSERT_RESOURCE, LC_ENGLISH, L"Failed to cache audio resource.");
  InsertErrorString(EC_AUDIO_INVALID, LC_ENGLISH, L"Invalid audio file.");
+ InsertErrorString(EC_AUDIO_RESOURCE, LC_ENGLISH, L"Audio resource lookup failed.");
+ InsertErrorString(EC_AUDIO_RESOURCE_REFERENCE_COUNT, LC_ENGLISH, L"Invalid audio resource reference count.");
+ InsertErrorString(EC_AUDIO_REVERB, LC_ENGLISH, L"Failed to create audio reverb effect.");
+ InsertErrorString(EC_AUDIO_SOURCE_VOICE, LC_ENGLISH, L"Failed to create audio source voice.");
 
  // File Errors
  InsertErrorString(EC_FILE_EMPTY, LC_ENGLISH, L"File is empty.");
