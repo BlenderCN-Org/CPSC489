@@ -8,6 +8,7 @@ enum ErrorCode {
  // Audio Errors
  EC_AUDIO_FORMAT,
  EC_AUDIO_INIT,
+ EC_AUDIO_INSERT_RESOURCE,
  EC_AUDIO_INVALID,
  // File Errors
  EC_FILE_EMPTY,

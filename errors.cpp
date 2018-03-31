@@ -43,6 +43,7 @@ void InitErrorStrings(void)
  // Audio Errors
  InsertErrorString(EC_AUDIO_FORMAT, LC_ENGLISH, L"Invalid audio format (only WAVE and XWMA are supported).");
  InsertErrorString(EC_AUDIO_INIT, LC_ENGLISH, L"Failed to initialize XAudio 2.9.");
+ InsertErrorString(EC_AUDIO_INSERT_RESOURCE, LC_ENGLISH, L"Failed to cache audio resource.");
  InsertErrorString(EC_AUDIO_INVALID, LC_ENGLISH, L"Invalid audio file.");
 
  // File Errors
