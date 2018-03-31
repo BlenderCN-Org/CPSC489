@@ -15,7 +15,6 @@ struct SoundResource {
 typedef std::unordered_map<std::wstring, SoundResource, WideStringHash, WideStringInsensitiveEqual> hashmap_type;
 static hashmap_type hashmap;
 
-
 ErrorCode LoadSound(LPCWSTR filename, SoundData** srv)
 {
  // open file
@@ -57,44 +56,64 @@ ErrorCode LoadSound(LPCWSTR filename, SoundData** srv)
           else if(format == 0x414D5758ul) ; // XWMA
           else return DebugErrorCode(EC_AUDIO_FORMAT, __LINE__, __FILE__);
 
-          // read fmt subchunk
-          uint32 sc_type = bs.LE_read_uint32();
-          uint32 sc_size = bs.LE_read_uint32();
-          if(bs.fail()) return DebugErrorCode(EC_STREAM_READ, __LINE__, __FILE__);
-
-          // validate fmt subchunk
-          if(sc_type != 0x20746D66ul) return DebugErrorCode(EC_AUDIO_INVALID, __LINE__, __FILE__);
-          if(sc_size < 0x0E) return DebugErrorCode(EC_AUDIO_INVALID, __LINE__, __FILE__);
-
-          // peek at format
-          uint16 format = bs.LE_peek_uint16();
-          if(bs.fail()) return DebugErrorCode(EC_STREAM_SEEK, __LINE__, __FILE__);
-
-          // process format
+          // read subchunks to form WAVDATA
           WAVDATA wd;
-          if(format == WAVE_FORMAT_PCM) {
-             if(sc_size == sizeof(PCMWAVEFORMAT)) {
-                wd.format.reset(new char[sc_size]);
-                bs.read((char*)wd.format.get(), sc_size);
-                if(bs.fail()) return DebugErrorCode(EC_STREAM_READ, __LINE__, __FILE__);
-               }
-             else
-                return DebugErrorCode(EC_AUDIO_INVALID, __LINE__, __FILE__);
-            }
-          else if(format == WAVE_FORMAT_IEEE_FLOAT) {
-             if(sc_size == sizeof(PCMWAVEFORMAT) || sc_size == sizeof(WAVEFORMATEX)) {
-                wd.format.reset(new char[sc_size]);
-                bs.read((char*)wd.format.get(), sc_size);
-                if(bs.fail()) return DebugErrorCode(EC_STREAM_READ, __LINE__, __FILE__);
-               }
-             else
-                return DebugErrorCode(EC_AUDIO_INVALID, __LINE__, __FILE__);
-            }
-          else
-            {
+          for(int i = 0; i < 2; i++)
+             {
+              // read subchunk
+              uint32 sc_type = bs.LE_read_uint32();
+              uint32 sc_size = bs.LE_read_uint32();
+              if(bs.fail()) return DebugErrorCode(EC_STREAM_READ, __LINE__, __FILE__);
 
-            }
+              // fmt subchunk
+              if(sc_type == 0x20746D66ul)
+                {
+                 // validate fmt subchunk
+                 if(sc_type != 0x20746D66ul) return DebugErrorCode(EC_AUDIO_INVALID, __LINE__, __FILE__);
+                 if(sc_size < 0x0E) return DebugErrorCode(EC_AUDIO_INVALID, __LINE__, __FILE__);
+
+                 // peek at format
+                 uint16 format = bs.LE_peek_uint16();
+                 if(bs.fail()) return DebugErrorCode(EC_STREAM_SEEK, __LINE__, __FILE__);
+
+                 // process format
+                 // provided that a few things are correct, assume the data is valid
+                 if(format == WAVE_FORMAT_PCM) {
+                    if(sc_size == sizeof(PCMWAVEFORMAT)) {
+                       wd.format.reset(new char[sc_size]);
+                       bs.read((char*)wd.format.get(), sc_size);
+                       if(bs.fail()) return DebugErrorCode(EC_STREAM_READ, __LINE__, __FILE__);
+                      }
+                    else
+                       return DebugErrorCode(EC_AUDIO_INVALID, __LINE__, __FILE__);
+                   }
+                 else if(format == WAVE_FORMAT_IEEE_FLOAT) {
+                    if(sc_size == sizeof(PCMWAVEFORMAT) || sc_size == sizeof(WAVEFORMATEX)) {
+                       wd.format.reset(new char[sc_size]);
+                       bs.read((char*)wd.format.get(), sc_size);
+                       if(bs.fail()) return DebugErrorCode(EC_STREAM_READ, __LINE__, __FILE__);
+                      }
+                    else
+                       return DebugErrorCode(EC_AUDIO_INVALID, __LINE__, __FILE__);
+                   }
+                 else {
+                    if(sc_size < sizeof(WAVEFORMATEX)) return DebugErrorCode(EC_AUDIO_INVALID, __LINE__, __FILE__);
+                    wd.format.reset(new char[sc_size]);
+                    bs.read((char*)wd.format.get(), sc_size);
+                    if(bs.fail()) return DebugErrorCode(EC_STREAM_READ, __LINE__, __FILE__);
+                   }
+                }
+              else if(sc_type == 0x61746164ul)
+                {
+                }
+              // unknown subchunk
+              else {
+                 bs.move(sc_size);
+                 if(bs.fail()) return DebugErrorCode(EC_STREAM_SEEK, __LINE__, __FILE__);
+                }
+             }
          }
+       // skip unknown chunks
        else {
           bs.move(chunk_size);
           if(bs.fail()) return DebugErrorCode(EC_STREAM_SEEK, __LINE__, __FILE__);
