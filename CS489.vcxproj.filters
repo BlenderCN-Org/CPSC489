@@ -209,6 +209,9 @@
     <ClCompile Include="sounds.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="testing\t_sounds.cpp">
+      <Filter>Source Files\Testing\General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -375,6 +378,9 @@
     </ClInclude>
     <ClInclude Include="sounds.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="testing\t_sounds.h">
+      <Filter>Source Files\Testing\General</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -8,8 +8,9 @@ ErrorCode InitAudio(void);
 void FreeAudio(void);
 
 // Sound Functions
-ErrorCode LoadSound(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop = false);
-ErrorCode FreeSound(LPCWSTR filename);
-IXAudio2SourceVoice* FindSound(LPCWSTR filename);
+ErrorCode LoadVoice(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop = false);
+ErrorCode FreeVoice(LPCWSTR filename);
+IXAudio2SourceVoice* FindVoice(LPCWSTR filename);
+ErrorCode PlayVoice(IXAudio2SourceVoice* snd);
 
 #endif

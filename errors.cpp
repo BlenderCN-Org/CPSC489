@@ -49,6 +49,7 @@ void InitErrorStrings(void)
  InsertErrorString(EC_AUDIO_RESOURCE_REFERENCE_COUNT, LC_ENGLISH, L"Invalid audio resource reference count.");
  InsertErrorString(EC_AUDIO_REVERB, LC_ENGLISH, L"Failed to create audio reverb effect.");
  InsertErrorString(EC_AUDIO_SOURCE_VOICE, LC_ENGLISH, L"Failed to create audio source voice.");
+ InsertErrorString(EC_AUDIO_START, LC_ENGLISH, L"Failed to start audio.");
 
  // File Errors
  InsertErrorString(EC_FILE_EMPTY, LC_ENGLISH, L"File is empty.");

@@ -15,6 +15,7 @@
 
 // General Tests
 #include "t_mesh.h"
+#include "t_sounds.h"
 
 typedef BOOL (*InitFunc)(void);
 typedef void (*FreeFunc)(void);
@@ -128,6 +129,20 @@ BOOL BeginTest(int cmd)
     init_func = InitMeshTest;
     free_func = FreeMeshTest;
     draw_func = RenderMeshTest;
+    if((*init_func)()) {
+       active_test = cmd;
+       CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);
+       return TRUE;
+      }
+    else {
+       (*free_func)();
+       return FALSE;
+      }
+   }
+ else if(cmd == CM_SOUND_TEST) {
+    init_func = InitSoundTest;
+    free_func = FreeSoundTest;
+    draw_func = RenderSoundTest;
     if((*init_func)()) {
        active_test = cmd;
        CheckMenuItem(GetMenu(GetMainWindow()), active_test, MF_BYCOMMAND | MF_CHECKED);

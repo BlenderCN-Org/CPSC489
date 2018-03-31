@@ -14,6 +14,7 @@
 #define CM_SAVE_MESHUTF 1009
 #define CM_OPEN_MESHBIN 1010
 #define CM_SAVE_MESHBIN 1011
+#define CM_SOUND_TEST   1012
 
 
 #endif

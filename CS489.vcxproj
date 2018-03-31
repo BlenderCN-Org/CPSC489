@@ -215,6 +215,7 @@
     <ClCompile Include="testing\t_mesh.cpp" />
     <ClCompile Include="testing\t_minmax.cpp" />
     <ClCompile Include="testing\t_portal.cpp" />
+    <ClCompile Include="testing\t_sounds.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="tga.cpp" />
     <ClCompile Include="vector3.cpp" />
@@ -273,6 +274,7 @@
     <ClInclude Include="testing\t_mesh.h" />
     <ClInclude Include="testing\t_minmax.h" />
     <ClInclude Include="testing\t_portal.h" />
+    <ClInclude Include="testing\t_sounds.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="tga.h" />
     <ClInclude Include="vector3.h" />

@@ -153,7 +153,7 @@ ErrorCode CreateSourceVoice(const WAVEFORMATEX* format, const char* data, uint32
 
 #pragma region SOUND_FUNCTIONS
 
-ErrorCode LoadSound(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop)
+ErrorCode LoadVoice(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop)
 {
  // open file
  using namespace std;
@@ -221,7 +221,7 @@ ErrorCode LoadSound(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop)
                        f_size = sizeof(WAVEFORMATEX);
                        f_data.reset(new char[f_size]);
                        ZeroMemory(f_data.get(), f_size);
-                       bs.read((char*)f_data.get(), f_size);
+                       bs.read((char*)f_data.get(), sc_size);
                        if(bs.fail()) return DebugErrorCode(EC_STREAM_READ, __LINE__, __FILE__);
                       }
                     else
@@ -233,7 +233,7 @@ ErrorCode LoadSound(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop)
                        f_size = sizeof(WAVEFORMATEX);
                        f_data.reset(new char[f_size]);
                        ZeroMemory(f_data.get(), f_size);
-                       bs.read((char*)f_data.get(), f_size);
+                       bs.read((char*)f_data.get(), sc_size);
                        if(bs.fail()) return DebugErrorCode(EC_STREAM_READ, __LINE__, __FILE__);
                       }
                     else
@@ -265,7 +265,7 @@ ErrorCode LoadSound(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop)
           // create resource
           IXAudio2SourceVoice* voice = nullptr;
           ErrorCode code = CreateSourceVoice(reinterpret_cast<const WAVEFORMATEX*>(f_data.get()), w_data.get(), w_size, &voice, loop);
-          if(Fail(code)) return DebugErrorCode(EC_AUDIO_INSERT_RESOURCE, __LINE__, __FILE__);
+          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
           // insert resource into hash map
           SoundResource entry;
@@ -293,7 +293,7 @@ ErrorCode LoadSound(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop)
  return EC_SUCCESS;
 }
 
-ErrorCode FreeSound(LPCWSTR filename)
+ErrorCode FreeVoice(LPCWSTR filename)
 {
  // lookup filename in hash table
  auto entry = hashmap.find(filename);
@@ -315,11 +315,19 @@ ErrorCode FreeSound(LPCWSTR filename)
  return EC_SUCCESS;
 }
 
-IXAudio2SourceVoice* FindSound(LPCWSTR filename)
+IXAudio2SourceVoice* FindVoice(LPCWSTR filename)
 {
  auto entry = hashmap.find(filename);
  if(entry == std::end(hashmap)) return NULL;
  return entry->second.data;
+}
+
+ErrorCode PlayVoice(IXAudio2SourceVoice* snd)
+{
+ if(!snd) return EC_SUCCESS;
+ auto result = snd->Start();
+ if(FAILED(result)) return DebugErrorCode(EC_AUDIO_START, __LINE__, __FILE__);
+ return EC_SUCCESS;
 }
 
 #pragma endregion SOUND_FUNCTIONS

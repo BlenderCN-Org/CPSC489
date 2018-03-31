@@ -56,6 +56,7 @@ static WINDOW_COMMAND(CmAABBMinMaxTest);
 static WINDOW_COMMAND(CmMapTest);
 // Window Commands: General Tests
 static WINDOW_COMMAND(CmMeshTest);
+static WINDOW_COMMAND(CmSoundTest);
 
 
 #pragma region WINDOW_FUNCTIONS
@@ -371,6 +372,7 @@ WINDOW_MESSAGE(EvCommand)
   WINDOW_COMMAND_HANDLER(CM_AABB_MINMAX_TEST, CmAABBMinMaxTest);
   WINDOW_COMMAND_HANDLER(CM_MAP_TEST, CmMapTest);
   WINDOW_COMMAND_HANDLER(CM_MESH_TEST, CmMeshTest);
+  WINDOW_COMMAND_HANDLER(CM_SOUND_TEST, CmSoundTest);
   WINDOW_COMMAND_DEFAULT;
  END_COMMAND_HANDLER
  return 0;
@@ -433,6 +435,13 @@ WINDOW_COMMAND(CmMeshTest)
 {
  if(GetActiveTest() != CM_MESH_TEST) BeginTest(CM_MESH_TEST);
  else if(GetActiveTest() == CM_MESH_TEST) EndTest();
+ return 0;
+}
+
+WINDOW_COMMAND(CmSoundTest)
+{
+ if(GetActiveTest() != CM_SOUND_TEST) BeginTest(CM_SOUND_TEST);
+ else if(GetActiveTest() == CM_SOUND_TEST) EndTest();
  return 0;
 }
 
