@@ -98,20 +98,37 @@ void FreeAudio(void)
    }
 }
 
-ErrorCode CreateSourceVoice(IXAudio2SourceVoice** voice)
+const WAVEFORMATEX* GetWaveFormatExFromMemory(const char* ptr)
 {
- SoundData sd;
+ return reinterpret_cast<const WAVEFORMATEX*>(ptr);
+}
 
- WAVEFORMATEX wfex;
- ZeroMemory(&wfex, sizeof(wfex));
-
+#include "sounds.h"
+ErrorCode CreateSourceVoice(const SoundData& sd, IXAudio2SourceVoice** voice)
+{
+ // create voice from format
  IXAudio2SourceVoice* asv = nullptr;
- HRESULT result = xaudio->CreateSourceVoice(&asv, (WAVEFORMATEX*)&wfex);
+ HRESULT result = xaudio->CreateSourceVoice(&asv, (WAVEFORMATEX*)GetWaveFormatExFromMemory(sd.format.get()));
  if(FAILED(result)) return DebugErrorCode(EC_AUDIO_SOURCE_VOICE, __LINE__, __FILE__);
 
+ // create buffer descriptor
  XAUDIO2_BUFFER buffer;
+ buffer.Flags = 0;
+ buffer.AudioBytes = sd.data_size;
+ buffer.pAudioData = reinterpret_cast<const BYTE*>(sd.data.get());
+ buffer.PlayBegin = 0;  // play all
+ buffer.PlayLength = 0; // play all
+ buffer.LoopBegin = 0;
+ buffer.LoopLength = 0;
+ buffer.LoopCount = 0;
+ buffer.pContext = NULL;
+
+ // submit source buffer
  result = asv->SubmitSourceBuffer(&buffer);
  if(FAILED(result)) return DebugErrorCode(EC_AUDIO_SOURCE_VOICE, __LINE__, __FILE__);
+
+ // to play
+ // asv->Start(0) 
 
  return EC_SUCCESS;
 }
