@@ -206,6 +206,9 @@
     <ClCompile Include="bstream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sounds.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -368,6 +371,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="bstream.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sounds.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

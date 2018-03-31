@@ -30,6 +30,9 @@
 #include<wincodec.h>
 #include<atlbase.h>
 #include<xaudio2.h>
+#include<xaudio2fx.h>
+#include<x3daudio.h>
+#include<xapofx.h>
 #include<xinput.h>
 #endif
 #pragma comment(lib, "comctl32.lib")

@@ -39,6 +39,14 @@ void InitErrorStrings(void)
  // Common Errors
  InsertErrorString(EC_SUCCESS, LC_ENGLISH, L"");
  InsertErrorString(EC_UNKNOWN, LC_ENGLISH, L"Unknown error.");
+
+ // Audio Errors
+ InsertErrorString(EC_AUDIO_FORMAT, LC_ENGLISH, L"Invalid audio format (only WAVE and XWMA are supported).");
+ InsertErrorString(EC_AUDIO_INIT, LC_ENGLISH, L"Failed to initialize XAudio 2.9.");
+ InsertErrorString(EC_AUDIO_INVALID, LC_ENGLISH, L"Invalid audio file.");
+
+ // File Errors
+ InsertErrorString(EC_FILE_EMPTY, LC_ENGLISH, L"File is empty.");
  InsertErrorString(EC_FILE_OPEN, LC_ENGLISH, L"Failed to open file.");
  InsertErrorString(EC_FILE_SEEK, LC_ENGLISH, L"Failed to seek file position.");
  InsertErrorString(EC_FILE_READ, LC_ENGLISH, L"Failed to read file.");
@@ -49,6 +57,10 @@ void InitErrorStrings(void)
  InsertErrorString(EC_FILE_FILENAME, LC_ENGLISH, L"Invalid filename.");
  InsertErrorString(EC_FILE_EXTENSION, LC_ENGLISH, L"Invalid file extension.");
  InsertErrorString(EC_INVALID_ARG, LC_ENGLISH, L"Invalid argument(s).");
+
+ // Stream Errors
+ InsertErrorString(EC_STREAM_READ, LC_ENGLISH, L"Stream read failure.");
+ InsertErrorString(EC_STREAM_SEEK, LC_ENGLISH, L"Stream seek failure.");
 
  // Windows Errors
  InsertErrorString(EC_WIN32_REGISTER_WINDOW, LC_ENGLISH, L"Failed to register window class.");

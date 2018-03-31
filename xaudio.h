@@ -3,4 +3,7 @@
 
 #include "errors.h"
 
+ErrorCode InitAudio(void);
+void FreeAudio(void);
+
 #endif

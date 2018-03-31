@@ -5,6 +5,12 @@ enum ErrorCode {
  // Common Errors
  EC_SUCCESS = 0,
  EC_UNKNOWN = 1,
+ // Audio Errors
+ EC_AUDIO_FORMAT,
+ EC_AUDIO_INIT,
+ EC_AUDIO_INVALID,
+ // File Errors
+ EC_FILE_EMPTY,
  EC_FILE_OPEN,
  EC_FILE_SEEK,
  EC_FILE_READ,
@@ -15,6 +21,9 @@ enum ErrorCode {
  EC_FILE_FILENAME,
  EC_FILE_EXTENSION,
  EC_INVALID_ARG,
+ // Stream Errors
+ EC_STREAM_READ,
+ EC_STREAM_SEEK,
  // Windows Errors
  EC_WIN32_REGISTER_WINDOW,
  EC_WIN32_MAIN_WINDOW,

@@ -3,7 +3,11 @@
 #include "app.h"
 #include "win.h"
 #include "gfx.h"
+#include "xaudio.h"
 #include "xinput.h"
+
+ErrorCode AppInit(void);
+void AppFree(void);
 
 int Run(void)
 {
@@ -23,10 +27,15 @@ int Run(void)
     return -1;
    }
 
- // initialize controllers and run program
- InitControllers();
+ // run program
+ code = AppInit();
+ if(Fail(code)) {
+    FreeD3D();
+    Error(code);
+    return -1;
+   }
  int retval = MessagePump(RenderFrame);
- FreeControllers();
+ AppFree();
  return retval;
 }
 
@@ -43,4 +52,26 @@ int WINAPI WinMain(HINSTANCE basead, HINSTANCE unused, LPSTR cmdline, int cmdsho
  // free base address and free COM
  SetInstance(NULL);
  return retval;
+}
+
+ErrorCode AppInit(void)
+{
+ // audio system
+ ErrorCode code = InitAudio();
+ if(Fail(code)) return code;
+
+ // initialize controllers and run program
+ code = InitControllers();
+ if(Fail(code)) {
+    AppFree();
+    return code;
+   }
+
+ return EC_SUCCESS;
+}
+
+void AppFree(void)
+{
+ FreeAudio();
+ FreeControllers();
 }
