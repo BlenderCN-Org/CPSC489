@@ -45,6 +45,7 @@ static IXAudio2SubmixVoice* reverb_voice = nullptr;
 
 struct SoundResource {
  IXAudio2SourceVoice* data;
+ std::unique_ptr<char[]> wavdata; // keep the data!!!
  DWORD refs;
 };
 typedef std::unordered_map<std::wstring, SoundResource, WideStringHash, WideStringInsensitiveEqual> hashmap_type;
@@ -141,11 +142,13 @@ ErrorCode CreateSourceVoice(const WAVEFORMATEX* format, const char* data, uint32
 
  // submit source buffer
  result = asv->SubmitSourceBuffer(&buffer);
- if(FAILED(result)) return DebugErrorCode(EC_AUDIO_SOURCE_VOICE, __LINE__, __FILE__);
+ if(FAILED(result)) {
+    asv->DestroyVoice();
+    return DebugErrorCode(EC_AUDIO_SOURCE_VOICE, __LINE__, __FILE__);
+   }
 
- // to play
- // asv->Start(0) 
-
+ // set voice
+ *voice = asv;
  return EC_SUCCESS;
 }
 
@@ -221,7 +224,7 @@ ErrorCode LoadVoice(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop)
                        f_size = sizeof(WAVEFORMATEX);
                        f_data.reset(new char[f_size]);
                        ZeroMemory(f_data.get(), f_size);
-                       bs.read((char*)f_data.get(), sc_size);
+                       bs.read((char*)f_data.get(), sc_size); // only read as much as you need to
                        if(bs.fail()) return DebugErrorCode(EC_STREAM_READ, __LINE__, __FILE__);
                       }
                     else
@@ -269,6 +272,7 @@ ErrorCode LoadVoice(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop)
 
           // insert resource into hash map
           SoundResource entry;
+          entry.wavdata = std::move(w_data);
           entry.data = voice;
           entry.refs = 1;
           auto pairiter = hashmap.insert(make_pair(wstring(filename), std::move(entry)));
@@ -306,7 +310,10 @@ ErrorCode FreeVoice(LPCWSTR filename)
  // delete audio resource if no longer referenced
  resource.refs--;
  if(resource.refs == 0) {
-    if(resource.data) resource.data->DestroyVoice();
+    if(resource.data) {
+       resource.wavdata.reset();
+       resource.data->DestroyVoice();
+      }
     resource.data = nullptr;
     resource.refs = 0;
     hashmap.erase(entry);
