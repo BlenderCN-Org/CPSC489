@@ -130,7 +130,7 @@ ErrorCode CreateSourceVoice(const WAVEFORMATEX* format, const char* data, uint32
 
  // create buffer descriptor
  XAUDIO2_BUFFER buffer;
- buffer.Flags = 0;
+ buffer.Flags = XAUDIO2_END_OF_STREAM;
  buffer.AudioBytes = size;
  buffer.pAudioData = reinterpret_cast<const BYTE*>(data);
  buffer.PlayBegin = 0;  // play all
