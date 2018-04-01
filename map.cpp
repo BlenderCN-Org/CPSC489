@@ -149,9 +149,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
 
     // load sound files
     std::unique_ptr<SoundData*[]> sdlist(new SoundData*[n]);
-    for(uint32 i = 0; i < n; i++)
-       {
-        // load sound
+    for(uint32 i = 0; i < n; i++) {
         SoundData* ptr = nullptr;
         ErrorCode code = LoadVoice(filelist[i].c_str(), &ptr);
         if(Fail(code)) {
@@ -161,6 +159,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
               }
            return DebugErrorCode(code, __LINE__, __FILE__);
           }
+        sdlist[i] = ptr;
        }
 
     // set sound data
@@ -477,7 +476,10 @@ void Map::RenderMap(real32 dt)
         uint32 door_index = dc.door_index;
         uint32 anim_index = dc.anim_enter;
         moving_instances[door_index]->SetAnimation(anim_index, false);
-        if(!dc.inside) dc.inside = true;
+        if(!dc.inside) {
+           if(dc.sound_opening != 0xFFFFFFFFul) PlayVoice(sounds[dc.sound_opening], false);
+           dc.inside = true;
+          }
        }
      // outside, but last frame we were inside
      else if(dc.inside) {
@@ -489,6 +491,7 @@ void Map::RenderMap(real32 dt)
         dc.close_time -= dt;
         if(!(dc.close_time > 0.0f)) {
            moving_instances[dc.door_index]->SetAnimation(dc.anim_leave, false);
+           if(dc.sound_closing != 0xFFFFFFFFul) PlayVoice(sounds[dc.sound_closing], false);
            dc.close_time = 0.0f;
           }
        }

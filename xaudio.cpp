@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "xaudio.h"
 
-#include "app.h"
 #include "bstream.h"
 
 /** IXAudio2 interface
