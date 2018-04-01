@@ -341,6 +341,15 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         // TODO:
         // WE NEED TO VALIDATE ANIMATION INDICES HERE!!!
 
+        // read sounds
+        sint32 sound1 = -1;
+        sint32 sound2 = -1;
+        code = ASCIIReadSint32(linelist, &sound1);
+        code = ASCIIReadSint32(linelist, &sound2);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+        if(!(sound1 < n_sounds)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(!(sound2 < n_sounds)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+
         // set item
         DoorController& item = dcdata[i];
         item.door_index = reference;
@@ -356,6 +365,8 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         item.anim_start = (anim1 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim1));
         item.anim_enter = (anim2 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim2));
         item.anim_leave = (anim3 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim3));
+        item.sound_opening = (sound1 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(sound1));
+        item.sound_closing = (sound2 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(sound2));
         item.inside = false;
         item.close_time = 0.0f;
        }
@@ -430,6 +441,17 @@ void Map::FreeMap(void)
  if(n_moving_instances) moving_instances.reset();
  n_static_instances = 0;
  n_moving_instances = 0;
+
+ // free sounds
+ if(n_sounds) {
+    for(uint32 i = 0; i < n_sounds; i++) {
+        ErrorCode code = FreeVoice(soundlist[i].c_str());
+        if(Fail(code)) DebugErrorCode(code, __LINE__, __FILE__);
+       }
+    soundlist.reset();
+    sounds.reset();
+    n_sounds = 0;
+   }
 
  // free models
  if(n_static) static_models.reset();

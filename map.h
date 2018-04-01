@@ -9,6 +9,8 @@ struct DoorController {
  uint32 anim_start;
  uint32 anim_enter;
  uint32 anim_leave;
+ uint32 sound_opening;
+ uint32 sound_closing;
  bool   inside;
  real32 close_time;
 };

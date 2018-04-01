@@ -15,13 +15,13 @@
 #include "tests.h"
 #include "t_sounds.h"
 
-static IXAudio2SourceVoice* snd = nullptr;
+static SoundData* snd = nullptr;
 
 BOOL InitSoundTest(void)
 {
- ErrorCode code = LoadVoice(L"sounds\\sample.wav", &snd, false);
+ ErrorCode code = LoadVoice(L"sounds\\sample.wav", &snd);
  if(Fail(code)) return FALSE;
- PlayVoice(snd);
+ PlayVoice(snd, true);
  return TRUE;
 }
 

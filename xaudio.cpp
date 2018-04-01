@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "xaudio.h"
 
+#include "app.h"
 #include "bstream.h"
 
 /** IXAudio2 interface
@@ -248,7 +249,7 @@ ErrorCode LoadVoice(LPCWSTR filename, SoundData** snd)
             }
 
           // set sound resource and exit while loop
-          *snd = entry.data.get();
+          *snd = pairiter.first->second.data.get(); // don't use entry since we "moved" it
           break;
          }
        // skip unknown chunks
@@ -313,11 +314,9 @@ ErrorCode PlayVoice(SoundData* snd, bool loop)
  
  // submit source buffer
  auto result = snd->voice->SubmitSourceBuffer(&buffer);
- if(FAILED(result)) {
-    snd->voice->DestroyVoice();
-    return DebugErrorCode(EC_AUDIO_SOURCE_VOICE, __LINE__, __FILE__);
-   }
+ if(FAILED(result)) return DebugErrorCode(EC_AUDIO_SOURCE_VOICE, __LINE__, __FILE__);
 
+ // play voice
  result = snd->voice->Start();
  if(FAILED(result)) return DebugErrorCode(EC_AUDIO_START, __LINE__, __FILE__);
  return EC_SUCCESS;
