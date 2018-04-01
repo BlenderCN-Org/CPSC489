@@ -19,7 +19,7 @@ static IXAudio2SourceVoice* snd = nullptr;
 
 BOOL InitSoundTest(void)
 {
- ErrorCode code = LoadVoice(L"sounds\\sample.wav", &snd, true);
+ ErrorCode code = LoadVoice(L"sounds\\sample.wav", &snd, false);
  if(Fail(code)) return FALSE;
  PlayVoice(snd);
  return TRUE;

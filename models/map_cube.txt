@@ -5,10 +5,9 @@ models\cube.txt
 models\door.txt
 models\boss.txt
 
-3 # number of sound files
+2 # number of sound files
 music\theme.wav
-sounds\dooropen.wav
-sounds\doorclose.wav
+sounds\door.wav
 
 1 # number of static instances
 0               # model reference
@@ -52,7 +51,7 @@ sounds\doorclose.wav
 -1                  # animation reference (idle)
 2                   # animation reference (on enter)
 3                   # animation reference (on leave)
-0                   # sound reference
+1                   # sound reference
 1                   # sound reference
 3.0 -6.0 1.0        # position
 1.0 0.0 0.0 0.0     # quaternion
@@ -61,7 +60,7 @@ sounds\doorclose.wav
 -1                  # animation reference (idle)
 0                   # animation reference (on enter)
 1                   # animation reference (on leave)
-0                   # sound reference
+1                   # sound reference
 1                   # sound reference
 5.0 2.0 1.0         # position
 1.0 0.0 0.0 0.0     # quaternion
@@ -70,7 +69,7 @@ sounds\doorclose.wav
 -1                  # animation reference (idle)
 0                   # animation reference (on enter)
 1                   # animation reference (on leave)
-0                   # sound reference
+1                   # sound reference
 1                   # sound reference
 5.0 4.0 1.0         # position
 1.0 0.0 0.0 0.0     # quaternion
@@ -79,7 +78,7 @@ sounds\doorclose.wav
 -1                  # animation reference (idle)
 0                   # animation reference (on enter)
 1                   # animation reference (on leave)
-0                   # sound reference
+1                   # sound reference
 1                   # sound reference
 -9.0 0.0 1.0        # position
 1.0 0.0 0.0 0.0     # quaternion
@@ -88,7 +87,7 @@ sounds\doorclose.wav
 -1                  # animation reference (idle)
 0                   # animation reference (on enter)
 1                   # animation reference (on leave)
-0                   # sound reference
+1                   # sound reference
 1                   # sound reference
 -2.0 7.0 1.0        # position
 0.707 0.0 0.0 0.707 # quaternion
@@ -97,7 +96,7 @@ sounds\doorclose.wav
 -1                  # animation reference (idle)
 0                   # animation reference (on enter)
 1                   # animation reference (on leave)
-0                   # sound reference
+1                   # sound reference
 1                   # sound reference
 -4.0 7.0 1.0        # position
 0.707 0.0 0.0 0.707 # quaternion
@@ -106,7 +105,7 @@ sounds\doorclose.wav
 -1                  # animation reference (idle)
 0                   # animation reference (on enter)
 1                   # animation reference (on leave)
-0                   # sound reference
+1                   # sound reference
 1                   # sound reference
 0.0 -9.0 1.0        # position
 0.707 0.0 0.0 0.707 # quaternion
@@ -115,7 +114,7 @@ sounds\doorclose.wav
 -1                  # animation reference (idle)
 0                   # animation reference (on enter)
 1                   # animation reference (on leave)
-0                   # sound reference
+1                   # sound reference
 1                   # sound reference
 
 5.0 0.0 3.0     # player position

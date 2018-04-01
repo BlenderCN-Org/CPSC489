@@ -16,6 +16,9 @@ Map* GetMap(void) { return &map; }
 
 Map::Map()
 {
+ // sounds
+ n_sounds = 0;
+
  // models
  n_static = 0;
  n_moving = 0;
@@ -124,6 +127,50 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
 
  //
  // PHASE 3:
+ // READ SOUNDS
+ //
+
+ // read number of sounds
+ n = 0;
+ code = ASCIIReadUint32(linelist, &n);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+ // read sounds
+ if(n)
+   {
+    // load filenames
+    std::unique_ptr<STDSTRINGW[]> filelist(new STDSTRINGW[n]);
+    for(uint32 i = 0; i < n; i++) {
+        STDSTRINGW filename;
+        code = ASCIIReadUTF8String(linelist, filename);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+        filelist[i] = filename;
+       }
+
+    // load sound files
+    std::unique_ptr<SoundData*[]> sdlist(new SoundData*[n]);
+    for(uint32 i = 0; i < n; i++)
+       {
+        // load sound
+        SoundData* ptr = nullptr;
+        ErrorCode code = LoadVoice(filelist[i].c_str(), &ptr);
+        if(Fail(code)) {
+           for(uint32 j = 0; j < i; j++) {
+               ErrorCode code = FreeVoice(filelist[j].c_str());
+               if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+              }
+           return DebugErrorCode(code, __LINE__, __FILE__);
+          }
+       }
+
+    // set sound data
+    n_sounds = n;
+    soundlist = std::move(filelist);
+    sounds = std::move(sdlist);
+   }
+
+ //
+ // PHASE 4:
  // READ STATIC INSTANCES
  //
 
@@ -173,7 +220,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
    }
 
  //
- // PHASE 4:
+ // PHASE 5:
  // READ MOVING INSTANCES
  //
 
@@ -229,7 +276,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
    }
 
  //
- // PHASE 5:
+ // PHASE 6:
  // READ DOOR CONTROLLERS
  //
 

@@ -1,6 +1,8 @@
 #ifndef __CS489_MAP_H
 #define __CS489_MAP_H
 
+#include "xaudio.h"
+
 struct DoorController {
  OBB box;
  uint32 door_index;
@@ -12,6 +14,11 @@ struct DoorController {
 };
 
 class Map {
+ // music and sounds
+ private :
+  uint32 n_sounds;
+  std::unique_ptr<STDSTRINGW[]> soundlist;
+  std::unique_ptr<SoundData*[]> sounds;
  // models
  private :
   uint32 n_static;

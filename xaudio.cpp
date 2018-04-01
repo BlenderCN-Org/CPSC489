@@ -44,14 +44,11 @@ static IUnknown* reverb_effect = nullptr;
 static IXAudio2SubmixVoice* reverb_voice = nullptr;
 
 struct SoundResource {
- IXAudio2SourceVoice* data;
- std::unique_ptr<char[]> wavdata; // keep the data!!!
+ std::unique_ptr<SoundData> data;
  DWORD refs;
 };
 typedef std::unordered_map<std::wstring, SoundResource, WideStringHash, WideStringInsensitiveEqual> hashmap_type;
 static hashmap_type hashmap;
-
-ErrorCode CreateSourceVoice(const WAVEFORMATEX* format, const char* data, uint32 size, IXAudio2SourceVoice** voice, bool loop);
 
 #pragma region XAUDIO_FUNCTIONS
 
@@ -119,44 +116,10 @@ void FreeAudio(void)
 
 #pragma endregion XAUDIO_FUNCTIONS
 
-#pragma region HIDDEN_XAUDIO_FUNCTIONS
-
-ErrorCode CreateSourceVoice(const WAVEFORMATEX* format, const char* data, uint32 size, IXAudio2SourceVoice** voice, bool loop)
-{
- // create voice from format
- IXAudio2SourceVoice* asv = nullptr;
- HRESULT result = xaudio->CreateSourceVoice(&asv, format);
- if(FAILED(result)) return DebugErrorCode(EC_AUDIO_SOURCE_VOICE, __LINE__, __FILE__);
-
- // create buffer descriptor
- XAUDIO2_BUFFER buffer;
- buffer.Flags = XAUDIO2_END_OF_STREAM;
- buffer.AudioBytes = size;
- buffer.pAudioData = reinterpret_cast<const BYTE*>(data);
- buffer.PlayBegin = 0;  // play all
- buffer.PlayLength = 0; // play all
- buffer.LoopBegin = 0;
- buffer.LoopLength = 0;
- buffer.LoopCount = (loop ? XAUDIO2_LOOP_INFINITE : 0);
- buffer.pContext = NULL;
-
- // submit source buffer
- result = asv->SubmitSourceBuffer(&buffer);
- if(FAILED(result)) {
-    asv->DestroyVoice();
-    return DebugErrorCode(EC_AUDIO_SOURCE_VOICE, __LINE__, __FILE__);
-   }
-
- // set voice
- *voice = asv;
- return EC_SUCCESS;
-}
-
-#pragma endregion HIDDEN_XAUDIO_FUNCTIONS
 
 #pragma region SOUND_FUNCTIONS
 
-ErrorCode LoadVoice(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop)
+ErrorCode LoadVoice(LPCWSTR filename, SoundData** snd)
 {
  // open file
  using namespace std;
@@ -265,15 +228,17 @@ ErrorCode LoadVoice(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop)
                 }
              }
 
-          // create resource
+          // create voice resource from format
           IXAudio2SourceVoice* voice = nullptr;
-          ErrorCode code = CreateSourceVoice(reinterpret_cast<const WAVEFORMATEX*>(f_data.get()), w_data.get(), w_size, &voice, loop);
-          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+          HRESULT result = xaudio->CreateSourceVoice(&voice, reinterpret_cast<const WAVEFORMATEX*>(f_data.get()));
+          if(FAILED(result)) return DebugErrorCode(EC_AUDIO_SOURCE_VOICE, __LINE__, __FILE__);
 
           // insert resource into hash map
           SoundResource entry;
-          entry.wavdata = std::move(w_data);
-          entry.data = voice;
+          entry.data.reset(new SoundData);
+          entry.data->wavdata = std::move(w_data);
+          entry.data->wavsize = w_size;
+          entry.data->voice = voice;
           entry.refs = 1;
           auto pairiter = hashmap.insert(make_pair(wstring(filename), std::move(entry)));
           if(pairiter.second == false) {
@@ -283,7 +248,7 @@ ErrorCode LoadVoice(LPCWSTR filename, IXAudio2SourceVoice** snd, bool loop)
             }
 
           // set sound resource and exit while loop
-          *snd = entry.data;
+          *snd = entry.data.get();
           break;
          }
        // skip unknown chunks
@@ -310,11 +275,11 @@ ErrorCode FreeVoice(LPCWSTR filename)
  // delete audio resource if no longer referenced
  resource.refs--;
  if(resource.refs == 0) {
-    if(resource.data) {
-       resource.wavdata.reset();
-       resource.data->DestroyVoice();
+    if(resource.data.get()) {
+       resource.data->voice->DestroyVoice();
+       resource.data->wavdata.reset();
       }
-    resource.data = nullptr;
+    resource.data.reset();
     resource.refs = 0;
     hashmap.erase(entry);
    }
@@ -322,17 +287,38 @@ ErrorCode FreeVoice(LPCWSTR filename)
  return EC_SUCCESS;
 }
 
-IXAudio2SourceVoice* FindVoice(LPCWSTR filename)
+SoundData* FindVoice(LPCWSTR filename)
 {
  auto entry = hashmap.find(filename);
  if(entry == std::end(hashmap)) return NULL;
- return entry->second.data;
+ return entry->second.data.get();
 }
 
-ErrorCode PlayVoice(IXAudio2SourceVoice* snd)
+ErrorCode PlayVoice(SoundData* snd, bool loop)
 {
  if(!snd) return EC_SUCCESS;
- auto result = snd->Start();
+ if(!snd->voice || !snd->wavdata || !snd->wavsize) return EC_SUCCESS;
+
+ // create buffer descriptor
+ XAUDIO2_BUFFER buffer;
+ buffer.Flags = XAUDIO2_END_OF_STREAM;
+ buffer.AudioBytes = snd->wavsize;
+ buffer.pAudioData = reinterpret_cast<const BYTE*>(snd->wavdata.get());
+ buffer.PlayBegin = 0;  // play all
+ buffer.PlayLength = 0; // play all
+ buffer.LoopBegin = 0;
+ buffer.LoopLength = 0;
+ buffer.LoopCount = (loop ? XAUDIO2_LOOP_INFINITE : 0);
+ buffer.pContext = NULL;
+ 
+ // submit source buffer
+ auto result = snd->voice->SubmitSourceBuffer(&buffer);
+ if(FAILED(result)) {
+    snd->voice->DestroyVoice();
+    return DebugErrorCode(EC_AUDIO_SOURCE_VOICE, __LINE__, __FILE__);
+   }
+
+ result = snd->voice->Start();
  if(FAILED(result)) return DebugErrorCode(EC_AUDIO_START, __LINE__, __FILE__);
  return EC_SUCCESS;
 }
