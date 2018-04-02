@@ -10,6 +10,7 @@
 #include "../xinput.h"
 #include "../gfx.h"
 #include "../collision.h"
+#include "../viewport.h"
 #include "../map.h"
 
 // testing includes
@@ -18,6 +19,8 @@
 
 // controller variables
 static uint32 controllerIndex = 0xFFFFFFFFul;
+static uint32 vpindex = 0xFFFFFFFFul;
+static std::map<uint32, uint32> vpmap;
 
 BOOL InitMapTest(void)
 {
@@ -31,6 +34,10 @@ BOOL InitMapTest(void)
 
 void FreeMapTest(void)
 {
+ // release viewport
+ vpmap.erase(controllerIndex);
+ vpindex = 0xFFFFFFFFul;
+
  // release controller
  ReleaseController(controllerIndex);
  controllerIndex = 0xFFFFFFFFul;
@@ -41,17 +48,31 @@ void FreeMapTest(void)
 
 void RenderMapTest(real32 dt)
 {
-/*
  // TODO: periodically check for controller instead
  if(controllerIndex == 0xFFFFFFFFul) {
-    if(IsControllerAvailable()) controllerIndex = ReserveController();
+    if(IsControllerAvailable())
+      {
+       // reserve controller
+       controllerIndex = ReserveController();
+
+       // find first viewport not associated controller
+       for(uint32 i = 0; i < GetCanvasViewportNumber(); i++) {
+           if(IsViewportEnabled(i) && (vpmap.find(controllerIndex) == vpmap.end())) {
+              vpindex = i;
+              vpmap.insert(std::make_pair(controllerIndex, i));
+              break;
+             }
+          }
+      }
    }
 
  // update controller
- if(controllerIndex != 0xFFFFFFFFul)
+ if(controllerIndex != 0xFFFFFFFFul && vpindex != 0xFFFFFFFFul)
    {
     // lost the connection
     if(!IsControllerConnected(controllerIndex)) {
+       vpmap.erase(controllerIndex);
+       vpindex = 0xFFFFFFFFul;
        ReleaseController(controllerIndex);
        controllerIndex = 0xFFFFFFFFul;
       }
@@ -72,20 +93,20 @@ void RenderMapTest(real32 dt)
                -lpcs->JS_L[0],
                0.0f
              };
-             GetOrbitCamera()->Move(vL, dL);
+             GetViewportCamera(vpindex)->Move(vL, dL);
             }
           if(dR) {
              real32 vR[2] = {
                -lpcs->JS_R[0], // Z-axis rotation
                -lpcs->JS_R[1], // Y-axis rotation
              };
-             GetOrbitCamera()->ThumbstickOrbit(vR, dR);
+             GetViewportCamera(vpindex)->ThumbstickOrbit(vR, dR);
             }
-          UpdateCamera();
+          UpdateViewportCamera(vpindex);
          }
       }
    }
-*/
+
  // render map
  GetMap()->RenderMap(dt);
 }
