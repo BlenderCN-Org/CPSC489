@@ -220,10 +220,10 @@ ErrorCode MeshData::ConstructGraphics(void)
          data[j].normal[2] = meshes[i].normal[j].v[2];
          data[j].normal[3] = 1.0f;
          // uvs
-         data[j].uv1[0] = meshes[i].uvs[0][j].v[0];
-         data[j].uv1[1] = meshes[i].uvs[0][j].v[1];
-         data[j].uv2[0] = meshes[i].uvs[1][j].v[0];
-         data[j].uv2[1] = meshes[i].uvs[1][j].v[1];
+         data[j].uv1[0] = meshes[i].uvs[0][j].v[0]; // u
+         data[j].uv1[1] = meshes[i].uvs[0][j].v[1]; // v
+         data[j].uv2[0] = meshes[i].uvs[1][j].v[0]; // u
+         data[j].uv2[1] = meshes[i].uvs[1][j].v[1]; // v
          // blend indices
          data[j].bi[0] = meshes[i].bi[j].v[0];
          data[j].bi[1] = meshes[i].bi[j].v[1];

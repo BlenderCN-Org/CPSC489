@@ -16,6 +16,7 @@ Map::Map()
 {
  // sounds
  n_sounds = 0;
+ sound_start = 0xFFFFFFFFul;
 
  // models
  n_static = 0;
@@ -427,6 +428,23 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
      // -1 means no cell
     }
 */
+
+ //
+ // PHASE FINAL:
+ // READ STARTING PROPERTIES
+ //
+
+ // read starting sound index
+ uint32 u32_temp = 0;
+ code = ASCIIReadUint32(linelist, &u32_temp);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+ // play starting sound
+ if(u32_temp < n_sounds) {
+    sound_start = u32_temp;
+    PlayVoice(sounds[sound_start], true);
+   }
+
  return EC_SUCCESS;
 }
 
@@ -451,6 +469,7 @@ void Map::FreeMap(void)
     sounds.reset();
     n_sounds = 0;
    }
+ sound_start = 0xFFFFFFFFul;
 
  // free models
  if(n_static) static_models.reset();

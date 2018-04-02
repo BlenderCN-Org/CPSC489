@@ -24,6 +24,7 @@ class Map {
   uint32 n_sounds;
   std::unique_ptr<STDSTRINGW[]> soundlist;
   std::unique_ptr<SoundData*[]> sounds;
+  uint32 sound_start;
  // models
  private :
   uint32 n_static;

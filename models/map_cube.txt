@@ -117,5 +117,6 @@ sounds\door.wav
 1                   # sound reference
 1                   # sound reference
 
-5.0 0.0 3.0     # player position
-1.0 0.0 0.0 0.0 # player quaternion
+0               # starting sound
+5.0 0.0 3.0     # starting player position
+1.0 0.0 0.0 0.0 # starting player quaternion

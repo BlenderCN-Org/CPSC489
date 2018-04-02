@@ -64,3 +64,6 @@ Added functions for file input/output with big endian support.<br />
 Added a binary stream stream class to read binary file data efficiently.<br />
 03/30/2018<br />
 Worked on XAudio code.<br />
+03/31/2018<br />
+Integrated sound code into map file format.<br />
+04/01/2018<br />
