@@ -220,6 +220,7 @@
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="tga.cpp" />
     <ClCompile Include="vector3.cpp" />
+    <ClCompile Include="viewport.cpp" />
     <ClCompile Include="win.cpp" />
     <ClCompile Include="winmain.cpp" />
     <ClCompile Include="xaudio.cpp" />
@@ -280,6 +281,7 @@
     <ClInclude Include="texture.h" />
     <ClInclude Include="tga.h" />
     <ClInclude Include="vector3.h" />
+    <ClInclude Include="viewport.h" />
     <ClInclude Include="win.h" />
     <ClInclude Include="xaudio.h" />
     <ClInclude Include="xinput.h" />
