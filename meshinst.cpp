@@ -212,9 +212,11 @@ ErrorCode MeshInstance::Update(void)
                m = m * R;
 
                // translate
-               matrix4D V;
-               V.load_translation(T[0], T[1], T[2]);
-               m = V * m;
+               //matrix4D V;
+               //V.load_translation(T[0], T[1], T[2]);
+               m[0x3] += T[0];
+               m[0x7] += T[1];
+               m[0xB] += T[2];
 
                // set matrix
                jm[bi] = m;
@@ -228,10 +230,10 @@ ErrorCode MeshInstance::Update(void)
  // these transformation matrices are interpolated in relative space
  for(size_t bi = 1; bi < bones.size(); bi++) {
      uint32 parent = bones[bi].parent;
-     jm[bi] = jm[bi] * bones[bi].m_rel * jm[parent];
+     jm[bi] = jm[bi] * jm[parent];
     }
  for(size_t bi = 0; bi < bones.size(); bi++) {
-     jm[bi] = jm[bi] * bones[bi].m_inv;
+     jm[bi] = bones[bi].m_rel * jm[bi] * bones[bi].m_inv;
      jm[bi].transpose();
     }
 

@@ -4,6 +4,12 @@
 static uint32 canvas_dim[2] = { 1, 1 };
 static uint32 n_viewports = 1;
 static bool viewport_states[4] = { true, false, false, false };
+static uint32 viewport_list[4][4] = {
+ { 0, 0, 0, 0 },
+ { 0, 0, 0, 0 },
+ { 0, 0, 0, 0 },
+ { 0, 0, 0, 0 }
+};
 
 void SetCanvasDimensions(uint32 dx, uint32 dy)
 {
@@ -40,6 +46,57 @@ void SetCanvasDimensions(uint32 dx, uint32 dy)
  // set canvas dimensions
  canvas_dim[0] = dx;
  canvas_dim[1] = dy;
+
+ // full-view
+ if(n_viewports == 1) {
+    uint32* vp = &viewport_list[0][0];
+    vp[0] = 0;
+    vp[1] = 0;
+    vp[2] = canvas_dim[0];
+    vp[3] = canvas_dim[1];
+   }
+ // half-view
+ else if(n_viewports == 2) {
+    // upper-half
+    uint32* vp1 = &viewport_list[0][0];
+    vp1[0] = 0;
+    vp1[1] = 0;
+    vp1[2] = canvas_dim[0];
+    vp1[3] = canvas_dim[1]/2;
+    // lower-half
+    uint32* vp2 = &viewport_list[1][0];
+    vp2[0] = 0;
+    vp2[1] = vp1[3];
+    vp2[2] = canvas_dim[0];
+    vp2[3] = canvas_dim[1] - vp1[3];
+   }
+ // quad-view
+ else if(n_viewports == 3 || n_viewports == 4) {
+    // upper-half (L)
+    uint32* vp1 = &viewport_list[0][0];
+    vp1[0] = 0;
+    vp1[1] = 0;
+    vp1[2] = canvas_dim[0]/2;
+    vp1[3] = canvas_dim[1]/2;
+    // upper-half (R)
+    uint32* vp2 = &viewport_list[1][0];
+    vp2[0] = vp1[2];
+    vp2[1] = 0;
+    vp2[2] = canvas_dim[0] - vp1[2];
+    vp2[3] = canvas_dim[1]/2;
+    // lower-half (L)
+    uint32* vp3 = &viewport_list[2][0];
+    vp3[0] = 0;
+    vp3[1] = vp1[3];
+    vp3[2] = canvas_dim[0];
+    vp3[3] = canvas_dim[1] - vp1[3];
+    // lower-half (R)
+    uint32* vp4 = &viewport_list[3][0];
+    vp4[0] = vp1[2];
+    vp4[1] = vp1[3];
+    vp4[2] = canvas_dim[0] - vp1[2];
+    vp4[3] = canvas_dim[1] - vp1[3];
+   }
 }
 
 const uint32* GetCanvasDimensions(void)
