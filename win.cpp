@@ -5,6 +5,7 @@
 #include "win.h"
 #include "camera.h"
 #include "orbit.h"
+#include "viewport.h"
 #include "gfx.h"
 
 // Window Variables
@@ -328,17 +329,23 @@ WINDOW_MESSAGE(EvMouseMove)
 
 WINDOW_MESSAGE(EvMouseWheel)
 {
-/*
  // can't be dragging
  if(is_tracking) return 0;
 
- // dolly camera
- int speed = 1;
- if(GetAsyncKeyState(VK_SHIFT) & 0x8000) speed = 2;
- int delta = GET_WHEEL_DELTA_WPARAM(wparam); // 30, 60, 90, 120
- GetOrbitCamera()->Dolly(-(speed*delta)/15);
- UpdateCamera();
-*/
+ // mouse position
+ int mx = GET_X_LPARAM(lparam);
+ int my = GET_Y_LPARAM(lparam);
+
+ // dolly camera if viewport is enabled
+ uint32 viewport = GetViewportIndexFromPosition(mx, my);
+ if(viewport != 0xFFFFFFFFul) {
+    int speed = 1;
+    if(GetAsyncKeyState(VK_SHIFT) & 0x8000) speed = 2;
+    int delta = GET_WHEEL_DELTA_WPARAM(wparam); // 30, 60, 90, 120
+    GetViewportCamera(viewport)->Dolly(-(speed*delta)/15);
+    UpdateViewportCamera(viewport);
+   }
+
  return 0;
 }
 

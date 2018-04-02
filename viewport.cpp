@@ -382,3 +382,29 @@ ErrorCode RenderOverlayOrbitBox(uint32 index)
 {
  return overlay_orbit_boxes[index].RenderBox();
 }
+
+uint32 GetViewportIndexFromPosition(int x, int y)
+{
+ for(uint32 i = 0; i < n_viewports; i++) {
+     if(viewport_states[i]) {
+        const uint32* vp = &viewport_list[i][0];
+        uint32 x0 = vp[0]; uint32 x1 = vp[0] + vp[2];
+        uint32 y0 = vp[1]; uint32 y1 = vp[1] + vp[3];
+        if(x >= x0 && x <= x1 && y >= y0 && y <= y1) return i;
+       }
+    }
+ return 0xFFFFFFFFul;
+}
+
+OrbitCamera* GetViewportCameraFromPosition(int x, int y)
+{
+ for(uint32 i = 0; i < n_viewports; i++) {
+     if(viewport_states[i]) {
+        const uint32* vp = &viewport_list[i][0];
+        uint32 x0 = vp[0]; uint32 x1 = vp[0] + vp[2];
+        uint32 y0 = vp[1]; uint32 y1 = vp[1] + vp[3];
+        if(x >= x0 && x <= x1 && y >= y0 && y <= y1) return &cameras[i];
+       }
+    }
+ return nullptr;
+}

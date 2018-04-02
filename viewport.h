@@ -37,4 +37,9 @@ ID3D11Buffer* GetOverlayCameraBuffer(uint32 index);
 ErrorCode RenderViewportOrbitBox(uint32 index);
 ErrorCode RenderOverlayOrbitBox(uint32 index);
 
+// Mouse Functions
+uint32 GetViewportIndexFromPosition(int x, int y);
+OrbitCamera* GetViewportCameraFromPosition(int x, int y);
+
+
 #endif
