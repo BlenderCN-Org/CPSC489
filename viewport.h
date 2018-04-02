@@ -9,13 +9,31 @@
  *  thing from a different perspective than that of the camera. The "canvas" represents
  */
 
+#include "errors.h"
+#include "camera.h"
+
 // Canvas Functions
+ErrorCode InitCanvas(uint32 dx, uint32 dy);
+void FreeCanvas(void);
 void SetCanvasDimensions(uint32 dx, uint32 dy);
 const uint32* GetCanvasDimensions(void);
+void SetCanvasViewportNumber(uint32 n);
+uint32 GetCanvasViewportNumber(void);
+void LayoutCanvas(void);
 
 // Viewport Functions
-void EnableViewport(int n);
-void DisableViewport(int n);
+void EnableViewport(uint32 index, bool state = true);
+bool IsViewportEnabled(uint32 index);
+const uint32* GetViewport(uint32 index);
 
+// Camera Functions
+OrbitCamera* GetViewportCamera(uint32 index);
+OrbitCamera* GetOverlayCamera(uint32 index);
+ErrorCode UpdateViewportCamera(uint32 index);
+ErrorCode UpdateOverlayCamera(uint32 index);
+ID3D11Buffer* GetViewportCameraBuffer(uint32 index);
+ID3D11Buffer* GetOverlayCameraBuffer(uint32 index);
+ErrorCode RenderViewportOrbitBox(uint32 index);
+ErrorCode RenderOverlayOrbitBox(uint32 index);
 
 #endif

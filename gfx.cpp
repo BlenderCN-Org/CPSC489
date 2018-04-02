@@ -13,6 +13,7 @@
 #include "orbit.h"
 #include "hudtex.h"
 #include "gfx.h"
+#include "viewport.h"
 #include "testing/tests.h"
 
 // Direct3D Variables
@@ -108,15 +109,15 @@ ErrorCode InitD3D(void)
  if(Fail(code)) return code;
 
  //
- // PHASE 4: INITIALIZE CONSTANT BUFFERS
+ // PHASE 4: INITIALIZE CANVAS
  //
 
  // create identity matrix
  code = InitIdentityMatrix();
  if(Fail(code)) return code;
 
- // create view projection matrix
- code = InitCamera();
+ // initialize canvas
+ code = InitCanvas(buffer_dx, buffer_dy);
  if(Fail(code)) return code;
 
  //
@@ -135,18 +136,9 @@ ErrorCode InitD3D(void)
  code = InitAABBModel();
  if(Fail(code)) return code;
 
- // create orbit box
- code = InitOrbitBox();
- if(Fail(code)) return code;
-
  //
  // PHASE 6: PREPARE FOR RENDERING
  //
-
- // set viewport and update camera before rendering
- auto orbitcam = GetOrbitCamera();
- orbitcam->SetViewport(0, 0, (int)buffer_dx, (int)buffer_dy);
- UpdateCamera();
 
  // create HUD
  code = InitHUD();
@@ -170,11 +162,8 @@ ErrorCode ResetD3D(UINT dx, UINT dy)
  ErrorCode code = InitRenderTarget(dx, dy);
  if(Fail(code)) return code;
 
- // set viewport
- auto orbitcam = GetOrbitCamera();
- orbitcam->SetViewport(0, 0, (int)buffer_dx, (int)buffer_dy);
- UpdateCamera();
-
+ // resize canvas dimensions
+ SetCanvasDimensions(dx, dy);
  return EC_SUCCESS;
 }
 
@@ -187,13 +176,12 @@ void FreeD3D(void)
  FreeHUD();
 
  // release default models
- FreeOrbitBox();
  FreeAABBModel();
  FreeAxesModel();
  FreeGrid();
 
- // release camera
- FreeCamera();
+ // release canvas
+ FreeCanvas();
 
  // release identity matrix
  FreeIdentityMatrix();
@@ -304,9 +292,9 @@ ErrorCode InitRenderTarget(UINT dx, UINT dy)
  // set render target
  lpDeviceContext->OMSetRenderTargets(1, &lpRenderTargetView, lpDepthStencil);
 
- // set viewport
- D3D11_VIEWPORT vp = { 0.0f, 0.0f, (FLOAT)buffer_dx, (FLOAT)buffer_dy, 0.0f, 1.0f };
- lpDeviceContext->RSSetViewports(1, &vp);
+ // // set viewport
+ // D3D11_VIEWPORT vp = { 0.0f, 0.0f, (FLOAT)buffer_dx, (FLOAT)buffer_dy, 0.0f, 1.0f };
+ // lpDeviceContext->RSSetViewports(1, &vp);
 
  return EC_SUCCESS;
 }
@@ -333,80 +321,6 @@ void FreeRenderTarget(void)
 }
 
 #pragma endregion RENDER_TARGET_FUNCTIONS
-
-#pragma region CAMERA_FUNCTIONS
-
-ErrorCode InitCamera(void)
-{
- // already exists
- if(lpMatrix) return EC_SUCCESS;
-
- // create matrix buffer
- ErrorCode code = CreateDynamicMatrixConstBuffer(&lpMatrix);
- if(Fail(code)) return code;
-
- // set camera parameters
- auto orbitcam = GetOrbitCamera();
- orbitcam->SetViewport(0, 0, (int)buffer_dx, (int)buffer_dy);
- orbitcam->Reset();
-
- // update matrix buffer
- return EC_SUCCESS;
-}
-
-void FreeCamera(void)
-{
- if(lpMatrix) lpMatrix->Release();
- lpMatrix = nullptr;
-}
-
-ID3D11Buffer* GetCamera(void)
-{
- return lpMatrix;
-}
-
-ErrorCode UpdateCamera(void)
-{
- // get clipping plane coordinates
- real32 coords[4];
- auto orbitcam = GetOrbitCamera();
- orbitcam->GetClippingPlaneCoords(coords);
-
- // calculate perspective matrix
- using namespace DirectX;
- float dx = 2*coords[1];
- float dy = 2*coords[3];
- float zn = orbitcam->GetNearPlane();
- float zf = orbitcam->GetFarPlane();
- XMMATRIX P;
- P = XMMatrixPerspectiveRH(dx, dy, zn, zf);
-
- // calculate view matrix
- const real32* cam_E = orbitcam->GetCameraOrigin();
- const real32* cam_X = orbitcam->GetCameraXAxis();
- const real32* cam_Y = orbitcam->GetCameraYAxis();
- const real32* cam_Z = orbitcam->GetCameraZAxis();
- XMVECTOR E = XMVectorSet(cam_E[0], cam_E[1], cam_E[2], 0.0f);
- XMVECTOR X = XMVectorSet(cam_X[0], cam_X[1], cam_X[2], 0.0f);
- XMVECTOR Y = XMVectorSet(cam_Y[0], cam_Y[1], cam_Y[2], 0.0f);
- XMVECTOR Z = XMVectorSet(cam_Z[0], cam_Z[1], cam_Z[2], 0.0f);
- XMMATRIX V = XMMatrixLookToRH(E, X, Z);
-
- // calculate perspective view matrix
- XMMATRIX R = XMMatrixMultiply(V, P);
- R = XMMatrixTranspose(R);
-
- // update Direct3D resource
- ErrorCode code = UpdateDynamicMatrixConstBuffer(lpMatrix, R);
- if(Fail(code)) return code;
- SetVertexShaderPerCameraBuffer(lpMatrix);
-
- // update orbit box
- UpdateOrbitBox();
- return EC_SUCCESS;
-}
-
-#pragma endregion CAMERA_FUNCTIONS
 
 #pragma region IDENTITY_MATRIX_FUNCTIONS
 
@@ -451,13 +365,33 @@ BOOL RenderFrame(real32 dt)
  lpDeviceContext->ClearRenderTargetView(lpRenderTargetView, color);
  lpDeviceContext->ClearDepthStencilView(lpDepthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
- // render default models
- RenderGrid();
- RenderOrbitBox();
+ // for each potential viewport
+ for(uint32 vp_index = 0; vp_index < GetCanvasViewportNumber(); vp_index++)
+    {
+     if(IsViewportEnabled(vp_index))
+       {
+        const uint32* vpdata = GetViewport(vp_index);
+        FLOAT x0 = (FLOAT)vpdata[0];
+        FLOAT y0 = (FLOAT)vpdata[1];
+        FLOAT dx = (FLOAT)vpdata[2];
+        FLOAT dy = (FLOAT)vpdata[3];
 
- // render test
- if(GetActiveTest() != -1)
-    RenderTest(dt);
+        // set viewport
+        D3D11_VIEWPORT vp = { x0, y0, dx, dy, 0.0f, 1.0f };
+        lpDeviceContext->RSSetViewports(1, &vp);
+
+        // set camera const buffer
+        SetVertexShaderPerCameraBuffer(GetViewportCameraBuffer(vp_index));
+
+        // render default models
+        RenderGrid();
+        RenderViewportOrbitBox(vp_index);
+
+        // render test
+        if(GetActiveTest() != -1)
+           RenderTest(dt);
+       }
+    }
 
  // present
  lpSwapChain->Present(0, 0);

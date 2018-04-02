@@ -268,6 +268,7 @@ WINDOW_MESSAGE(EvRButtonUp)
 
 WINDOW_MESSAGE(EvMouseMove)
 {
+/*
  // if tracking
  if(is_tracking)
    {
@@ -321,12 +322,13 @@ WINDOW_MESSAGE(EvMouseMove)
     else
        EndMouseTracking();
    }
-
+*/
  return 0;
 }
 
 WINDOW_MESSAGE(EvMouseWheel)
 {
+/*
  // can't be dragging
  if(is_tracking) return 0;
 
@@ -336,6 +338,7 @@ WINDOW_MESSAGE(EvMouseWheel)
  int delta = GET_WHEEL_DELTA_WPARAM(wparam); // 30, 60, 90, 120
  GetOrbitCamera()->Dolly(-(speed*delta)/15);
  UpdateCamera();
+*/
  return 0;
 }
 

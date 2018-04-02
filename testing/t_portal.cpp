@@ -44,6 +44,7 @@ void FreePortalTest(void)
 
 void RenderPortalTest(real32 dt)
 {
+/*
  // TODO: periodically check for controller instead
  if(controllerIndex == 0xFFFFFFFFul) {
     if(IsControllerAvailable()) controllerIndex = ReserveController();
@@ -87,7 +88,7 @@ void RenderPortalTest(real32 dt)
          }
       }
    }
-
+*/
  // render model instance
  model.RenderModel();
  if(instance.get()) {

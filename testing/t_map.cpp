@@ -41,6 +41,7 @@ void FreeMapTest(void)
 
 void RenderMapTest(real32 dt)
 {
+/*
  // TODO: periodically check for controller instead
  if(controllerIndex == 0xFFFFFFFFul) {
     if(IsControllerAvailable()) controllerIndex = ReserveController();
@@ -84,7 +85,7 @@ void RenderMapTest(real32 dt)
          }
       }
    }
-
+*/
  // render map
  GetMap()->RenderMap(dt);
 }

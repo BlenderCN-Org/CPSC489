@@ -14,12 +14,6 @@ ID3D11DeviceContext* GetD3DDeviceContext(void);
 ErrorCode InitRenderTarget(UINT dx = 0, UINT dy = 0);
 void FreeRenderTarget(void);
 
-// Camera Functions
-ErrorCode InitCamera(void);
-void FreeCamera(void);
-ID3D11Buffer* GetCamera(void);
-ErrorCode UpdateCamera(void);
-
 // Identity Matrix Functions
 ErrorCode InitIdentityMatrix(void);
 void FreeIdentityMatrix(void);
