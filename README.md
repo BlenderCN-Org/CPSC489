@@ -67,3 +67,4 @@ Worked on XAudio code.<br />
 03/31/2018<br />
 Integrated sound code into map file format.<br />
 04/01/2018<br />
+Added support for splitscreen play.<br />
