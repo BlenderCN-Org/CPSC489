@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "app.h"
 #include "win.h"
-#include "camera.h"
 #include "blending.h"
 #include "rasters.h"
 #include "stencil.h"
@@ -29,6 +28,9 @@ static ID3D11DepthStencilView* lpDepthStencil;
 // Direct3D Buffer Variables
 static ID3D11Buffer* lpMatrix = NULL;
 static ID3D11Buffer* lpIdentityMatrix = NULL;
+
+// Camera Variables
+static OrbitCamera* lpCamera = nullptr;
 
 #pragma region DIRECT3D_INIT_FUNCTIONS
 
@@ -354,6 +356,16 @@ ID3D11Buffer* GetIdentityMatrix(void)
 
 #pragma region RENDERING_FUNCTIONS
 
+void SetRenderCamera(OrbitCamera* camera)
+{
+ lpCamera = camera;
+}
+
+OrbitCamera* GetRenderCamera(void)
+{
+ return lpCamera;
+}
+
 BOOL RenderFrame(real32 dt)
 {
  // validate
@@ -381,6 +393,7 @@ BOOL RenderFrame(real32 dt)
         lpDeviceContext->RSSetViewports(1, &vp);
 
         // set camera const buffer
+        SetRenderCamera(GetViewportCamera(vp_index));
         SetVertexShaderPerCameraBuffer(GetViewportCameraBuffer(vp_index));
 
         // render default models

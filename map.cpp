@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ascii.h"
 #include "math.h"
+#include "gfx.h"
 #include "vector3.h"
 #include "matrix4.h"
 #include "camera.h"
@@ -481,7 +482,7 @@ void Map::FreeMap(void)
 void Map::RenderMap(real32 dt)
 {
  // get camera object and orbit point
- auto camera = GetOrbitCamera();
+ auto camera = GetRenderCamera();
  real32 orbit[3];
  camera->GetOrbitPoint(orbit);
 

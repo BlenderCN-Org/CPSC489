@@ -2,6 +2,7 @@
 #define __CPSC489_GFX_H
 
 #include "errors.h"
+#include "camera.h"
 
 // Direct3D Initialization Functions
 ErrorCode InitD3D(void);
@@ -20,6 +21,8 @@ void FreeIdentityMatrix(void);
 ID3D11Buffer* GetIdentityMatrix(void);
 
 // Rendering Functions
+void SetRenderCamera(OrbitCamera* camera);
+OrbitCamera* GetRenderCamera(void);
 BOOL RenderFrame(real32 dt);
 
 // Vertex Buffer Functions
