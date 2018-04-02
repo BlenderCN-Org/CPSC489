@@ -15,11 +15,12 @@
 // Canvas Functions
 ErrorCode InitCanvas(uint32 dx, uint32 dy);
 void FreeCanvas(void);
-void SetCanvasDimensions(uint32 dx, uint32 dy);
+ErrorCode SetCanvasDimensions(uint32 dx, uint32 dy);
 const uint32* GetCanvasDimensions(void);
 void SetCanvasViewportNumber(uint32 n);
 uint32 GetCanvasViewportNumber(void);
 void LayoutCanvas(void);
+ErrorCode UpdateCanvas(void);
 
 // Viewport Functions
 void EnableViewport(uint32 index, bool state = true);

@@ -39,41 +39,35 @@ ErrorCode InitCanvas(uint32 dx, uint32 dy)
  FreeCanvas();
 
  // start with only one viewport (change it if you want)
- n_viewports = 4;
- for(uint32 i = 0; i < n_viewports; i++) viewport_states[i] = true;
+ n_viewports = 2;
 
- // set canvas dimensions and execute layout
- SetCanvasDimensions(dx, dy);
-
- // set camera parameters
+ // initialize viewports
  for(uint32 i = 0; i < n_viewports; i++)
     {
-     // viewport cameras
-     const uint32* vp1 = &viewport_list[i][0];
-     cameras[i].SetViewport((int)vp1[0], (int)vp1[1], (int)vp1[2], (int)vp1[3]);
+     // enable viewport by default
+     viewport_states[i] = true;
+
+     // viewport camera and orbit box
      cameras[i].Reset();
      ErrorCode code = orbit_boxes[i].InitBox(cameras[i]);
      if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-     // overlay cameras
-     const uint32* vp2 = &overlay_list[i][0];
-     overlay_cameras[i].SetViewport((int)vp2[0], (int)vp2[1], (int)vp2[2], (int)vp2[3]);
+     // overlay camera and orbit box
      overlay_cameras[i].Reset();
      code = overlay_orbit_boxes[i].InitBox(overlay_cameras[i]);
      if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-     // create viewport camera buffer
+     // const viewport buffer
      code = CreateDynamicMatrixConstBuffer(&buffers[i]);
      if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-     if(viewport_states[i]) UpdateViewportCamera(i);
 
-     // create overlay camera buffer
+     // const overlay buffer
      code = CreateDynamicMatrixConstBuffer(&overlay_buffers[i]);
      if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-     if(overlay_states[i]) UpdateOverlayCamera(i);
     }
 
- return EC_SUCCESS;
+ // set canvas dimensions
+ return SetCanvasDimensions(dx, dy);
 }
 
 void FreeCanvas(void)
@@ -112,11 +106,11 @@ void FreeCanvas(void)
  canvas_dim[1] = 0;
 }
 
-void SetCanvasDimensions(uint32 dx, uint32 dy)
+ErrorCode SetCanvasDimensions(uint32 dx, uint32 dy)
 {
  // nothing to do
  if(canvas_dim[0] == dx && canvas_dim[1] == dy)
-    return;
+    return EC_SUCCESS;
 
  /* If there is a change to the canvas, the any viewports and overlays must be resized as well. If
   * the window gets too small, we always have to have an area to draw to so don't let any viewport
@@ -148,8 +142,9 @@ void SetCanvasDimensions(uint32 dx, uint32 dy)
  canvas_dim[0] = dx;
  canvas_dim[1] = dy;
 
- // layout canvas
+ // layout and update canvas
  LayoutCanvas();
+ return UpdateCanvas();
 }
 
 const uint32* GetCanvasDimensions(void)
@@ -221,6 +216,33 @@ void LayoutCanvas(void)
     vp4[2] = canvas_dim[0] - vp1[2];
     vp4[3] = canvas_dim[1] - vp1[3];
    }
+}
+
+ErrorCode UpdateCanvas(void)
+{
+ // set camera parameters
+ for(uint32 i = 0; i < n_viewports; i++)
+    {
+     // viewport cameras
+     const uint32* vp1 = &viewport_list[i][0];
+     cameras[i].SetViewport((int)vp1[0], (int)vp1[1], (int)vp1[2], (int)vp1[3]);
+     ErrorCode code = orbit_boxes[i].UpdateBox(cameras[i]);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+     // overlay cameras
+     const uint32* vp2 = &overlay_list[i][0];
+     overlay_cameras[i].SetViewport((int)vp2[0], (int)vp2[1], (int)vp2[2], (int)vp2[3]);
+     code = overlay_orbit_boxes[i].UpdateBox(overlay_cameras[i]);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+     // update viewport camera buffer
+     if(viewport_states[i]) UpdateViewportCamera(i);
+
+     // update overlay camera buffer
+     if(overlay_states[i]) UpdateOverlayCamera(i);
+    }
+
+ return EC_SUCCESS;
 }
 
 void EnableViewport(uint32 index, bool state)
