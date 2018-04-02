@@ -15,6 +15,7 @@ static LPWSTR title = L"CSCP 489 (Direct3D 11)";
 
 // Mouse Tracking Variables
 static bool is_tracking = false;
+static uint32 track_viewport = 0xFFFFFFFFul;
 static sint32 track_flags = 0;
 static sint32 track_x0, track_y0;
 static sint32 track_x1, track_y1;
@@ -118,12 +119,18 @@ LPWSTR GetMainWindowTitle(void)
 
 void BeginMouseTracking(HWND window, WPARAM wparam, LPARAM lparam)
 {
- if(!is_tracking) {
+ // track only if we are in an active viewport
+ int xpos = GET_X_LPARAM(lparam);
+ int ypos = GET_Y_LPARAM(lparam);
+ uint32 viewport = GetViewportIndexFromPosition(xpos, ypos);
+ if(!is_tracking && viewport != 0xFFFFFFFFul)
+   {
     SetCapture(window);
     is_tracking = true;
+    track_viewport = viewport;
     track_flags = (sint32)wparam;
-    track_x0 = track_x1 = GET_X_LPARAM(lparam);
-    track_y0 = track_y1 = GET_Y_LPARAM(lparam);
+    track_x0 = track_x1 = xpos;
+    track_y0 = track_y1 = ypos;
     track_dx = 0;
     track_dy = 0;
    }
@@ -134,6 +141,7 @@ void EndMouseTracking(void)
  if(is_tracking) {
     ReleaseCapture();
     is_tracking = false;
+    track_viewport = 0xFFFFFFFFul;
     track_flags = 0;
     track_x0 = track_y0 = -1;
     track_x1 = track_y1 = -1;
@@ -269,7 +277,6 @@ WINDOW_MESSAGE(EvRButtonUp)
 
 WINDOW_MESSAGE(EvMouseMove)
 {
-/*
  // if tracking
  if(is_tracking)
    {
@@ -286,8 +293,8 @@ WINDOW_MESSAGE(EvMouseMove)
           track_y0 = track_y1;
           track_x1 = GET_X_LPARAM(lparam);
           track_y1 = GET_Y_LPARAM(lparam);
-          GetOrbitCamera()->Pan(track_x0, track_y0, track_x1, track_y1);
-          UpdateCamera();
+          GetViewportCamera(track_viewport)->Pan(track_x0, track_y0, track_x1, track_y1);
+          UpdateViewportCamera(track_viewport);
          }
        // orbit
        else
@@ -297,8 +304,8 @@ WINDOW_MESSAGE(EvMouseMove)
           track_y0 = track_y1;
           track_x1 = GET_X_LPARAM(lparam);
           track_y1 = GET_Y_LPARAM(lparam);
-          GetOrbitCamera()->Orbit(track_x0, track_y0, track_x1, track_y1);
-          UpdateCamera();
+          GetViewportCamera(track_viewport)->Orbit(track_x0, track_y0, track_x1, track_y1);
+          UpdateViewportCamera(track_viewport);
          }
       }
     // MK_MBUTTON dragging
@@ -316,14 +323,14 @@ WINDOW_MESSAGE(EvMouseMove)
        track_y1 = GET_Y_LPARAM(lparam);
        int speed = 1;
        if(GetAsyncKeyState(VK_SHIFT) & 0x8000) speed = 2;
-       GetOrbitCamera()->Dolly(speed*(track_y1 - track_y0));
-       UpdateCamera();
+       GetViewportCamera(track_viewport)->Dolly(speed*(track_y1 - track_y0));
+       UpdateViewportCamera(track_viewport);
       }
     // nothing is pressed
     else
        EndMouseTracking();
    }
-*/
+
  return 0;
 }
 

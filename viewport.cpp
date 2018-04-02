@@ -39,7 +39,7 @@ ErrorCode InitCanvas(uint32 dx, uint32 dy)
  FreeCanvas();
 
  // start with only one viewport (change it if you want)
- n_viewports = 2;
+ n_viewports = 4;
 
  // initialize viewports
  for(uint32 i = 0; i < n_viewports; i++)
@@ -390,7 +390,7 @@ uint32 GetViewportIndexFromPosition(int x, int y)
         const uint32* vp = &viewport_list[i][0];
         uint32 x0 = vp[0]; uint32 x1 = vp[0] + vp[2];
         uint32 y0 = vp[1]; uint32 y1 = vp[1] + vp[3];
-        if(x >= x0 && x <= x1 && y >= y0 && y <= y1) return i;
+        if((x >= x0 && x <= x1) && (y >= y0 && y <= y1)) return i;
        }
     }
  return 0xFFFFFFFFul;
