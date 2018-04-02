@@ -1,5 +1,7 @@
-#ifndef __CPSC489_RASTERS_H
-#define __CPSC489_RASTERS_H
+#ifndef __CS489_RASTERS_H
+#define __CS489_RASTERS_H
+
+#include "errors.h"
 
 #define RS_WIREFRAME 0
 #define RS_MODEL     1

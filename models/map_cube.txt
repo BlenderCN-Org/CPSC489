@@ -1,5 +1,5 @@
 1 # number of static models
-models\cube.txt
+models\room.txt
 
 2 # number of moving models
 models\door.txt

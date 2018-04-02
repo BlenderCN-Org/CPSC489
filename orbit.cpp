@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "stdgfx.h"
-#include "errors.h"
 #include "gfx.h"
 #include "camera.h"
 #include "layouts.h"

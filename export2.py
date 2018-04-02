@@ -213,57 +213,58 @@ def ConstructAnimationData(armature):
 	for action in GetActions(): rv.append(GetAnimationData(action, armature))
 	return rv
 def GetAnimationData(action, armature):
-	# valid arguments
-	if action is None: raise Exception('Invalid argument.')
-	if (armature is None) or (armature.data is None): raise Exception('Invalid argument.')
-	# map to associate bone with key
-	bonemap = {}
-	for bone in armature.data.bones: bonemap[bone.name] = {}
-	# for each curve
-	for fcu in action.fcurves:
-		# extract bone name and key type
-		pattern = r'pose\.bones\[\"(.*)\"\]\.(.*)'
-		str = fcu.data_path
-		m = re.match(pattern, str)
-		g1 = m.group(1)
-		g2 = m.group(2)
-		# extract keyframes
-		for keyframe in fcu.keyframe_points:
-			# frame/value pair
-			frame, value = keyframe.co
-			# lookup key dictionary for bone
-			keydict = bonemap[g1]
-			if keydict == None: raise Exception('Bone name lookup failed.')
-			# create default values
-			if frame not in keydict:
-				item = AnimationKeyframe()
-				item.position = [0.0, 0.0, 0.0]
-				item.rotation = [1.0, 0.0, 0.0, 0.0]
-				item.scale    = [1.0, 1.0, 1.0]
-				keydict[frame] = item
-			# assign values
-			if g2 == 'location':
-				if (fcu.array_index >= 0 and fcu.array_index <= 2):
-					keydict[frame].position[fcu.array_index] = value
-			if g2 == 'rotation_euler':
-				pass
-			if g2 == 'rotation_quaternion':
-				if (fcu.array_index >= 0 and fcu.array_index <= 4):
-					keydict[frame].rotation[fcu.array_index] = value
-			if g2 == 'scale':
-				if (fcu.array_index >= 0 and fcu.array_index <= 2):
-					keydict[frame].scale[fcu.array_index] = value
-	# pre-iterate through <bone, keys> dictionary
-	n_keyable = 0
-	for name, keydict in bonemap.items():
-		n_keys = len(keydict)
-		if n_keys > 0: n_keyable = n_keyable + 1
-	# return animation data
-	rv = AnimationData()
-	rv.name = action.name
-	rv.n_keyable = n_keyable
-	rv.bonemap = bonemap
-	return rv
+    # valid arguments
+    if action is None: raise Exception('Invalid argument.')
+    if (armature is None) or (armature.data is None): raise Exception('Invalid argument.')
+    # map to associate bone with key
+    bonemap = {}
+    for bone in armature.data.bones: bonemap[bone.name] = {}
+    # for each curve
+    for fcu in action.fcurves:
+        # extract bone name and key type
+        pattern = r'pose\.bones\[\"(.*)\"\]\.(.*)'
+        str = fcu.data_path
+        m = re.match(pattern, str)
+        if m is None: continue
+        g1 = m.group(1)
+        g2 = m.group(2)
+        # extract keyframes
+        for keyframe in fcu.keyframe_points:
+            # frame/value pair
+            frame, value = keyframe.co
+            # lookup key dictionary for bone
+            keydict = bonemap[g1]
+            if keydict == None: raise Exception('Bone name lookup failed.')
+            # create default values
+            if frame not in keydict:
+                item = AnimationKeyframe()
+                item.position = [0.0, 0.0, 0.0]
+                item.rotation = [1.0, 0.0, 0.0, 0.0]
+                item.scale    = [1.0, 1.0, 1.0]
+                keydict[frame] = item
+            # assign values
+            if g2 == 'location':
+                if (fcu.array_index >= 0 and fcu.array_index <= 2):
+                    keydict[frame].position[fcu.array_index] = value
+            if g2 == 'rotation_euler':
+                pass
+            if g2 == 'rotation_quaternion':
+                if (fcu.array_index >= 0 and fcu.array_index <= 4):
+                    keydict[frame].rotation[fcu.array_index] = value
+            if g2 == 'scale':
+                if (fcu.array_index >= 0 and fcu.array_index <= 2):
+                    keydict[frame].scale[fcu.array_index] = value
+    # pre-iterate through <bone, keys> dictionary
+    n_keyable = 0
+    for name, keydict in bonemap.items():
+        n_keys = len(keydict)
+        if n_keys > 0: n_keyable = n_keyable + 1
+    # return animation data
+    rv = AnimationData()
+    rv.name = action.name
+    rv.n_keyable = n_keyable
+    rv.bonemap = bonemap
+    return rv
 
 #
 # MESH FUNCTIONS
@@ -799,7 +800,7 @@ def ExportMeshUTF():
             file.write('{}\n'.format(mat.name))
             file.write('{} # material index\n'.format(mat.index))
             if mat.textures != None:
-                file.write('{} # of textures\n'.format(len(mat.textures)))
+                file.write('{} # number of textures\n'.format(len(mat.textures)))
                 for texture in mat.textures:
                     file.write('{}\n'.format(texture.name))
                     file.write('{}\n'.format(texture.type))

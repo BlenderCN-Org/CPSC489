@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "errors.h"
 #include "app.h"
 #include "win.h"
 #include "gfx.h"

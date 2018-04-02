@@ -12,7 +12,9 @@ class MeshData {
   typedef struct _c_blend4i { uint16 v[8]; } c_blend4i;
   typedef struct _c_blend4w { real32 v[8]; } c_blend4w;
   typedef struct _c_triface { uint32 v[3]; } c_triface;
-  static const uint16 DIFFUSE_MAP = 0;
+  static const uint16 DIFFUSE_MAP  = 0;
+  static const uint16 SPECULAR_MAP = 1;
+  static const uint16 NORMAL_MAP   = 2;
  private :
   struct MeshBone {
    STDSTRINGW name;
@@ -59,13 +61,13 @@ class MeshData {
    STDSTRINGW name;
    uint32 semantic;
    uint16 uv_index;
-   uint16 resource;
    struct TextureProperties {
    };
   };
   struct MeshMaterial {
    STDSTRINGW name;
    std::vector<MeshTexture> textures;
+   uint16 resource;
   };
   struct MeshCollision {
    uint32 n_verts;
@@ -83,6 +85,8 @@ class MeshData {
    STDSTRINGW name;
    uint32 n_verts;
    uint32 n_faces;
+   uint32 n_uvs;
+   uint32 n_colors;
    std::unique_ptr<c_point3D[]> position;
    std::unique_ptr<c_point3D[]> normal;
    std::unique_ptr<c_point2D[]> uvs[2];
@@ -92,10 +96,10 @@ class MeshData {
    std::vector<MeshSurface> surfaces;
   };
   struct MeshGraphics {
-    std::unique_ptr<ID3D11Buffer*[]> vbuffer;
-    std::unique_ptr<ID3D11Buffer*[]> ibuffer;
-    ID3D11Buffer* jbuffer;
-    std::vector<ID3D11ShaderResourceView*> resources;
+   std::unique_ptr<ID3D11Buffer*[]> vbuffer;
+   std::unique_ptr<ID3D11Buffer*[]> ibuffer;
+   ID3D11Buffer* jbuffer;
+   std::vector<ID3D11ShaderResourceView*> resources;
   };
  private :
   bool skeletal;

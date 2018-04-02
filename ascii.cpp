@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "errors.h"
 #include "ascii.h"
 
 #pragma region ASCII_FILE_UTILITIES

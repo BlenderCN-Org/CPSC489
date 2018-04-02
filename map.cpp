@@ -1,11 +1,9 @@
 #include "stdafx.h"
-#include "errors.h"
 #include "ascii.h"
 #include "math.h"
 #include "vector3.h"
 #include "matrix4.h"
 #include "camera.h"
-#include "model.h"
 #include "collision.h"
 #include "portal.h"
 #include "map.h"
@@ -46,8 +44,8 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
 
  // temporary data
  uint32 n = 0;
- std::unique_ptr<std::shared_ptr<MeshUTF>[]> meshdata;
- std::unique_ptr<std::shared_ptr<MeshUTFInstance>[]> instdata;
+ std::unique_ptr<std::shared_ptr<MeshData>[]> meshdata;
+ std::unique_ptr<std::shared_ptr<MeshInstance>[]> instdata;
 
  //
  // PHASE 1:
@@ -63,7 +61,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
  if(n)
    {
     // allocate meshdata
-    meshdata.reset(new std::shared_ptr<MeshUTF>[n]);
+    meshdata.reset(new std::shared_ptr<MeshData>[n]);
 
     // load models
     for(uint32 i = 0; i < n; i++)
@@ -74,8 +72,8 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // load model
-        std::shared_ptr<MeshUTF> model(new MeshUTF);
-        code = model->LoadModel(filename.c_str());
+        std::shared_ptr<MeshData> model(new MeshData);
+        code = model->LoadMeshUTF(filename.c_str());
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // add model
@@ -101,7 +99,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
  if(n)
    {
     // allocate meshdata
-    meshdata.reset(new std::shared_ptr<MeshUTF>[n]);
+    meshdata.reset(new std::shared_ptr<MeshData>[n]);
 
     // load models
     for(uint32 i = 0; i < n; i++)
@@ -112,8 +110,8 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // load model
-        std::shared_ptr<MeshUTF> model(new MeshUTF);
-        code = model->LoadModel(filename.c_str());
+        std::shared_ptr<MeshData> model(new MeshData);
+        code = model->LoadMeshUTF(filename.c_str());
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // add model
@@ -182,7 +180,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
  if(n)
    {
     // allocate meshdata
-    instdata.reset(new std::shared_ptr<MeshUTFInstance>[n]);
+    instdata.reset(new std::shared_ptr<MeshInstance>[n]);
 
     // load instances
     for(uint32 i = 0; i < n; i++)
@@ -207,8 +205,8 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // add instance
-        MeshUTF* ptr = static_models[reference].get();
-        instdata[i] = std::make_shared<MeshUTFInstance>(*ptr, P, Q);
+        MeshData* ptr = static_models[reference].get();
+        instdata[i] = std::make_shared<MeshInstance>(ptr, P, Q);
         code = instdata[i]->InitInstance();
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
        }
@@ -232,7 +230,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
  if(n)
    {
     // allocate meshdata
-    instdata.reset(new std::shared_ptr<MeshUTFInstance>[n]);
+    instdata.reset(new std::shared_ptr<MeshInstance>[n]);
 
     // load instances
     for(uint32 i = 0; i < n; i++)
@@ -263,8 +261,8 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
           } 
 
         // add instance
-        MeshUTF* ptr = moving_models[reference].get();
-        instdata[i] = std::make_shared<MeshUTFInstance>(*ptr, P, Q);
+        MeshData* ptr = moving_models[reference].get();
+        instdata[i] = std::make_shared<MeshInstance>(ptr, P, Q);
         code = instdata[i]->InitInstance();
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
        }
@@ -345,9 +343,11 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         sint32 sound2 = -1;
         code = ASCIIReadSint32(linelist, &sound1);
         code = ASCIIReadSint32(linelist, &sound2);
+        uint32 s1 = (sound1 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(sound1));
+        uint32 s2 = (sound2 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(sound2));
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-        if(!(sound1 < n_sounds)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
-        if(!(sound2 < n_sounds)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(!(s1 < n_sounds)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
+        if(!(s2 < n_sounds)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
 
         // set item
         DoorController& item = dcdata[i];
@@ -364,8 +364,8 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         item.anim_start = (anim1 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim1));
         item.anim_enter = (anim2 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim2));
         item.anim_leave = (anim3 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim3));
-        item.sound_opening = (sound1 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(sound1));
-        item.sound_closing = (sound2 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(sound2));
+        item.sound_opening = s1;
+        item.sound_closing = s2;
         item.inside = false;
         item.close_time = 0.0f;
        }

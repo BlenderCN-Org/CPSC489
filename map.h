@@ -1,7 +1,10 @@
 #ifndef __CS489_MAP_H
 #define __CS489_MAP_H
 
+#include "errors.h"
 #include "xaudio.h"
+#include "model_v2.h"
+#include "meshinst.h"
 
 struct DoorController {
  OBB box;
@@ -27,10 +30,10 @@ class Map {
   uint32 n_moving;
   uint32 n_static_instances;
   uint32 n_moving_instances;
-  std::unique_ptr<std::shared_ptr<MeshUTF>[]> static_models;
-  std::unique_ptr<std::shared_ptr<MeshUTF>[]> moving_models;
-  std::unique_ptr<std::shared_ptr<MeshUTFInstance>[]> static_instances;
-  std::unique_ptr<std::shared_ptr<MeshUTFInstance>[]> moving_instances;
+  std::unique_ptr<std::shared_ptr<MeshData>[]> static_models;
+  std::unique_ptr<std::shared_ptr<MeshData>[]> moving_models;
+  std::unique_ptr<std::shared_ptr<MeshInstance>[]> static_instances;
+  std::unique_ptr<std::shared_ptr<MeshInstance>[]> moving_instances;
  // door controllers
  private :
   uint32 n_door_controllers;

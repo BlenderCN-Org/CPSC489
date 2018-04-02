@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "errors.h"
 #include "app.h"
 #include "win.h"
 #include "camera.h"
@@ -974,7 +973,7 @@ void SetPixelShaderPerFrameBuffer(ID3D11Buffer* buffer)
  if(lpDeviceContext) lpDeviceContext->PSSetConstantBuffers(2, 1, &buffer);
 }
 
-void SetShaderResources(UINT n, ID3D11ShaderResourceView** views)
+void SetShaderResources(UINT n, ID3D11ShaderResourceView* const* views)
 {
  if(lpDeviceContext && n && views) lpDeviceContext->PSSetShaderResources(0, n, views);
 }

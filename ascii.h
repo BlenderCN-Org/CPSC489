@@ -1,6 +1,8 @@
 #ifndef __CS489_ASCII_H
 #define __CS489_ASCII_H
 
+#include "errors.h"
+
 // ASCII Utilities
 ErrorCode ASCIIParseFile(const wchar_t* filename, std::deque<std::string>& linelist);
 ErrorCode ASCIIReadString(std::deque<std::string>& linelist, char* str);

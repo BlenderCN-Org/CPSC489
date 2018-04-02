@@ -1,5 +1,7 @@
-#ifndef __CPSC489_BLENDING_H
-#define __CPSC489_BLENDING_H
+#ifndef __CS489_BLENDING_H
+#define __CS489_BLENDING_H
+
+#include "errors.h"
 
 #define BS_DEFAULT        0
 #define BS_ALPHA_BLENDING 1

@@ -52,6 +52,7 @@ void InitErrorStrings(void)
  InsertErrorString(EC_AUDIO_START, LC_ENGLISH, L"Failed to start audio.");
 
  // File Errors
+ InsertErrorString(EC_FILE_CREATE, LC_ENGLISH, L"Failed to create file.");
  InsertErrorString(EC_FILE_EMPTY, LC_ENGLISH, L"File is empty.");
  InsertErrorString(EC_FILE_OPEN, LC_ENGLISH, L"Failed to open file.");
  InsertErrorString(EC_FILE_SEEK, LC_ENGLISH, L"Failed to seek file position.");

@@ -1,5 +1,7 @@
-#ifndef __CPSC489_STENCIL_H
-#define __CPSC489_STENCIL_H
+#ifndef __CS489_STENCIL_H
+#define __CS489_STENCIL_H
+
+#include "errors.h"
 
 #define STENCIL_SKELETON_MODEL 0 
 #define STENCIL_SKELETON_BONES 1

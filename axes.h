@@ -1,6 +1,8 @@
 #ifndef __CS489_AXES_H
 #define __CS489_AXES_H
 
+#include "errors.h"
+
 // Axes Model Functions
 ErrorCode InitAxesModel(void);
 void FreeAxesModel(void);

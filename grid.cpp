@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "errors.h"
 #include "gfx.h"
 #include "layouts.h"
 #include "shaders.h"

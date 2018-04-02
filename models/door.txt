@@ -10,11 +10,11 @@ jnt_001
 2 # number of keys
 0
 0.0 0.0 0.0
-0.707476019859314 -0.0 0.707476019859314 -0.0
+0.707476019859314 0.0 -0.707476019859314 0.0
 1.0 1.0 1.0
 29
 0.0 0.0 0.0
-0.0 -0.0 1.0 -0.0
+0.0 0.0 -1.0 0.0
 1.0 1.0 1.0
 open_L
 1 # number of keyframed bones
@@ -22,11 +22,11 @@ jnt_001
 2 # number of keys
 0
 0.0 0.0 0.0
-1.0 -0.0 -0.0 -0.0
+1.0 0.0 0.0 0.0
 1.0 1.0 1.0
 29
 0.0 0.0 0.0
-0.7074764966964722 -0.0 0.7067369222640991 -0.0
+0.7074764966964722 0.0 -0.7067369222640991 0.0
 1.0 1.0 1.0
 slide_L
 1 # number of keyframed bones
@@ -34,11 +34,11 @@ jnt_001
 2 # number of keys
 0
 0.0 0.0 0.0
-1.0 -0.0 -0.0 -0.0
+1.0 0.0 0.0 0.0
 1.0 1.0 1.0
 29
 -2.0 0.0 0.0
-1.0 -0.0 -0.0 -0.0
+1.0 0.0 0.0 0.0
 1.0 1.0 1.0
 slide_R
 1 # number of keyframed bones
@@ -46,21 +46,26 @@ jnt_001
 2 # number of keys
 0
 -2.0 0.0 0.0
-1.0 -0.0 -0.0 -0.0
+1.0 0.0 0.0 0.0
 1.0 1.0 1.0
 29
 0.0 0.0 0.0
-1.0 -0.0 -0.0 -0.0
+1.0 0.0 0.0 0.0
 1.0 1.0 1.0
+0 # number of collision meshes
+1 # of materials
+door
+0 # material index
+1 # of textures
+door
+diffuse
+0
+models\door.bmp
 1 # number of meshes
 door
 24 # number of vertices
 1 # number of UV channels
 0 # number of color channels
-1 # number of textures
-door
-0
-models\door.bmp
 0.2500 -0.0000 2.0000
 0.0000 1.0000 0.0000
 1.0000 1.0000
@@ -181,7 +186,10 @@ models\door.bmp
 1.0000 0.0000
 0 0 0 0
 1.0000 0.0000 0.0000 0.0000
-12 # of faces
+12 # number of total faces
+1 # number of submeshes
+12 # number of faces
+0 # material index
 0 1 2
 0 3 1
 4 5 6

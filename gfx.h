@@ -1,6 +1,8 @@
 #ifndef __CPSC489_GFX_H
 #define __CPSC489_GFX_H
 
+#include "errors.h"
+
 // Direct3D Initialization Functions
 ErrorCode InitD3D(void);
 ErrorCode ResetD3D(UINT dx, UINT dy);
@@ -70,7 +72,7 @@ void SetVertexShaderPerFrameBuffer(ID3D11Buffer* buffer);
 void SetPixelShaderPerCameraBuffer(ID3D11Buffer* buffer);
 void SetPixelShaderPerModelBuffer(ID3D11Buffer* buffer);
 void SetPixelShaderPerFrameBuffer(ID3D11Buffer* buffer);
-void SetShaderResources(UINT n, ID3D11ShaderResourceView** views);
+void SetShaderResources(UINT n, ID3D11ShaderResourceView* const* views);
 
 // Input Assembly Functions
 void SetVertexBuffer(ID3D11Buffer* buffer, UINT stride, UINT offset);

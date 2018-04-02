@@ -617,7 +617,6 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
  // read mesh list
  std::vector<MeshMaterial> matlist;
  if(n_mats) matlist.resize(n_mats);
- uint32 resource = 0;
  for(uint32 i = 0; i < n_mats; i++)
     {
      // read name
@@ -626,16 +625,20 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
      if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // name must be valid
-     matlist[i].name = ConvertUTF8ToUTF16(buffer);
-     if(!matlist[i].name.length()) return DebugErrorCode(EC_MODEL_MATERIAL_NAME, __LINE__, __FILE__);
+     STDSTRINGW name = ConvertUTF8ToUTF16(buffer);
+     if(!name.length()) return DebugErrorCode(EC_MODEL_MATERIAL_NAME, __LINE__, __FILE__);
 
      // read material index
+     // it is very important to read this and use this as materials can be listed out of order
      uint32 matindex = 0;
      code = ASCIIReadUint32(linelist, &matindex);
      if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
      // validate material index
      if(!(matindex < n_mats)) return DebugErrorCode(EC_MODEL_MATERIAL_INDEX, __LINE__, __FILE__);
+
+     // assign name
+     matlist[matindex].name = name;
 
      // read number of textures
      uint32 n_textures = 0;
@@ -646,7 +649,7 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
      if(!n_textures) return DebugErrorCode(EC_MODEL_TEXTURES, __LINE__, __FILE__);
 
      // read textures
-     if(n_textures) matlist[i].textures.resize(n_textures);
+     if(n_textures) matlist[matindex].textures.resize(n_textures);
      for(uint32 j = 0; j < n_textures; j++)
         {
          // read texture name
@@ -654,19 +657,19 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // assign texture name
-         matlist[i].textures[j].name = ConvertUTF8ToUTF16(buffer);
-         if(!matlist[i].textures[j].name.length()) return DebugErrorCode(EC_MODEL_TEXTURE_NAME, __LINE__, __FILE__);
+         matlist[matindex].textures[j].name = ConvertUTF8ToUTF16(buffer);
+         if(!matlist[matindex].textures[j].name.length()) return DebugErrorCode(EC_MODEL_TEXTURE_NAME, __LINE__, __FILE__);
 
          // read texture semantic
          code = ASCIIReadString(linelist, buffer);
          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // assign texture semantic
-         if(_strcmpi(buffer, "diffuse") == 0) matlist[i].textures[j].semantic = DIFFUSE_MAP;
+         if(_strcmpi(buffer, "diffuse") == 0) matlist[matindex].textures[j].semantic = DIFFUSE_MAP;
          else return DebugErrorCode(EC_MODEL_TEXTURE_SEMANTIC, __LINE__, __FILE__);
 
          // read UV channel
-         code = ASCIIReadUint16(linelist, &matlist[i].textures[j].uv_index);
+         code = ASCIIReadUint16(linelist, &matlist[matindex].textures[j].uv_index);
          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // read texture filename
@@ -674,14 +677,18 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // assign filename
-         matlist[i].textures[j].filename = ConvertUTF8ToUTF16(buffer);
-         if(!matlist[i].name.length()) return DebugErrorCode(EC_MODEL_TEXTURE_FILENAME, __LINE__, __FILE__);
-
-         // assign resource index
-         matlist[i].textures[j].resource = static_cast<uint16>(resource);
-         resource += n_textures;
-         if(resource > 0xFFFFul) return DebugErrorCode(EC_MODEL_TEXTURE_RESOURCES, __LINE__, __FILE__);
+         matlist[matindex].textures[j].filename = ConvertUTF8ToUTF16(buffer);
+         if(!matlist[matindex].name.length()) return DebugErrorCode(EC_MODEL_TEXTURE_FILENAME, __LINE__, __FILE__);
         }
+    }
+
+ // once materials are sorted, assign resource index to each material
+ // if you don't do this, textures get all messed up
+ uint32 resource = 0;
+ for(uint32 i = 0; i < n_mats; i++) {
+     matlist[i].resource = static_cast<uint16>(resource);
+     if(resource > 0xFFFFul) return DebugErrorCode(EC_MODEL_TEXTURE_RESOURCES, __LINE__, __FILE__);
+     resource += static_cast<uint32>(matlist[i].textures.size());
     }
 
  // move material data
@@ -814,10 +821,7 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
          surfaces[j].m_index = 0;
          code = ASCIIReadUint32(linelist, &surfaces[j].m_index);
          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
-         // set start value and then increment it
-         surfaces[j].start = start;
-         start += surfaces[j].n_faces;
+         if(!(surfaces[j].m_index < materials.size())) return DebugErrorCode(EC_MODEL_MATERIAL_INDEX, __LINE__, __FILE__);
 
          // read index buffer
          if(surfaces[j].n_faces) {
@@ -826,7 +830,11 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
                 code = ASCIIReadVector3(linelist, &surfaces[j].facelist[k].v[0], false);
                 if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
                }
-           }     
+           }
+
+         // set start value and then increment it
+         surfaces[j].start = start;
+         start += surfaces[j].n_faces;
         }
 
      // the sum of all faces must equal total number of faces
@@ -837,6 +845,8 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
      meshlist[i].name = name;
      meshlist[i].n_verts = n_verts;
      meshlist[i].n_faces = n_faces;
+     meshlist[i].n_uvs = n_uvs;
+     meshlist[i].n_colors = n_colors;
      meshlist[i].position = std::move(position);
      meshlist[i].normal = std::move(normal);
      meshlist[i].uvs[0] = std::move(uvs[0]);
@@ -877,7 +887,7 @@ void MeshData::Free(void)
  for(size_t i = 0; i < materials.size(); i++) {
      for(size_t j = 0; j < materials[i].textures.size(); j++) {
          ErrorCode code = FreeTexture(materials[i].textures[j].filename.c_str());
-         if(Fail(code)) Fail(code, __LINE__, __FILE__);
+         if(Fail(code)) DebugErrorCode(code, __LINE__, __FILE__);
         }
     }
  graphics.resources.clear();
@@ -897,6 +907,125 @@ void MeshData::Free(void)
 
 ErrorCode MeshData::SaveMeshUTF(const wchar_t* filename)
 {
+ // create output file
+ using namespace std;
+ if(!filename) return DebugErrorCode(EC_INVALID_ARG, __LINE__, __FILE__);
+ ofstream ofile(filename);
+ if(!ofile) return DebugErrorCode(EC_FILE_OPEN, __LINE__, __FILE__);
+ 
+ // save bones
+ if(skeletal) {
+    ofile << bones.size() << " # number of bones" << endl;
+    for(size_t i = 0; i < bones.size(); i++) {
+        STDSTRINGA name = ConvertUTF16ToUTF8(bones[i].name.c_str());
+        ofile << name.c_str() << endl;
+        if(bones[i].parent == 0xFFFFFFFFul) ofile << "-1" << endl;
+        else ofile << bones[i].parent << endl;
+        ofile << bones[i].position[0] << " " << bones[i].position[1] << " " << bones[i].position[2] << endl;
+        ofile << bones[i].m_abs[0x0] << " " << bones[i].m_abs[0x1] << " " << bones[i].m_abs[0x2] << " " << bones[i].m_abs[0x3] << " ";
+        ofile << bones[i].m_abs[0x4] << " " << bones[i].m_abs[0x5] << " " << bones[i].m_abs[0x6] << " " << bones[i].m_abs[0x7] << " ";
+        ofile << bones[i].m_abs[0x8] << " " << bones[i].m_abs[0x9] << " " << bones[i].m_abs[0xA] << " " << bones[i].m_abs[0xB] << " ";
+        ofile << bones[i].m_abs[0xC] << " " << bones[i].m_abs[0xD] << " " << bones[i].m_abs[0xE] << " " << bones[i].m_abs[0xF] << endl;
+        if(ofile.fail()) return DebugErrorCode(EC_FILE_WRITE, __LINE__, __FILE__);
+       }
+   }
+ else
+    ofile << "0 # number of bones" << endl;
+
+ // save animations
+ ofile << animations.size() << " # number of animations" << endl;
+ for(size_t i = 0; i < animations.size(); i++) {
+     STDSTRINGA name = ConvertUTF16ToUTF8(animations[i].name.c_str());
+     ofile << name.c_str() << endl;
+     ofile << animations[i].bonelist.size() << " # number of keyframed bones" << endl;
+     for(size_t j = 0; j < animations[i].bonelist.size(); j++) {
+         uint32 bi = animations[i].bonelist[j].bone_index;
+         ofile << ConvertUTF16ToUTF8(bones[bi].name.c_str()).c_str() << endl;
+         ofile << animations[i].bonelist[j].keyframes.size() << " # number of keys" << endl;
+         for(size_t k = 0; k < animations[i].bonelist[j].keyframes.size(); k++) {
+             auto& kf = animations[i].bonelist[j].keyframes[k];
+             ofile << kf.frame << endl;
+             ofile << kf.translation[0] << " " << kf.translation[1] << " " << kf.translation[2] << endl;
+             ofile << kf.quaternion[0] << " " << kf.quaternion[1] << " " << kf.quaternion[2] << " " << kf.quaternion[3] << endl;
+             ofile << kf.scale[0] << " " << kf.scale[1] << " " << kf.scale[2] << endl;
+            }
+        }
+     if(ofile.fail()) return DebugErrorCode(EC_FILE_WRITE, __LINE__, __FILE__);
+    }
+
+ // save collision meshes
+ ofile << collisions.size() << " # number of collision meshes" << endl;
+ for(size_t i = 0; i < collisions.size(); i++) {
+     ofile << collisions[i].n_verts << " # number of collision vertices" << endl;
+     for(uint32 j = 0; j < collisions[i].n_verts; j++) {
+         ofile << collisions[i].position[j].v[0] << " " <<
+                  collisions[i].position[j].v[1] << " " <<
+                  collisions[i].position[j].v[2] << endl;
+        }
+     ofile << collisions[i].n_faces << " # number of collision faces" << endl;
+     for(uint32 j = 0; j < collisions[i].n_faces; j++) {
+         ofile << collisions[i].facelist[j].v[0] << " " <<
+                  collisions[i].facelist[j].v[1] << " " <<
+                  collisions[i].facelist[j].v[2] << endl;
+        }
+     if(ofile.fail()) return DebugErrorCode(EC_FILE_WRITE, __LINE__, __FILE__);
+    }
+
+ // save materials
+ ofile << materials.size() << " # number of materials" << endl;
+ for(size_t i = 0; i < materials.size(); i++) {
+     ofile << ConvertUTF16ToUTF8(materials[i].name.c_str()).c_str() << endl;
+     ofile << i << " # material index" << endl;
+     ofile << materials[i].textures.size() << " # number of textures" << endl;
+     for(size_t j = 0; j < materials[i].textures.size(); j++) {
+         auto& obj = materials[i].textures[j];
+         ofile << ConvertUTF16ToUTF8(obj.name.c_str()).c_str() << endl;
+         if(obj.semantic == 0x00) ofile << "diffuse" << endl;
+         else if(obj.semantic == 0x01) ofile << "specular" << endl;
+         else if(obj.semantic == 0x02) ofile << "normal" << endl;
+         ofile << obj.uv_index << endl;
+         ofile << ConvertUTF16ToUTF8(obj.filename.c_str()).c_str() << endl;
+        }
+     if(ofile.fail()) return DebugErrorCode(EC_FILE_WRITE, __LINE__, __FILE__);
+    }
+
+ // save meshes
+ ofile << meshes.size() << " # number of meshes" << endl;
+ for(size_t i = 0; i < meshes.size(); i++) {
+     ofile << ConvertUTF16ToUTF8(meshes[i].name.c_str()).c_str() << endl;
+     ofile << meshes[i].n_verts << " # number of vertices" << endl;
+     ofile << meshes[i].n_uvs << " # number of UV channels" << endl;
+     ofile << meshes[i].n_colors << " # number of color channels" << endl;
+     for(size_t j = 0; j < meshes[i].n_verts; j++) {
+         ofile << meshes[i].position[j].v[0] << " " <<
+                  meshes[i].position[j].v[1] << " " <<
+                  meshes[i].position[j].v[2] << endl;
+         ofile << meshes[i].normal[j].v[0] << " " <<
+                  meshes[i].normal[j].v[1] << " " <<
+                  meshes[i].normal[j].v[2] << endl;
+         for(size_t k = 0; k < meshes[i].n_uvs; k++) {
+             ofile << meshes[i].uvs[k][j].v[0] << " " <<
+                      meshes[i].uvs[k][j].v[1] << endl;
+            }
+         for(size_t k = 0; k < meshes[i].n_colors; k++) {
+             ofile << meshes[i].colors[k][j].v[0] << " " <<
+                      meshes[i].colors[k][j].v[1] << " " <<
+                      meshes[i].colors[k][j].v[2] << endl;
+            }
+        }
+     ofile << meshes[i].n_faces << " # number of total faces" << endl;
+     ofile << meshes[i].surfaces.size() << " # number of submeshes" << endl;
+     for(size_t j = 0; j < meshes[i].surfaces.size(); j++) {
+         ofile << meshes[i].surfaces[j].n_faces << " # number of faces" << endl;
+         ofile << meshes[i].surfaces[j].m_index << " # material index" << endl;
+         for(size_t k = 0; k < meshes[i].surfaces[j].n_faces; k++) {
+             auto& face = meshes[i].surfaces[j].facelist[k];
+             ofile << face.v[0] << " " << face.v[1] << " " << face.v[2] << endl;
+            }
+        }
+     if(ofile.fail()) return DebugErrorCode(EC_FILE_WRITE, __LINE__, __FILE__);
+    }
+
  return EC_SUCCESS;
 }
 
