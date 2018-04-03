@@ -98,7 +98,7 @@ class MeshUTFImporter:
 
     ##
     #
-    def read_matrix16(self):
+    def read_matrix4(self):
     
         line = self.linelist[self.linecurr]
         self.linecurr = self.linecurr + 1
@@ -136,6 +136,10 @@ class MeshUTFImporter:
         if self.process_collision_meshes() == False: return
         if self.process_materials() == False: return
         if self.process_meshes() == False: return
+        
+        # build objects
+        self.build_skeleton()
+        
 
     ##
     #
@@ -145,24 +149,20 @@ class MeshUTFImporter:
         temp = MeshUTFSkeleton()
         
         # read number of bones
-        line = self.linelist[self.linecurr]
-        self.linecurr = self.linecurr + 1
-        # set number of bones
-        temp.n_jnts = int(line)
+        temp.n_jnts = self.read_int()
         if temp.n_jnts < 0: raise Exception('Invalid number of bones.')
 
         # read bone name
-        line = self.linelist[self.linecurr]
-        self.linecurr = self.linecurr + 1
-        temp.name = line
+        temp.name = self.read_string()
+        if len(temp.name) == 0: raise Exception('Invalid bone name.')
         
-        # read number of parent
-        line = self.linelist[self.linecurr]
-        self.linecurr = self.linecurr + 1
-        # set parent
-        temp.parent = int(line)
+        # read parent ID
+        temp.parent = self.read_int()
         if temp.parent >= temp.n_jnts: raise Exception('Invalid bone parent reference.')
         
+        # read position and joint matrix
+        temp.position = self.read_vector3()
+        temp.m_abs = self.read_matrix4()
         
         # assign skeleton
         self.skeleton = temp
@@ -187,8 +187,47 @@ class MeshUTFImporter:
     #
     def process_meshes(self):
         return True
-            
+
+    ##
+    #
+    def build_skeleton(self):
+
+        if self.skeleton.n_jnts == 0: return
+        bpy.ops.object.armature_add()
+        object = bpy.context.active_object
+        object.name = 'skeleton'
+        object.data.name = 'skeleton'
+        
+        bpy.ops.object.mode_set(mode='EDIT')
+        #build_skeleton(layer_data, object.data.edit_bones)
+        bpy.ops.object.mode_set(mode='OBJECT')
+        
+        pass
+        
+    ##
+    #
+    def build_animations(self):
     
+        pass
+
+    ##
+    #
+    def build_collision_meshes(self):
+    
+        pass
+
+    ##
+    #
+    def build_materials(self):
+    
+        pass
+        
+    ##
+    #
+    def build_meshes(self):
+    
+        pass
+        
 class ImportMeshUTFOperator(bpy.types.Operator):
 
     ##
