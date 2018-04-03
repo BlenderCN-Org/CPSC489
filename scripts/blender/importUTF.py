@@ -24,9 +24,6 @@ import re
 #  @param[in,out] <n1, n2, n3, ...> <description>
 #  @return <description>
 
-# 'panel', 'operator' or 'plugin'
-scriptType = 'panel'
-
 ##
 #  @brief Required for all plugins.
 bl_info = {
@@ -40,19 +37,165 @@ bl_info = {
 'category': 'Import-Export',
 }
 
+class MeshUTFSkeleton:
+    # n_joints
+    pass
+    
 class MeshUTFImporter:
-    
-    # 
-    
-    def __init__(self, filepath):
-        self.filename = filepath
 
-    def execute():
-        file = open(self.filename, 'r')
+    ##
+    #
+    def __init__(self):
+
+        self.linelist = []
+        self.linecurr = -1;
+        
+        self.skeleton = MeshUTFSkeleton()
+
+    ##
+    #
+    def read_string(self):
+    
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        return line
+        
+    ##
+    #
+    def read_int(self):
+    
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        return int(line)
+
+    ##
+    #
+    def read_float(self):
+    
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        return float(line)
+        
+    ##
+    #
+    def read_vector3(self):
+    
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        parts = line.split(' ', 2)
+        if len(parts) != 3: raise Exception('Expecting vector3.')        
+        return [float(parts[0]), float(parts[1]), float(parts[2])]
+        
+    ##
+    #
+    def read_vector4(self):
+    
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        parts = line.split(' ', 3)
+        if len(parts) != 4: raise Exception('Expecting vector4.')
+        return [float(parts[0]), float(parts[1]), float(parts[2]), float(parts[3])]
+
+    ##
+    #
+    def read_matrix16(self):
+    
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        parts = line.split(' ', 15)
+        if len(parts) != 16: raise Exception('Expecting matrix4x4.')
+        return [
+            float(parts[ 0]), float(parts[ 1]), float(parts[ 2]), float(parts[ 3]),
+            float(parts[ 4]), float(parts[ 5]), float(parts[ 6]), float(parts[ 7]),
+            float(parts[ 8]), float(parts[ 9]), float(parts[10]), float(parts[11]),
+            float(parts[12]), float(parts[13]), float(parts[14]), float(parts[15])]
+        
+    ##
+    #
+    def execute(self, filename):
+
+        # open file
+        try: file = open(filename, 'r')
+        except: raise Exception('Mesh UTF Import Error: Failed to open file.')
+        
+        # build a linelist, stripping blank lines
+        self.linelist = []
+        while True:
+            line = file.readline()
+            if line.endswith('\n') == False:
+                break
+            else:
+                line = line.rstrip('\n\r\t ')
+                line = line.split('#', 1)[0]
+                if(len(line)): self.linelist.append(line)
+                
+        # process sections
+        self.linecurr = 0
+        if self.process_bones() == False: return
+        if self.process_animations() == False: return
+        if self.process_collision_meshes() == False: return
+        if self.process_materials() == False: return
+        if self.process_meshes() == False: return
+
+    ##
+    #
+    def process_bones(self):
+
+        # temporary object
+        temp = MeshUTFSkeleton()
+        
+        # read number of bones
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        # set number of bones
+        temp.n_jnts = int(line)
+        if temp.n_jnts < 0: raise Exception('Invalid number of bones.')
+
+        # read bone name
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        temp.name = line
+        
+        # read number of parent
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        # set parent
+        temp.parent = int(line)
+        if temp.parent >= temp.n_jnts: raise Exception('Invalid bone parent reference.')
+        
+        
+        # assign skeleton
+        self.skeleton = temp
+        return True
+        
+    ##
+    #
+    def process_animations(self):
+        return True
+
+    ##
+    #        
+    def process_collision_meshes(self):
+        return True
+        
+    ##
+    #
+    def process_materials(self):
+        return True
+
+    ##
+    #
+    def process_meshes(self):
+        return True
+            
     
 class ImportMeshUTFOperator(bpy.types.Operator):
-    #
-    bl_idname = 'import.mesh_utf'
+
+    ##
+    #  @brief 
+    #  @warning Do not use 'import' as it is a keyword in python. Use 'import_mesh' instead. Using
+    #  bpy.ops.import.mesh_utf will cause an error while bpy.ops.import_mesh.mesh_utf will not.
+    bl_idname = 'import_mesh.mesh_utf'
     
     ##
     #  @brief Required member for fileselect_add to label button in selection dialog.
@@ -76,8 +219,8 @@ class ImportMeshUTFOperator(bpy.types.Operator):
     ##
     #  @brief Called by the fileselect_add dialog after the user clicks the 'Import' button.
     def execute(self, context):
-        obj = MeshUTFImporter(self.filepath)
-        obj.execute()
+        obj = MeshUTFImporter()
+        obj.execute(self.filepath)
         return {'FINISHED'}
 
 ##
@@ -85,37 +228,31 @@ class ImportMeshUTFOperator(bpy.types.Operator):
 def ImportMeshUTF_MenuFunction(self, context):
     self.layout.operator_context = 'INVOKE_DEFAULT'
     self.layout.operator(ImportMeshUTFOperator.bl_idname, text='Mesh UTF Import (.txt)')
-        
+
+# UNCOMMENT IF PLUGIN
+# ##
+# def register():
+#     bpy.utils.register_module(__name__)
+#     bpy.types.INFO_MT_file_import.append(ImportMeshUTF_MenuFunction)
+# 
+# ##
+# def unregister():
+#     bpy.utils.unregister_module(__name__)
+#     bpy.types.INFO_MT_file_import.remove(ImportMeshUTF_MenuFunction)
+#     
+# ##
+# if __name__ == '__main__':
+#     register()
+
+# UNCOMMENT IF OPERATOR
 #
-if scriptType == 'plugin':
-
-    ##
-    def register():
-        bpy.utils.register_module(__name__)
-        bpy.types.INFO_MT_file_import.append(ImportMeshUTF_MenuFunction)
-
-    ##
-    def unregister():
-        bpy.utils.unregister_module(__name__)
-        bpy.types.INFO_MT_file_import.remove(ImportMeshUTF_MenuFunction)
-
-    ##
-    if __name__ == '__main__':
-        register()
-#
-elif scriptType == 'operator':
-
-    # register operator and add to the main menu
-    bpy.utils.register_class(ImportMeshUTFOperator)
-    bpy.types.INFO_MT_file_import.append(ImportMeshUTF_MenuFunction)
+# # register operator and add to the main menu
+# bpy.utils.register_class(ImportMeshUTFOperator)
+# bpy.types.INFO_MT_file_import.append(ImportMeshUTF_MenuFunction)
     
-#
-elif scriptType == 'panel':
+# UNCOMMENT IF IN PANEL
 
-    # register operator and test call
-    bpy.utils.register_class(ImportMeshUTFOperator)
-    bpy.ops.import.mesh_utf('INVOKE_DEFAULT')
-
-
-
-        
+# register operator and test call
+bpy.utils.register_class(ImportMeshUTFOperator)
+bpy.ops.import_mesh.mesh_utf('INVOKE_DEFAULT')
+    
