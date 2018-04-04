@@ -511,7 +511,7 @@ def GetMeshMaterialTextures(mesh, material):
             else: mt.type = 'diffuse'
             # assign texture channel
             mt.channel = GetUVMapChannel(mesh, slot.uv_layer)
-            if mt.channel == -1: raise Exception('This material refers to a UV map that doesn\'t exist.')
+            if mt.channel == -1: raise Exception('This material refers to a UV map that does not exist.')
             # assign texture filename
             if slot.texture.image != None:
                 mt.filename = slot.texture.image.filepath
