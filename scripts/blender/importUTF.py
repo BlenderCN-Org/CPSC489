@@ -37,10 +37,30 @@ bl_info = {
 'category': 'Import-Export',
 }
 
+class MeshUTFJoint:
+    # name
+    # parent
+    # position
+    # m_abs
+    pass
 class MeshUTFSkeleton:
     # n_joints
+    # jntlist[]
     pass
-    
+class MeshUTFAnimationKeyframe:
+    # self.position - vector3
+    # self.rotation - vector4
+    # self.scale    - vector3
+    pass
+class MeshUTFAnimation:
+    # self.name      - string
+    # self.jointmap  - dictionary<String, dictionary<uint, MeshUTFAnimationKeyFrame>>}
+    pass
+class MeshUTFAnimationList:
+    # self.n_anim    - uint
+    # self.data      - MeshUTFAnimation[]
+    pass
+
 class MeshUTFImporter:
 
     ##
@@ -51,6 +71,7 @@ class MeshUTFImporter:
         self.linecurr = -1;
         
         self.skeleton = MeshUTFSkeleton()
+        self.animlist = MeshUTFAnimationList()
 
     ##
     #
@@ -105,10 +126,10 @@ class MeshUTFImporter:
         parts = line.split(' ', 15)
         if len(parts) != 16: raise Exception('Expecting matrix4x4.')
         return [
-            float(parts[ 0]), float(parts[ 1]), float(parts[ 2]), float(parts[ 3]),
-            float(parts[ 4]), float(parts[ 5]), float(parts[ 6]), float(parts[ 7]),
-            float(parts[ 8]), float(parts[ 9]), float(parts[10]), float(parts[11]),
-            float(parts[12]), float(parts[13]), float(parts[14]), float(parts[15])]
+            [float(parts[ 0]), float(parts[ 1]), float(parts[ 2]), float(parts[ 3])],
+            [float(parts[ 4]), float(parts[ 5]), float(parts[ 6]), float(parts[ 7])],
+            [float(parts[ 8]), float(parts[ 9]), float(parts[10]), float(parts[11])],
+            [float(parts[12]), float(parts[13]), float(parts[14]), float(parts[15])]]
         
     ##
     #
@@ -137,40 +158,150 @@ class MeshUTFImporter:
         if self.process_materials() == False: return
         if self.process_meshes() == False: return
         
-        # build objects
-        self.build_skeleton()
-        
-
     ##
     #
     def process_bones(self):
 
         # temporary object
-        temp = MeshUTFSkeleton()
+        self.skeleton = MeshUTFSkeleton()
         
-        # read number of bones
-        temp.n_jnts = self.read_int()
-        if temp.n_jnts < 0: raise Exception('Invalid number of bones.')
+        # read number of joints
+        self.skeleton.n_jnts = self.read_int()
+        if self.skeleton.n_jnts < 0: raise Exception('Invalid number of joints.')
 
-        # read bone name
-        temp.name = self.read_string()
-        if len(temp.name) == 0: raise Exception('Invalid bone name.')
+        # read joints
+        self.skeleton.jntlist = []
+        for i in range(self.skeleton.n_jnts):
+
+            # read joint name
+            joint = MeshUTFJoint()
+            joint.name = self.read_string()
+            if len(joint.name) == 0: raise Exception('Invalid joint name.')
         
-        # read parent ID
-        temp.parent = self.read_int()
-        if temp.parent >= temp.n_jnts: raise Exception('Invalid bone parent reference.')
+            # read parent ID
+            joint.parent = self.read_int()
+            if joint.parent >= self.skeleton.n_jnts: raise Exception('Invalid joint parent reference.')
         
-        # read position and joint matrix
-        temp.position = self.read_vector3()
-        temp.m_abs = self.read_matrix4()
+            # read position and joint matrix
+            joint.position = self.read_vector3()
+            joint.m_abs = self.read_matrix4()
+
+            # insert joint
+            self.skeleton.jntlist.append(joint)
         
-        # assign skeleton
-        self.skeleton = temp
+        # create armature object
+        # this must be done in OBJECT mode
+        if bpy.context.mode != 'OBJECT': bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.armature_add()
+        object = bpy.context.active_object
+        object.name = 'skeleton'
+        object.data.name = 'skeleton'
+        object.location = [0, 0, 0]
+        
+        # populate armature object with bones
+        bpy.ops.object.mode_set(mode='EDIT')
+        self.build_skeleton(object.data.edit_bones)
+        bpy.ops.object.mode_set(mode='OBJECT')
+
         return True
         
     ##
     #
     def process_animations(self):
+
+        # temporary object
+        self.animlist = MeshUTFAnimationList()
+        
+        # read number of joints
+        self.animlist.n_anim = self.read_int()
+        if self.animlist.n_anim < 0: raise Exception('Invalid number of animations.')
+
+        # read joints
+        self.animlist.data = []
+        for i in range(self.animlist.n_anim):
+
+            # read animation name
+            anim = MeshUTFAnimation()
+            anim.name = self.read_string()
+            if len(anim.name) == 0: raise Exception('Invalid animation name.')
+
+            # read number of keyframed joints
+            n_jnts = self.read_int()
+            if n_jnts < 0: raise Exception('Invalid number of keyframed joints.')
+
+            # read keyframed joints
+            anim.jointmap = {}
+            for j in range(n_jnts):
+
+                # read joint name
+                jntname = self.read_string()
+                if len(jntname) == 0: raise Exception('Invalid joint name.')
+
+                # read number of keyframes
+                n_keys = self.read_int()
+                if n_keys < 1: raise Exception('Invalid number of keyframes for joint[' + jntname + '] in animation[' + anim.name + '].')
+
+                # read keyframes
+                kfdict = {}
+                for k in range(n_keys):
+
+                    # read frame index
+                    frame = self.read_int()
+                    if frame < 0: raise Exception('Invalid keyframe for joint[' + jntname + '] in animation[' + anim.name + '].')
+
+                    # frame must not already exist
+                    if frame in kfdict: raise Exception('Keyframe index {} appears more than once for joint[{}] in animation[{}].'.format(frame, jntname, anim.name))
+
+                    # read position, rotation and scale
+                    kf = MeshUTFAnimationKeyframe()
+                    kf.position = self.read_vector3()
+                    kf.rotation = self.read_vector4()
+                    kf.scale = self.read_vector3()
+
+                    # insert keyframe into keyframe dictionary kfdict[timeindex] = keyframe data
+                    kfdict[frame] = kf
+
+                # insert keyframe dictionary into joint map
+                anim.jointmap[jntname] = kfdict
+
+            # insert animation
+            self.animlist.data.append(anim)
+
+        # for each animation
+        for anim in self.animlist.data:
+
+            # create action object
+            action = bpy.data.actions.new(anim.name)
+
+            # for each joint there is a keyframe dictionary
+            for jname, kfd in anim.jointmap.items():
+
+                # create F-curves for each bone
+                lcurve = [action.fcurves.new('pose.bones[\"{}\"].location'.format(jname), i) for i in range(3)]
+                qcurve = [action.fcurves.new('pose.bones[\"{}\"].rotation_quaternion'.format(jname), i) for i in range(4)]
+                scurve = [action.fcurves.new('pose.bones[\"{}\"].scale'.format(jname), i) for i in range(3)]
+
+                # assign keyframes
+                for frame, keyframe in kfd.items():
+
+                    # location
+                    lcurve[0].keyframe_points.insert(frame, keyframe.position[0], {'FAST'})
+                    lcurve[1].keyframe_points.insert(frame, keyframe.position[1], {'FAST'})
+                    lcurve[2].keyframe_points.insert(frame, keyframe.position[2], {'FAST'})
+
+                    # rotation_quaternion
+                    qcurve[0].keyframe_points.insert(frame, keyframe.rotation[0], {'FAST'})
+                    qcurve[1].keyframe_points.insert(frame, keyframe.rotation[1], {'FAST'})
+                    qcurve[2].keyframe_points.insert(frame, keyframe.rotation[2], {'FAST'})
+                    qcurve[3].keyframe_points.insert(frame, keyframe.rotation[3], {'FAST'})
+
+                    # scale
+                    scurve[0].keyframe_points.insert(frame, keyframe.scale[0], {'FAST'})
+                    scurve[1].keyframe_points.insert(frame, keyframe.scale[1], {'FAST'})
+                    scurve[2].keyframe_points.insert(frame, keyframe.scale[2], {'FAST'})
+
+        # update scene
+        bpy.context.scene.update()
         return True
 
     ##
@@ -189,21 +320,47 @@ class MeshUTFImporter:
         return True
 
     ##
-    #
-    def build_skeleton(self):
+    #   @brief Generates armature object in Blender from joint data.
+    #   @param bonelist ArmatureEditBones = EditBones[]
+    def build_skeleton(self, bonelist):
 
-        if self.skeleton.n_jnts == 0: return
-        bpy.ops.object.armature_add()
-        object = bpy.context.active_object
-        object.name = 'skeleton'
-        object.data.name = 'skeleton'
-        
-        bpy.ops.object.mode_set(mode='EDIT')
-        #build_skeleton(layer_data, object.data.edit_bones)
-        bpy.ops.object.mode_set(mode='OBJECT')
-        
-        pass
-        
+        # remove default bone
+        if len(bonelist) > 0: bonelist.remove(bonelist[0])
+
+        # create bone for each joint in skeleton
+        bl_jntlist = []
+        for i, joint in enumerate(self.skeleton.jntlist):
+
+            # create bone and save it so we can attach children to parents
+            bl_jnt = bonelist.new(joint.name)
+            bl_jntlist.append(bl_jnt)
+
+            # set the matrix now, before setting head and tail positions
+            bl_jnt.matrix = [
+                [joint.m_abs[0][0], joint.m_abs[0][1], joint.m_abs[0][2], joint.m_abs[0][3]],
+                [joint.m_abs[1][0], joint.m_abs[1][1], joint.m_abs[1][2], joint.m_abs[1][3]],
+                [joint.m_abs[2][0], joint.m_abs[2][1], joint.m_abs[2][2], joint.m_abs[2][3]],
+                [joint.m_abs[3][0], joint.m_abs[3][1], joint.m_abs[3][2], joint.m_abs[3][3]]]
+
+            # set a small bone along the joint's y-axis 
+            dy = [
+                0.01*joint.m_abs[1][0],
+                0.01*joint.m_abs[1][1],
+                0.01*joint.m_abs[1][2]]
+
+            bl_jnt.head = [joint.position[0], joint.position[1], joint.position[2]]
+            bl_jnt.tail = [
+                joint.position[0] + dy[0],
+                joint.position[1] + dy[1],
+                joint.position[2] + dy[2]]
+
+            # assign parent
+            if joint.parent != -1:
+                bl_jnt.parent = bl_jntlist[joint.parent]
+
+        # update scene
+        bpy.context.scene.update()
+
     ##
     #
     def build_animations(self):

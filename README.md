@@ -68,3 +68,5 @@ Worked on XAudio code.<br />
 Integrated sound code into map file format.<br />
 04/01/2018<br />
 Added support for splitscreen play.<br />
+04/04/2018<br />
+Worked on Blender importer for model format. Currently imports skeletons and animations.<br />
