@@ -60,6 +60,17 @@ class MeshUTFCollisionMesh:
     # self.verts     - vector3<float>[]
     # self.faces     - vector3<uint>[]
     pass
+class MeshUTFTexture:
+    # self.name      - string
+    # self.semantic  - string
+    # self.uv_layer  - uint
+    # self.filename  - string
+    pass
+class MeshUTFMaterial:
+    # self.name      - string
+    # self.index     - uint
+    # self.textures  - MeshUTFTexture[]
+    pass
 
 class MeshUTFImporter:
 
@@ -68,11 +79,12 @@ class MeshUTFImporter:
     def __init__(self):
 
         self.linelist = []
-        self.linecurr = -1;
+        self.linecurr = -1
         
         self.skeleton = MeshUTFSkeleton()
         self.animlist = []
         self.colllist = []
+        self.mat_list = []
 
     ##
     #
@@ -145,6 +157,12 @@ class MeshUTFImporter:
     ##
     #
     def execute(self, filename):
+
+        # reset data
+        self.skeleton = MeshUTFSkeleton()
+        self.animlist = []
+        self.colllist = []
+        self.mat_list = []
 
         # open file
         try: file = open(filename, 'r')
@@ -448,12 +466,104 @@ class MeshUTFImporter:
     #
     def read_materials(self):
 
+        # read number of materials
+        n_mats = self.read_int()
+        if n_mats < 0: raise Exception('Invalid number of materials.')
+
+        # nothing to do
+        if n_mats == 0: return True
+
+        # for each material
+        for i in range(n_mats):
+
+            # read name
+            material = MeshUTFMaterial()
+            material.name = self.read_string()
+            if len(material.name) == 0: raise Exception('Invalid material name.')
+
+            # read material index
+            material.index = self.read_int()
+            if material.index < n_mats == False: raise Exception('Invalid material index.')
+
+            # read number of textures
+            n_textures = self.read_int()
+            if n_textures < 0: raise Exception('Invalid number of textures.')
+
+            # read textures
+            material.textures = []
+            for j in range(n_textures):
+
+                # read texture name
+                tobj = MeshUTFTexture()
+                tobj.name = self.read_string()
+                if len(tobj.name) == 0: raise Exception('Invalid texture name.')
+
+                # read texture semantic
+                tobj.semantic = self.read_string()
+                if len(tobj.semantic) == 0: raise Exception('Invalid texture semantic.')
+
+                # read UV channel
+                tobj.uv_layer = self.read_int()
+                if tobj.uv_layer < 0 or tobj.uv_layer > 3: raise Exception('Invalid UV layer index.')
+
+                # read filename
+                tobj.filename = self.read_string()
+                if len(tobj.filename) == 0: raise Exception('Invalid texture filename.')
+
+                # append texture
+                material.textures.append(tobj)
+
+            # append material
+            self.mat_list.append(material)
+
         return True
 
     ##
     #
     def make_materials(self):
-    
+
+        # for each material
+        for mat in self.mat_list:
+
+            # create material object
+            material = bpy.data.materials.new(mat.name)
+
+            for i, tobj in enumerate(mat.textures):
+
+                # create material texture slot
+                slot = material.texture_slots.create(i)
+                #slot.name = tobj.name
+                slot.texture_coords = 'UV'
+                slot.use = True
+
+                # set semantic
+                if tobj.semantic == 'diffuse':
+                    slot.use_map_diffuse = True
+                elif tobj.semantic == 'normal':
+                    slot.use_map_normal = True
+                elif tobj.semantic == 'specular':
+                    slot.use_map_spec = True
+                elif tobj.semantic == 'lightmap':
+                    slot.use_map_ambient = True
+                elif tobj.semantic == 'alpha':
+                    slot.use_map_alpha = True
+                elif tobj.semantic == 'emmision':
+                    slot.use_map_emmision = True
+                elif tobj.semantic == 'reflection':
+                    slot.use_map_reflection = True
+
+                # set UV layer
+                slot.uv_layer = 'uvchannel_{}'.format(tobj.uv_layer)
+
+                # set filename (must create texture and image objects first)
+                # if we can't set the filename, just load the data as custom properties
+                slot.texture = bpy.data.textures.new(tobj.name, 'IMAGE')
+                try:
+                    slot.texture.image = bpy.data.images.load(tobj.filename)
+                except:
+                    slot.texture['filename'] = tobj.filename
+                    slot.texture['semantic'] = tobj.semantic
+
         return True
 
     ##
