@@ -766,10 +766,11 @@ class MeshUTFImporter:
             for v in mesh.verts: bm.verts.new(v)
             bm.verts.ensure_lookup_table()
 
-            # add faces
+            # add faces and assign material
             for surface in mesh.surfaces:
                 for face in surface.facelist:
                     bm.faces.new([bm.verts[index] for index in face])
+                    face.material_index = surface.material # might be incorrect index
 
             # assign indices (VERY IMPORTANT)
             bm.verts.index_update()
