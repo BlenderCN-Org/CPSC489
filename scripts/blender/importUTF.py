@@ -157,7 +157,7 @@ class MeshUTFImporter:
         if self.process_collision_meshes() == False: return
         if self.process_materials() == False: return
         if self.process_meshes() == False: return
-        
+
     ##
     #
     def process_bones(self):
@@ -188,20 +188,11 @@ class MeshUTFImporter:
 
             # insert joint
             self.skeleton.jntlist.append(joint)
-        
-        # create armature object
-        # this must be done in OBJECT mode
-        if bpy.context.mode != 'OBJECT': bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.ops.object.armature_add()
-        object = bpy.context.active_object
-        object.name = 'skeleton'
-        object.data.name = 'skeleton'
-        object.location = [0, 0, 0]
-        
-        # populate armature object with bones
-        bpy.ops.object.mode_set(mode='EDIT')
-        self.build_skeleton(object.data.edit_bones)
-        bpy.ops.object.mode_set(mode='OBJECT')
+
+        # populate armature object with bones and restore mode
+        prev_mode = bpy.context.mode
+        self.build_skeleton()
+        if bpy.context.mode != prev_mode: bpy.ops.object.mode_set(mode=prev_mode)
 
         return True
         
@@ -267,6 +258,81 @@ class MeshUTFImporter:
             # insert animation
             self.animlist.data.append(anim)
 
+        # build animations in Blender
+        return self.build_animations()
+
+    ##
+    #        
+    def process_collision_meshes(self):
+        return True
+        
+    ##
+    #
+    def process_materials(self):
+        return True
+
+    ##
+    #
+    def process_meshes(self):
+        return True
+
+    ##
+    #   @brief Generates armature object in Blender from joint data.
+    #   @param None
+    def build_skeleton(self):
+
+        # create armature object (must be done in OBJECT mode)
+        if bpy.context.mode != 'OBJECT': bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.add(type='ARMATURE')
+
+        # set armature properties
+        armature = bpy.context.active_object
+        armature.name = 'skeleton'
+        armature.data.name = 'skeleton'
+        armature.location = [0, 0, 0]
+
+        # go into edit mode to edit skeleton object
+        if bpy.context.mode != 'EDIT': bpy.ops.object.mode_set(mode='EDIT')
+
+        # create bone for each joint in skeleton
+        bl_jntlist = []
+        for i, joint in enumerate(self.skeleton.jntlist):
+
+            # create bone and save it so we can attach children to parents
+            bl_jnt = armature.data.edit_bones.new(joint.name)
+            bl_jntlist.append(bl_jnt)
+
+            # set the matrix now, before setting head and tail positions
+            bl_jnt.matrix = [
+                [joint.m_abs[0][0], joint.m_abs[0][1], joint.m_abs[0][2], joint.m_abs[0][3]],
+                [joint.m_abs[1][0], joint.m_abs[1][1], joint.m_abs[1][2], joint.m_abs[1][3]],
+                [joint.m_abs[2][0], joint.m_abs[2][1], joint.m_abs[2][2], joint.m_abs[2][3]],
+                [joint.m_abs[3][0], joint.m_abs[3][1], joint.m_abs[3][2], joint.m_abs[3][3]]]
+        
+            # set a small bone along the joint's y-axis 
+            dy = [
+                0.01*joint.m_abs[1][0],
+                0.01*joint.m_abs[1][1],
+                0.01*joint.m_abs[1][2]]
+        
+            bl_jnt.head = [joint.position[0], joint.position[1], joint.position[2]]
+            bl_jnt.tail = [
+                joint.position[0] + dy[0],
+                joint.position[1] + dy[1],
+                joint.position[2] + dy[2]]
+        
+            # assign parent
+            if joint.parent != -1:
+                bl_jnt.parent = bl_jntlist[joint.parent]
+
+        # update scene
+        bpy.context.scene.update()
+        return True
+
+    ##
+    #
+    def build_animations(self):
+    
         # for each animation
         for anim in self.animlist.data:
 
@@ -303,69 +369,6 @@ class MeshUTFImporter:
         # update scene
         bpy.context.scene.update()
         return True
-
-    ##
-    #        
-    def process_collision_meshes(self):
-        return True
-        
-    ##
-    #
-    def process_materials(self):
-        return True
-
-    ##
-    #
-    def process_meshes(self):
-        return True
-
-    ##
-    #   @brief Generates armature object in Blender from joint data.
-    #   @param bonelist ArmatureEditBones = EditBones[]
-    def build_skeleton(self, bonelist):
-
-        # remove default bone
-        if len(bonelist) > 0: bonelist.remove(bonelist[0])
-
-        # create bone for each joint in skeleton
-        bl_jntlist = []
-        for i, joint in enumerate(self.skeleton.jntlist):
-
-            # create bone and save it so we can attach children to parents
-            bl_jnt = bonelist.new(joint.name)
-            bl_jntlist.append(bl_jnt)
-
-            # set the matrix now, before setting head and tail positions
-            bl_jnt.matrix = [
-                [joint.m_abs[0][0], joint.m_abs[0][1], joint.m_abs[0][2], joint.m_abs[0][3]],
-                [joint.m_abs[1][0], joint.m_abs[1][1], joint.m_abs[1][2], joint.m_abs[1][3]],
-                [joint.m_abs[2][0], joint.m_abs[2][1], joint.m_abs[2][2], joint.m_abs[2][3]],
-                [joint.m_abs[3][0], joint.m_abs[3][1], joint.m_abs[3][2], joint.m_abs[3][3]]]
-
-            # set a small bone along the joint's y-axis 
-            dy = [
-                0.01*joint.m_abs[1][0],
-                0.01*joint.m_abs[1][1],
-                0.01*joint.m_abs[1][2]]
-
-            bl_jnt.head = [joint.position[0], joint.position[1], joint.position[2]]
-            bl_jnt.tail = [
-                joint.position[0] + dy[0],
-                joint.position[1] + dy[1],
-                joint.position[2] + dy[2]]
-
-            # assign parent
-            if joint.parent != -1:
-                bl_jnt.parent = bl_jntlist[joint.parent]
-
-        # update scene
-        bpy.context.scene.update()
-
-    ##
-    #
-    def build_animations(self):
-    
-        pass
 
     ##
     #
