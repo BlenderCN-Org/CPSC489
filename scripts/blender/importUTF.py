@@ -56,9 +56,9 @@ class MeshUTFAnimation:
     # self.name      - string
     # self.jointmap  - dictionary<String, dictionary<uint, MeshUTFAnimationKeyFrame>>}
     pass
-class MeshUTFAnimationList:
-    # self.n_anim    - uint
-    # self.data      - MeshUTFAnimation[]
+class MeshUTFCollisionMesh:
+    # self.verts     - vector3<float>[]
+    # self.faces     - vector3<uint>[]
     pass
 
 class MeshUTFImporter:
@@ -71,7 +71,8 @@ class MeshUTFImporter:
         self.linecurr = -1;
         
         self.skeleton = MeshUTFSkeleton()
-        self.animlist = MeshUTFAnimationList()
+        self.animlist = []
+        self.colllist = []
 
     ##
     #
@@ -106,7 +107,7 @@ class MeshUTFImporter:
         parts = line.split(' ', 2)
         if len(parts) != 3: raise Exception('Expecting vector3.')        
         return [float(parts[0]), float(parts[1]), float(parts[2])]
-        
+
     ##
     #
     def read_vector4(self):
@@ -130,7 +131,17 @@ class MeshUTFImporter:
             [float(parts[ 4]), float(parts[ 5]), float(parts[ 6]), float(parts[ 7])],
             [float(parts[ 8]), float(parts[ 9]), float(parts[10]), float(parts[11])],
             [float(parts[12]), float(parts[13]), float(parts[14]), float(parts[15])]]
-        
+
+    ##
+    #
+    def read_face3(self):
+    
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        parts = line.split(' ', 2)
+        if len(parts) != 3: raise Exception('Expecting face3.')
+        return [int(parts[0]), int(parts[1]), int(parts[2])]
+
     ##
     #
     def execute(self, filename):
@@ -200,16 +211,13 @@ class MeshUTFImporter:
     #
     def process_animations(self):
 
-        # temporary object
-        self.animlist = MeshUTFAnimationList()
-        
-        # read number of joints
-        self.animlist.n_anim = self.read_int()
-        if self.animlist.n_anim < 0: raise Exception('Invalid number of animations.')
+        # read number of animations
+        n_anim = self.read_int()
+        if n_anim < 0: raise Exception('Invalid number of animations.')
 
-        # read joints
-        self.animlist.data = []
-        for i in range(self.animlist.n_anim):
+        # read animations
+        self.animlist = []
+        for i in range(n_anim):
 
             # read animation name
             anim = MeshUTFAnimation()
@@ -256,7 +264,7 @@ class MeshUTFImporter:
                 anim.jointmap[jntname] = kfdict
 
             # insert animation
-            self.animlist.data.append(anim)
+            self.animlist.append(anim)
 
         # build animations in Blender
         return self.build_animations()
@@ -264,7 +272,38 @@ class MeshUTFImporter:
     ##
     #        
     def process_collision_meshes(self):
-        return True
+
+        # read number of collision meshes
+        n_mesh = self.read_int()
+        if n_mesh < 0: raise Exception('Invalid number of collision meshes.')
+
+        # read collision mesh
+        self.colllist = []
+        for i in range(n_mesh):
+
+            # read number of vertices
+            n_verts = self.read_int()
+            if n_verts < 1: raise Exception('Invalid number of collision mesh vertices.')
+
+            # read vertices
+            verts = []
+            for j in range(n_verts): verts.append(self.read_vector3())
+
+            # read number of faces
+            n_faces = self.read_int()
+            if n_faces < 1: raise Exception('Invalid number of collision mesh faces.')
+
+            # read faces
+            faces = []
+            for j in range(n_faces): faces.append(self.read_face3())
+
+            # append collision mesh
+            mesh = MeshUTFCollisionMesh()
+            mesh.verts = verts
+            mesh.faces = faces
+            self.colllist.append(mesh)
+
+        return self.build_collision_meshes()
         
     ##
     #
@@ -280,6 +319,9 @@ class MeshUTFImporter:
     #   @brief Generates armature object in Blender from joint data.
     #   @param None
     def build_skeleton(self):
+
+        # nothing to do
+        if self.skeleton.n_jnts == 0: return True
 
         # create armature object (must be done in OBJECT mode)
         if bpy.context.mode != 'OBJECT': bpy.ops.object.mode_set(mode='OBJECT')
@@ -334,7 +376,7 @@ class MeshUTFImporter:
     def build_animations(self):
     
         # for each animation
-        for anim in self.animlist.data:
+        for anim in self.animlist:
 
             # create action object
             action = bpy.data.actions.new(anim.name)
@@ -373,8 +415,40 @@ class MeshUTFImporter:
     ##
     #
     def build_collision_meshes(self):
-    
-        pass
+
+        # nothing to do
+        n_mesh = len(self.colllist)
+        if n_mesh == 0: return True
+
+        # build collision meshes
+        for i, cm in enumerate(self.colllist):
+
+            # create mesh name
+            name = 'collision'
+            if n_mesh > 1: name = name + '_' + str(i)
+
+            # create mesh object
+            object = bpy.ops.object.add(type='MESH')
+            object = bpy.context.active_object
+            object.name = name
+            object.data.name = name
+            object.location = [0, 0, 0]
+            object['entity_type'] = 'COLLISION_MESH'
+
+            # bmesh representation
+            bm = bmesh.new()
+            bm.from_mesh(object.data)
+
+            # add vertices
+            for v in cm.verts: bm.verts.new(v)
+            bm.verts.ensure_lookup_table()
+
+            # add polygons
+            for face in cm.faces: bm.faces.new([bm.verts[index] for index in face])
+
+            # clean up and convert bmesh to mesh
+            bm.to_mesh(object.data)
+            bm.free()
 
     ##
     #
