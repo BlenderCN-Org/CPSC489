@@ -166,8 +166,10 @@ class MeshUTFImporter:
         if self.process_bones() == False: return
         if self.process_animations() == False: return
         if self.process_collision_meshes() == False: return
-        if self.process_materials() == False: return
-        if self.process_meshes() == False: return
+        if self.read_materials() == False: return
+        if self.make_materials() == False: return
+        if self.read_meshes() == False: return
+        if self.make_meshes() == False: return
 
     ##
     #
@@ -206,7 +208,63 @@ class MeshUTFImporter:
         if bpy.context.mode != prev_mode: bpy.ops.object.mode_set(mode=prev_mode)
 
         return True
+
+    ##
+    #   @brief Generates armature object in Blender from joint data.
+    #   @param None
+    def build_skeleton(self):
+
+        # nothing to do
+        if self.skeleton.n_jnts == 0: return True
+
+        # create armature object (must be done in OBJECT mode)
+        if bpy.context.mode != 'OBJECT': bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.add(type='ARMATURE')
+
+        # set armature properties
+        armature = bpy.context.active_object
+        armature.name = 'skeleton'
+        armature.data.name = 'skeleton'
+        armature.location = [0, 0, 0]
+
+        # go into edit mode to edit skeleton object
+        if bpy.context.mode != 'EDIT': bpy.ops.object.mode_set(mode='EDIT')
+
+        # create bone for each joint in skeleton
+        bl_jntlist = []
+        for i, joint in enumerate(self.skeleton.jntlist):
+
+            # create bone and save it so we can attach children to parents
+            bl_jnt = armature.data.edit_bones.new(joint.name)
+            bl_jntlist.append(bl_jnt)
+
+            # set the matrix now, before setting head and tail positions
+            bl_jnt.matrix = [
+                [joint.m_abs[0][0], joint.m_abs[0][1], joint.m_abs[0][2], joint.m_abs[0][3]],
+                [joint.m_abs[1][0], joint.m_abs[1][1], joint.m_abs[1][2], joint.m_abs[1][3]],
+                [joint.m_abs[2][0], joint.m_abs[2][1], joint.m_abs[2][2], joint.m_abs[2][3]],
+                [joint.m_abs[3][0], joint.m_abs[3][1], joint.m_abs[3][2], joint.m_abs[3][3]]]
         
+            # set a small bone along the joint's y-axis 
+            dy = [
+                0.01*joint.m_abs[1][0],
+                0.01*joint.m_abs[1][1],
+                0.01*joint.m_abs[1][2]]
+        
+            bl_jnt.head = [joint.position[0], joint.position[1], joint.position[2]]
+            bl_jnt.tail = [
+                joint.position[0] + dy[0],
+                joint.position[1] + dy[1],
+                joint.position[2] + dy[2]]
+        
+            # assign parent
+            if joint.parent != -1:
+                bl_jnt.parent = bl_jntlist[joint.parent]
+
+        # update scene
+        bpy.context.scene.update()
+        return True
+
     ##
     #
     def process_animations(self):
@@ -270,108 +328,6 @@ class MeshUTFImporter:
         return self.build_animations()
 
     ##
-    #        
-    def process_collision_meshes(self):
-
-        # read number of collision meshes
-        n_mesh = self.read_int()
-        if n_mesh < 0: raise Exception('Invalid number of collision meshes.')
-
-        # read collision mesh
-        self.colllist = []
-        for i in range(n_mesh):
-
-            # read number of vertices
-            n_verts = self.read_int()
-            if n_verts < 1: raise Exception('Invalid number of collision mesh vertices.')
-
-            # read vertices
-            verts = []
-            for j in range(n_verts): verts.append(self.read_vector3())
-
-            # read number of faces
-            n_faces = self.read_int()
-            if n_faces < 1: raise Exception('Invalid number of collision mesh faces.')
-
-            # read faces
-            faces = []
-            for j in range(n_faces): faces.append(self.read_face3())
-
-            # append collision mesh
-            mesh = MeshUTFCollisionMesh()
-            mesh.verts = verts
-            mesh.faces = faces
-            self.colllist.append(mesh)
-
-        return self.build_collision_meshes()
-        
-    ##
-    #
-    def process_materials(self):
-        return True
-
-    ##
-    #
-    def process_meshes(self):
-        return True
-
-    ##
-    #   @brief Generates armature object in Blender from joint data.
-    #   @param None
-    def build_skeleton(self):
-
-        # nothing to do
-        if self.skeleton.n_jnts == 0: return True
-
-        # create armature object (must be done in OBJECT mode)
-        if bpy.context.mode != 'OBJECT': bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.ops.object.add(type='ARMATURE')
-
-        # set armature properties
-        armature = bpy.context.active_object
-        armature.name = 'skeleton'
-        armature.data.name = 'skeleton'
-        armature.location = [0, 0, 0]
-
-        # go into edit mode to edit skeleton object
-        if bpy.context.mode != 'EDIT': bpy.ops.object.mode_set(mode='EDIT')
-
-        # create bone for each joint in skeleton
-        bl_jntlist = []
-        for i, joint in enumerate(self.skeleton.jntlist):
-
-            # create bone and save it so we can attach children to parents
-            bl_jnt = armature.data.edit_bones.new(joint.name)
-            bl_jntlist.append(bl_jnt)
-
-            # set the matrix now, before setting head and tail positions
-            bl_jnt.matrix = [
-                [joint.m_abs[0][0], joint.m_abs[0][1], joint.m_abs[0][2], joint.m_abs[0][3]],
-                [joint.m_abs[1][0], joint.m_abs[1][1], joint.m_abs[1][2], joint.m_abs[1][3]],
-                [joint.m_abs[2][0], joint.m_abs[2][1], joint.m_abs[2][2], joint.m_abs[2][3]],
-                [joint.m_abs[3][0], joint.m_abs[3][1], joint.m_abs[3][2], joint.m_abs[3][3]]]
-        
-            # set a small bone along the joint's y-axis 
-            dy = [
-                0.01*joint.m_abs[1][0],
-                0.01*joint.m_abs[1][1],
-                0.01*joint.m_abs[1][2]]
-        
-            bl_jnt.head = [joint.position[0], joint.position[1], joint.position[2]]
-            bl_jnt.tail = [
-                joint.position[0] + dy[0],
-                joint.position[1] + dy[1],
-                joint.position[2] + dy[2]]
-        
-            # assign parent
-            if joint.parent != -1:
-                bl_jnt.parent = bl_jntlist[joint.parent]
-
-        # update scene
-        bpy.context.scene.update()
-        return True
-
-    ##
     #
     def build_animations(self):
     
@@ -413,6 +369,42 @@ class MeshUTFImporter:
         return True
 
     ##
+    #        
+    def process_collision_meshes(self):
+
+        # read number of collision meshes
+        n_mesh = self.read_int()
+        if n_mesh < 0: raise Exception('Invalid number of collision meshes.')
+
+        # read collision mesh
+        self.colllist = []
+        for i in range(n_mesh):
+
+            # read number of vertices
+            n_verts = self.read_int()
+            if n_verts < 1: raise Exception('Invalid number of collision mesh vertices.')
+
+            # read vertices
+            verts = []
+            for j in range(n_verts): verts.append(self.read_vector3())
+
+            # read number of faces
+            n_faces = self.read_int()
+            if n_faces < 1: raise Exception('Invalid number of collision mesh faces.')
+
+            # read faces
+            faces = []
+            for j in range(n_faces): faces.append(self.read_face3())
+
+            # append collision mesh
+            mesh = MeshUTFCollisionMesh()
+            mesh.verts = verts
+            mesh.faces = faces
+            self.colllist.append(mesh)
+
+        return self.build_collision_meshes()
+
+    ##
     #
     def build_collision_meshes(self):
 
@@ -450,18 +442,32 @@ class MeshUTFImporter:
             bm.to_mesh(object.data)
             bm.free()
 
+        return True
+
     ##
     #
-    def build_materials(self):
-    
-        pass
-        
+    def read_materials(self):
+
+        return True
+
     ##
     #
-    def build_meshes(self):
+    def make_materials(self):
     
-        pass
-        
+        return True
+
+    ##
+    #
+    def read_meshes(self):
+
+        return True
+
+    ##
+    #
+    def make_meshes(self):
+    
+        return True
+
 class ImportMeshUTFOperator(bpy.types.Operator):
 
     ##
