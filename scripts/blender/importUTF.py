@@ -694,7 +694,7 @@ class MeshUTFImporter:
             # read surfaces (submeshes)
             surfaces = []
             total_faces = 0
-            for i in range(n_surfaces):
+            for j in range(n_surfaces):
 
                 # read number of faces
                 surf = MeshUTFSurface()
@@ -707,7 +707,7 @@ class MeshUTFImporter:
 
                 # read faces
                 surf.facelist = []
-                for j in range(surf.n_faces): surf.facelist.append(self.read_face3())
+                for k in range(surf.n_faces): surf.facelist.append(self.read_face3())
                 total_faces = total_faces + surf.n_faces
 
                 # append surface
@@ -750,6 +750,14 @@ class MeshUTFImporter:
             object.data.name = mesh.name
             object.location = [0, 0, 0]
 
+            # append materials to mesh data
+            object.data.materials.clear()
+            for surface in mesh.surfaces:
+                mi = surface.material
+                mn = self.mat_list[mi].name
+                for mat in bpy.data.materials:
+                    if mat.name == mn: object.data.materials.append(mat)
+
             # bmesh representation
             bm = bmesh.new()
             bm.from_mesh(object.data)
@@ -758,12 +766,30 @@ class MeshUTFImporter:
             for v in mesh.verts: bm.verts.new(v)
             bm.verts.ensure_lookup_table()
 
-            # for each surface
+            # add faces
             for surface in mesh.surfaces:
-
                 for face in surface.facelist:
-
                     bm.faces.new([bm.verts[index] for index in face])
+
+            # assign indices (VERY IMPORTANT)
+            bm.verts.index_update()
+            bm.faces.index_update()
+
+            # for each UV layer, assign UVs
+            for i in range(mesh.n_uvs):
+                uv_layer = bm.loops.layers.uv.new('uvchannel_{}'.format(i)) # bm.loops.layers.uv = bmesh.types.BMLayerCollection
+                bm.faces.layers.tex.new('uvchannel_{}'.format(i)) # templates_py/operator_mesh_uv.py says you need to do this
+                for face in bm.faces:            # face = bmesh.types.BMFace
+                    for loop in face.loops:      # loop = bmesh.types.BMElemSeq<bmesh.types.BMLoop>
+                        loop_uv = loop[uv_layer] # uv_layer is a key, loop UV = bmesh.types.BMLoopUV
+                        loop_uv.uv = mesh.uvs[i][loop.vert.index]
+
+            # for each color layer, assign colors
+            for i in range(mesh.n_colors):
+                color_layer = bm.loops.layers.color.new('color_{}'.format(i))
+                for face in bm.faces:
+                    for loop in face.loops:
+                        loop[color_layer].color = mesh.colors[i][loop.vert.index]
 
             # clean up and convert bmesh to mesh
             bm.to_mesh(object.data)
@@ -774,6 +800,8 @@ class MeshUTFImporter:
             object.data.normals_split_custom_set_from_vertices(mesh.normals)
             object.data.use_auto_smooth = True
 
+        # update scene
+        bpy.context.scene.update()
         return True
 
 class ImportMeshUTFOperator(bpy.types.Operator):
