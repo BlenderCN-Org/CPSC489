@@ -71,6 +71,25 @@ class MeshUTFMaterial:
     # self.index     - uint
     # self.textures  - MeshUTFTexture[]
     pass
+class MeshUTFSurface:
+    # self.n_faces   - uint
+    # self.material  - uint
+    # self.facelist  - vector3<uint>[]
+    pass
+class MeshUTFMesh:
+    # self.name      - string
+    # self.n_verts   - uint
+    # self.n_uvs     - uint
+    # self.n_colors  - uint
+    # self.verts     - vector3<float>[]
+    # self.normals   - vector3<float>[]
+    # self.uvs       - vector2[][]
+    # self.bi        - vector8<uint>[]
+    # self.bw        - vector8<float>[]
+    # self.colors    - vector2[][]
+    # self.n_faces   - uint
+    # self.surfaces  - MeshUTFSurface[]
+    pass
 
 class MeshUTFImporter:
 
@@ -85,6 +104,7 @@ class MeshUTFImporter:
         self.animlist = []
         self.colllist = []
         self.mat_list = []
+        self.meshlist = []
 
     ##
     #
@@ -109,9 +129,21 @@ class MeshUTFImporter:
         line = self.linelist[self.linecurr]
         self.linecurr = self.linecurr + 1
         return float(line)
+
+    ##
+    #   @brief   Parses a line from a text file into a 2D float vector.
+    #   @return  Returns [float, float].
+    def read_vector2(self):
+    
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        parts = line.split(' ', 1)
+        if len(parts) != 2: raise Exception('Expecting vector2.')        
+        return [float(parts[0]), float(parts[1])]
         
     ##
-    #
+    #   @brief   Parses a line from a text file into a 3D float vector.
+    #   @return  Returns [float, float, float].
     def read_vector3(self):
     
         line = self.linelist[self.linecurr]
@@ -121,7 +153,8 @@ class MeshUTFImporter:
         return [float(parts[0]), float(parts[1]), float(parts[2])]
 
     ##
-    #
+    #   @brief   Parses a line from a text file into a 4D float vector.
+    #   @return  Returns [float, float, float, float].
     def read_vector4(self):
     
         line = self.linelist[self.linecurr]
@@ -156,6 +189,30 @@ class MeshUTFImporter:
 
     ##
     #
+    def read_blendindices(self):
+
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        parts = line.split(' ', 7)
+        if len(parts) == 0: raise Exception('Expecting blendindices.')
+        rv = [0, 0, 0, 0, 0, 0, 0, 0]
+        for i in range(len(parts)): rv[i] = int(parts[i])
+        return rv
+
+    ##
+    #
+    def read_blendweights(self):
+
+        line = self.linelist[self.linecurr]
+        self.linecurr = self.linecurr + 1
+        parts = line.split(' ', 7)
+        if len(parts) == 0: raise Exception('Expecting blendweights.')
+        rv = [0, 0, 0, 0, 0, 0, 0, 0]
+        for i in range(len(parts)): rv[i] = float(parts[i])
+        return rv
+
+    ##
+    #
     def execute(self, filename):
 
         # reset data
@@ -163,6 +220,7 @@ class MeshUTFImporter:
         self.animlist = []
         self.colllist = []
         self.mat_list = []
+        self.meshlist = []
 
         # open file
         try: file = open(filename, 'r')
@@ -570,12 +628,152 @@ class MeshUTFImporter:
     #
     def read_meshes(self):
 
+        # read number of meshes
+        n_mesh = self.read_int()
+        if n_mesh < 0: raise Exception('Invalid number of meshes.')
+
+        # read meshes
+        self.meshlist = []
+        for i in range(n_mesh):
+
+            # read mesh name
+            name = self.read_string()
+            if len(name) == 0: raise Exception('Invalid mesh name.')
+
+            # read number of vertices
+            n_verts = self.read_int()
+            if n_verts < 1: raise Exception('Invalid number of mesh vertices.')
+
+            # read number of UV channels
+            n_uvs = self.read_int()
+            if n_uvs < 1 or n_uvs > 4: raise Exception('Invalid number of mesh UV channels.')
+
+            # read number of color channels
+            n_colors = self.read_int()
+            if n_colors < 0 or n_colors > 4: raise Exception('Invalid number of mesh color channels.')
+
+            # initialize buffers
+            verts = []
+            normals = []
+            bw = []
+            bi = []
+            uvs = []
+            colors = []
+            for j in range(n_uvs): uvs.append([])
+            for j in range(n_colors): colors.append([])
+
+            # read vertices
+            for j in range(n_verts):
+
+                # read vertex position
+                verts.append(self.read_vector3())
+
+                # read vertex normal
+                normals.append(self.read_vector3())
+
+                # read UV channels
+                for k in range(n_uvs): uvs[k].append(self.read_vector2())
+
+                # read blendindices and blendweights
+                if self.skeleton.n_jnts > 0:
+
+                   bw.append(self.read_blendindices())
+                   bw.append(self.read_blendweights())
+
+                # read color channels
+                for k in range(n_colors): colors[k].append(self.read_vector3())
+
+            # read number of total faces
+            n_faces = self.read_int()
+            if n_faces < 0: raise Exception('Invalid number of total mesh faces.')
+
+            # read number of surfaces
+            n_surfaces = self.read_int()
+            if n_surfaces < 0: raise Exception('Invalid number of mesh surfaces.')
+
+            # read surfaces (submeshes)
+            surfaces = []
+            total_faces = 0
+            for i in range(n_surfaces):
+
+                # read number of faces
+                surf = MeshUTFSurface()
+                surf.n_faces = self.read_int()
+                if surf.n_faces < 1: raise Exception('Invalid number of mesh faces.')
+
+                # read material index
+                surf.material = self.read_int()
+                if surf.material < len(self.mat_list) == False: raise Exception('Invalid material reference {} in mesh {}.'.format(surf.material, name))
+
+                # read faces
+                surf.facelist = []
+                for j in range(surf.n_faces): surf.facelist.append(self.read_face3())
+                total_faces = total_faces + surf.n_faces
+
+                # append surface
+                surfaces.append(surf)
+
+            # total faces must match
+            # technically, we could just set n_faces = total_faces in case of a mismatch, but it's better to flag this as an error
+            if total_faces != n_faces:
+                raise Exception('Mismatching number of faces {} (total) versus {} (submesh total) in mesh {}.'.format(n_faces, total_faces, name))
+
+            # append collision mesh
+            mesh = MeshUTFMesh()
+            mesh.name = name
+            mesh.n_verts = n_verts
+            mesh.n_uvs = n_uvs
+            mesh.n_colors = n_colors
+            mesh.verts = verts
+            mesh.normals = normals
+            mesh.bw = bw
+            mesh.bi = bi
+            mesh.uvs = uvs
+            mesh.colors = colors
+            mesh.n_faces = n_faces
+            mesh.surfaces = surfaces
+            self.meshlist.append(mesh)
+
         return True
 
     ##
     #
     def make_meshes(self):
-    
+
+        # for each mesh
+        for mesh in self.meshlist:
+
+            # create mesh object
+            object = bpy.ops.object.add(type='MESH')
+            object = bpy.context.active_object
+            object.name = mesh.name
+            object.data.name = mesh.name
+            object.location = [0, 0, 0]
+
+            # bmesh representation
+            bm = bmesh.new()
+            bm.from_mesh(object.data)
+
+            # add vertices
+            for v in mesh.verts: bm.verts.new(v)
+            bm.verts.ensure_lookup_table()
+
+            # for each surface
+            for surface in mesh.surfaces:
+
+                for face in surface.facelist:
+
+                    bm.faces.new([bm.verts[index] for index in face])
+
+            # clean up and convert bmesh to mesh
+            bm.to_mesh(object.data)
+            bm.free()
+
+            # use custom normals
+            bpy.ops.mesh.customdata_custom_splitnormals_add()
+            object.data.normals_split_custom_set_from_vertices(mesh.normals)
+            object.data.use_auto_smooth = True
+
         return True
 
 class ImportMeshUTFOperator(bpy.types.Operator):
