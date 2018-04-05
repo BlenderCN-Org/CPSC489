@@ -28,7 +28,6 @@ class AnimationData:
     pass
 class Material:
     # self.name     string
-    # self.index    uint
     # self.textures MaterialTexture[]
     pass
 class MaterialTexture:
@@ -465,11 +464,11 @@ def GetTexturedMeshMaterials(meshlist):
 #  meshes such as portal meshes, door controller meshes, etc.
 #  @param meshlist An array of Blender mesh objects (not mesh data).
 #  @return If any materials are referenced by the meshes in the list, a dictionary
-#  of used material names is returned. Otherwise, None is returned.
+#  of used material names is returned. dict[name] = Material(). Otherwise, None is
+#  returned.
 def GetMaterialDictionary(meshlist):
     if (meshlist is None) or (len(meshlist) == 0): return None
     rv = {}
-    curr = 0
     for meshobj in meshlist:
         mesh = meshobj.data
         n_mats = len(mesh.materials)
@@ -483,10 +482,8 @@ def GetMaterialDictionary(meshlist):
             if (name in rv) == False:
                 mobj = Material()
                 mobj.name = name
-                mobj.index = curr
                 mobj.textures = GetMeshMaterialTextures(mesh, mesh.materials[material_index])
                 rv[name] = mobj
-                curr = curr + 1
     return rv;
 def GetMeshMaterials(mesh):
 	if((mesh == None) or (len(mesh.materials) == 0)): return None
@@ -639,7 +636,7 @@ def ExportMeshUTF():
 
     # create file
     splitpath = GetFilePathSplitExt()
-    filename = splitpath[0] + "_test.txt"
+    filename = splitpath[0] + ".txt"
     file = open(filename, 'w')
 
     ###
@@ -782,8 +779,8 @@ def ExportMeshUTF():
     ### SAVE MATERIALS
     ###
 
+    # build material dictionary
     matdict = GetMaterialDictionary(meshlist4)
-    matlist = []
 
     # write number of materials
     n_materials = 0
@@ -792,13 +789,8 @@ def ExportMeshUTF():
 
     # write material data
     if matdict is not None:
-        # convert dictionary to an array and sort
-        for name, mat in matdict.items(): matlist.append(mat)
-        matlist = sorted(matlist, key=lambda item: item.index)
-        # write material data
-        for mat in matlist:
-            file.write('{}\n'.format(mat.name))
-            file.write('{} # material index\n'.format(mat.index))
+        for name, mat in matdict.items():
+            file.write('{}\n'.format(name))
             if mat.textures != None:
                 file.write('{} # number of textures\n'.format(len(mat.textures)))
                 for texture in mat.textures:
@@ -871,6 +863,7 @@ def ExportMeshUTF():
             if n_colors > 1: vbuffer8 = cdata[1]
 
         # build index buffers
+        # facedict[mesh data material index] = face
         facedict = GetIndexBufferDictionary(meshobj)
 
         # count submeshes and total faces
@@ -887,12 +880,6 @@ def ExportMeshUTF():
 
             # write mesh name
             file.write('{}\n'.format(mesh.name))
-
-            # remap mesh material indices to global material indices
-            remap = {}
-            for i, material in enumerate(mesh.materials):
-                if material.name in matdict:
-                    remap[i] = matdict[material.name].index
 
             # write vertex buffers header
             file.write('{} # number of vertices\n'.format(n_verts))
@@ -912,12 +899,13 @@ def ExportMeshUTF():
                 if n_colors > 1: file.write("{:.4f} {:.4f} {:.4f} {:.4f}\n".format(vbuffer8[i][0], vbuffer8[i][1], vbuffer8[i][2], vbuffer8[i][3]))
 
             # write index buffers
+            # for each material index (i), output faces (facelist)
             file.write('{} # number of total faces\n'.format(n_faces))
             file.write('{} # number of submeshes\n'.format(n_submesh))
             for i, facelist in facedict.items():
                 if len(facelist) > 0:
                     file.write('{} # number of faces\n'.format(len(facelist)))
-                    file.write('{} # material index\n'.format(remap[i]))
+                    file.write('{}\n'.format(mesh.materials[i].name))
                     for face in facelist:
                         file.write('{} {} {}\n'.format(face[0], face[1], face[2]))
 

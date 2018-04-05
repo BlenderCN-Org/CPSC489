@@ -68,7 +68,6 @@ class MeshUTFTexture:
     pass
 class MeshUTFMaterial:
     # self.name      - string
-    # self.index     - uint
     # self.textures  - MeshUTFTexture[]
     pass
 class MeshUTFSurface:
@@ -236,7 +235,10 @@ class MeshUTFImporter:
                 line = line.rstrip('\n\r\t ')
                 line = line.split('#', 1)[0]
                 if(len(line)): self.linelist.append(line)
-                
+
+        # close file
+        file.close()
+
         # process sections
         self.linecurr = 0
         if self.process_bones() == False: return
@@ -539,10 +541,6 @@ class MeshUTFImporter:
             material.name = self.read_string()
             if len(material.name) == 0: raise Exception('Invalid material name.')
 
-            # read material index
-            material.index = self.read_int()
-            if material.index < n_mats == False: raise Exception('Invalid material index.')
-
             # read number of textures
             n_textures = self.read_int()
             if n_textures < 0: raise Exception('Invalid number of textures.')
@@ -590,7 +588,6 @@ class MeshUTFImporter:
 
                 # create material texture slot
                 slot = material.texture_slots.create(i)
-                #slot.name = tobj.name
                 slot.texture_coords = 'UV'
                 slot.use = True
 
@@ -701,9 +698,9 @@ class MeshUTFImporter:
                 surf.n_faces = self.read_int()
                 if surf.n_faces < 1: raise Exception('Invalid number of mesh faces.')
 
-                # read material index
-                surf.material = self.read_int()
-                if surf.material < len(self.mat_list) == False: raise Exception('Invalid material reference {} in mesh {}.'.format(surf.material, name))
+                # read material name
+                surf.material = self.read_string()
+                if len(surf.material) == 0: raise Exception('Invalid material name in mesh {}.'.format(name))
 
                 # read faces
                 surf.facelist = []
@@ -750,13 +747,18 @@ class MeshUTFImporter:
             object.data.name = mesh.name
             object.location = [0, 0, 0]
 
-            # append materials to mesh data
+            # clear any previous materials
             object.data.materials.clear()
+
+            # append materials to mesh data
             for surface in mesh.surfaces:
-                mi = surface.material
-                mn = self.mat_list[mi].name
                 for mat in bpy.data.materials:
-                    if mat.name == mn: object.data.materials.append(mat)
+                    if mat.name == surface.material: object.data.materials.append(mat)
+
+            # mat_dict[name] = slot index
+            # use this to map a material name to a material_index
+            mat_dict = {}
+            for i, mat in enumerate(object.data.materials): mat_dict[mat.name] = i
 
             # bmesh representation
             bm = bmesh.new()
@@ -769,8 +771,9 @@ class MeshUTFImporter:
             # add faces and assign material
             for surface in mesh.surfaces:
                 for face in surface.facelist:
-                    bm.faces.new([bm.verts[index] for index in face])
-                    face.material_index = surface.material # might be incorrect index
+                    bface = bm.faces.new([bm.verts[index] for index in face])
+                    if surface.material in mat_dict == False: raise Exception('Invalid material reference {} in mesh {}.'.format(surface.material, mesh.name))
+                    bface.material_index = mat_dict[surface.material]
 
             # assign indices (VERY IMPORTANT)
             bm.verts.index_update()
@@ -871,4 +874,3 @@ def ImportMeshUTF_MenuFunction(self, context):
 # register operator and test call
 bpy.utils.register_class(ImportMeshUTFOperator)
 bpy.ops.import_mesh.mesh_utf('INVOKE_DEFAULT')
-    
