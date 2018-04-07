@@ -8,8 +8,8 @@
 #include "fileio.h"
 #include "bstream.h"
 
-static const uint32 FRAMES_PER_SECOND = 60ul;
-static const real32 SECONDS_PER_FRAME = 1.0f/60.0f;
+static const uint32 FRAMES_PER_SECOND = 30ul;
+static const real32 SECONDS_PER_FRAME = 1.0f/30.0f;
 
 MeshData::MeshData() : skeletal(false)
 {
@@ -383,15 +383,15 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
         bones[i].m_abs[0x0] = m[0x0];
         bones[i].m_abs[0x1] = m[0x1];
         bones[i].m_abs[0x2] = m[0x2];
-        bones[i].m_abs[0x3] = bones[i].position[0];
+        bones[i].m_abs[0x3] = m[0x3];
         bones[i].m_abs[0x4] = m[0x4];
         bones[i].m_abs[0x5] = m[0x5];
         bones[i].m_abs[0x6] = m[0x6];
-        bones[i].m_abs[0x7] = bones[i].position[1];
+        bones[i].m_abs[0x7] = m[0x7];
         bones[i].m_abs[0x8] = m[0x8];
         bones[i].m_abs[0x9] = m[0x9];
         bones[i].m_abs[0xA] = m[0xA];
-        bones[i].m_abs[0xB] = bones[i].position[2];
+        bones[i].m_abs[0xB] = m[0xB];
         bones[i].m_abs[0xC] = m[0xC];
         bones[i].m_abs[0xD] = m[0xD];
         bones[i].m_abs[0xE] = m[0xE];
@@ -614,9 +614,15 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
  code = ASCIIReadUint32(linelist, &n_mats);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
- // read mesh list
+ // allocate material data
  std::vector<MeshMaterial> matlist;
  if(n_mats) matlist.resize(n_mats);
+
+ // associate material name with index
+ std::map<STDSTRINGW, uint32> matdict;
+
+ // read materials list
+ uint32 resource = 0;
  for(uint32 i = 0; i < n_mats; i++)
     {
      // read name
@@ -628,17 +634,9 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
      STDSTRINGW name = ConvertUTF8ToUTF16(buffer);
      if(!name.length()) return DebugErrorCode(EC_MODEL_MATERIAL_NAME, __LINE__, __FILE__);
 
-     // read material index
-     // it is very important to read this and use this as materials can be listed out of order
-     uint32 matindex = 0;
-     code = ASCIIReadUint32(linelist, &matindex);
-     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
-     // validate material index
-     if(!(matindex < n_mats)) return DebugErrorCode(EC_MODEL_MATERIAL_INDEX, __LINE__, __FILE__);
-
      // assign name
-     matlist[matindex].name = name;
+     matlist[i].name = name;
+     matdict.insert(std::make_pair(matlist[i].name, i)); // do error handling?
 
      // read number of textures
      uint32 n_textures = 0;
@@ -649,7 +647,7 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
      if(!n_textures) return DebugErrorCode(EC_MODEL_TEXTURES, __LINE__, __FILE__);
 
      // read textures
-     if(n_textures) matlist[matindex].textures.resize(n_textures);
+     if(n_textures) matlist[i].textures.resize(n_textures);
      for(uint32 j = 0; j < n_textures; j++)
         {
          // read texture name
@@ -657,19 +655,19 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // assign texture name
-         matlist[matindex].textures[j].name = ConvertUTF8ToUTF16(buffer);
-         if(!matlist[matindex].textures[j].name.length()) return DebugErrorCode(EC_MODEL_TEXTURE_NAME, __LINE__, __FILE__);
+         matlist[i].textures[j].name = ConvertUTF8ToUTF16(buffer);
+         if(!matlist[i].textures[j].name.length()) return DebugErrorCode(EC_MODEL_TEXTURE_NAME, __LINE__, __FILE__);
 
          // read texture semantic
          code = ASCIIReadString(linelist, buffer);
          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // assign texture semantic
-         if(_strcmpi(buffer, "diffuse") == 0) matlist[matindex].textures[j].semantic = DIFFUSE_MAP;
+         if(_strcmpi(buffer, "diffuse") == 0) matlist[i].textures[j].semantic = DIFFUSE_MAP;
          else return DebugErrorCode(EC_MODEL_TEXTURE_SEMANTIC, __LINE__, __FILE__);
 
          // read UV channel
-         code = ASCIIReadUint16(linelist, &matlist[matindex].textures[j].uv_index);
+         code = ASCIIReadUint16(linelist, &matlist[i].textures[j].uv_index);
          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // read texture filename
@@ -677,18 +675,14 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
          // assign filename
-         matlist[matindex].textures[j].filename = ConvertUTF8ToUTF16(buffer);
-         if(!matlist[matindex].name.length()) return DebugErrorCode(EC_MODEL_TEXTURE_FILENAME, __LINE__, __FILE__);
+         matlist[i].textures[j].filename = ConvertUTF8ToUTF16(buffer);
+         if(!matlist[i].name.length()) return DebugErrorCode(EC_MODEL_TEXTURE_FILENAME, __LINE__, __FILE__);
         }
-    }
 
- // once materials are sorted, assign resource index to each material
- // if you don't do this, textures get all messed up
- uint32 resource = 0;
- for(uint32 i = 0; i < n_mats; i++) {
+     // assign resource index to each material
      matlist[i].resource = static_cast<uint16>(resource);
      if(resource > 0xFFFFul) return DebugErrorCode(EC_MODEL_TEXTURE_RESOURCES, __LINE__, __FILE__);
-     resource += static_cast<uint32>(matlist[i].textures.size());
+     resource += static_cast<uint32>(n_textures);
     }
 
  // move material data
@@ -817,11 +811,15 @@ ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
          code = ASCIIReadUint32(linelist, &surfaces[j].n_faces);
          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-         // read material index
-         surfaces[j].m_index = 0;
-         code = ASCIIReadUint32(linelist, &surfaces[j].m_index);
+         // read material name
+         code = ASCIIReadString(linelist, buffer);
          if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-         if(!(surfaces[j].m_index < materials.size())) return DebugErrorCode(EC_MODEL_MATERIAL_INDEX, __LINE__, __FILE__);
+
+         // lookup material name to get material index
+         STDSTRINGW matname = ConvertUTF8ToUTF16(buffer);
+         auto iter = matdict.find(matname);
+         if(iter == matdict.end()) return DebugErrorCode(EC_MODEL_MATERIAL_INDEX, __LINE__, __FILE__);
+         surfaces[j].m_index = iter->second;
 
          // read index buffer
          if(surfaces[j].n_faces) {

@@ -388,8 +388,8 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="export.py" />
-    <None Include="export2.py" />
+    <None Include="scripts\blender\exportUTF.py" />
+    <None Include="scripts\blender\importUTF.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

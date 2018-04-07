@@ -421,10 +421,10 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="export.py">
+    <None Include="scripts\blender\exportUTF.py">
       <Filter>Script Files</Filter>
     </None>
-    <None Include="export2.py">
+    <None Include="scripts\blender\importUTF.py">
       <Filter>Script Files</Filter>
     </None>
   </ItemGroup>

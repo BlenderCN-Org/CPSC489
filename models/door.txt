@@ -2,7 +2,7 @@
 jnt_001
 -1
 0.0 0.0 0.0
--1.3435885648505064e-07 -1.0000001192092896 0.0 0.0 0.0 0.0 1.0 0.0 -1.0000001192092896 1.3435885648505064e-07 0.0 0.0 0.0 0.0 0.0 1.0
+-1.3435885648505064e-07 0.0 -1.0000001192092896 0.0 -1.0000001192092896 0.0 1.3435885648505064e-07 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 1.0
 4 # number of animations
 close_L
 1 # number of keyframed bones
@@ -55,8 +55,7 @@ jnt_001
 0 # number of collision meshes
 1 # of materials
 door
-0 # material index
-1 # of textures
+1 # number of textures
 door
 diffuse
 0
@@ -189,7 +188,7 @@ door
 12 # number of total faces
 1 # number of submeshes
 12 # number of faces
-0 # material index
+door
 0 1 2
 0 3 1
 4 5 6

@@ -71,13 +71,13 @@ def InPoseMode(self): return (bpy.context.mode == 'POSE')
 #
 # OBJECT FUNCTIONS
 #
-def GetObjects() : return bpy.data.objects
+def GetObjects(): return bpy.data.objects
 def IsArmatureObject(obj): return (True if obj.type == 'ARMATURE' else False)
 def IsMeshObject(obj): return (True if obj.type == 'MESH' else False)
 def GetArmatureObjects():
     r = []
     for obj in GetObjects():
-        if (IsArmatureObject(obj) and obj.select): r.append(obj)
+        if IsArmatureObject(obj): r.append(obj)
     return r
 def GetSelectedArmatureObjects():
     r = []
@@ -197,10 +197,10 @@ def ConstructArmatureDataFromPose(armature):
         m = armature.matrix_world * bone.matrix
         data.bonelist[index].position = [ m[0][3], m[1][3], m[2][3] ]
         data.bonelist[index].matrix = [
-            [m[0][0], m[1][0], m[2][0], m[0][3]],
-            [m[0][1], m[1][1], m[2][1], m[1][3]],
-            [m[0][2], m[1][2], m[2][2], m[2][3]],
-            [    0.0,     0.0,     0.0,    1.0]]
+            [m[0][0], m[0][1], m[0][2], m[0][3]],
+            [m[1][0], m[1][1], m[1][2], m[1][3]],
+            [m[2][0], m[2][1], m[2][2], m[2][3]],
+            [m[3][0], m[3][1], m[3][2], m[3][3]]]
     return data
 
 #

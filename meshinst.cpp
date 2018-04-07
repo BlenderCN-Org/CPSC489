@@ -163,7 +163,7 @@ ErrorCode MeshInstance::Update(void)
         m[0x3] += kf.tlist[bi][0];
         m[0x7] += kf.tlist[bi][1];
         m[0xB] += kf.tlist[bi][2];
-        jm[bi] = m * bones[bi].m_rel;
+        jm[bi] = bones[bi].m_abs * m;
        }
      else if(time >= animation.animdata[n_keys - 1].delta) {
         auto& kf = animation.animdata[n_keys - 1];
@@ -174,7 +174,7 @@ ErrorCode MeshInstance::Update(void)
         m[0x3] += kf.tlist[bi][0];
         m[0x7] += kf.tlist[bi][1];
         m[0xB] += kf.tlist[bi][2];
-        jm[bi] = m * bones[bi].m_rel;
+        jm[bi] = bones[bi].m_abs * m;
        }
      else
        {
@@ -219,7 +219,7 @@ ErrorCode MeshInstance::Update(void)
                m[0xB] += T[2];
 
                // set matrix
-               jm[bi] = m;
+               jm[bi] = bones[bi].m_abs * m;
                break;
               }
            }
@@ -230,10 +230,10 @@ ErrorCode MeshInstance::Update(void)
  // these transformation matrices are interpolated in relative space
  for(size_t bi = 1; bi < bones.size(); bi++) {
      uint32 parent = bones[bi].parent;
-     jm[bi] = jm[bi] * jm[parent];
+     jm[bi] = (jm[parent] * bones[parent].m_inv) * jm[bi];
     }
  for(size_t bi = 0; bi < bones.size(); bi++) {
-     jm[bi] = bones[bi].m_rel * jm[bi] * bones[bi].m_inv;
+     jm[bi] = jm[bi] * bones[bi].m_inv;
      jm[bi].transpose();
     }
 
