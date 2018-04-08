@@ -78,5 +78,6 @@ Integrated sound code into map file format.<br />
 * Bug Fix: Fixed an issue with skeletal animations.
 * Bug Fix: Fixed an issue with unreleased Direct3D objects in map loader.
 ## 04/09/2018
+* Began adding GNU 3.0 licensing information in every source file.
 * Worked on ExportWorldUTF Blender Python script.
 
