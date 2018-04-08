@@ -83,7 +83,7 @@ void RenderMapTest(real32 dt)
        if(lpcs)
          {
           // move at 5 m/s
-          real32 dL = lpcs->JS_L_NORM*5.0f*dt;
+          real32 dL = lpcs->JS_L_NORM*2.0f*dt;
           real32 dR = lpcs->JS_R_NORM*90.0f*dt;
           if(dL)
             {

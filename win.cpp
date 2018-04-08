@@ -8,6 +8,9 @@
 #include "viewport.h"
 #include "gfx.h"
 
+// testing
+#include "testing/tests.h"
+
 // Window Variables
 static HWND handle = NULL;
 static LPWSTR classname = L"MainWindow";
@@ -236,6 +239,8 @@ WINDOW_MESSAGE(EvPaint)
 
 WINDOW_MESSAGE(EvClose)
 {
+ // if there are any tests active, end them here
+ if(IsTestActive()) EndTest();
  return DefWindowProc(window, WM_CLOSE, wparam, lparam);
 }
 
@@ -398,8 +403,6 @@ WINDOW_MESSAGE(EvCommand)
 #pragma endregion WINDOW_MESSAGES
 
 #pragma region WINDOW_COMMANDS
-
-#include "testing/tests.h"
 
 WINDOW_COMMAND(CmFlybyTest)
 {

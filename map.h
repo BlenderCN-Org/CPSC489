@@ -31,10 +31,10 @@ class Map {
   uint32 n_moving;
   uint32 n_static_instances;
   uint32 n_moving_instances;
-  std::unique_ptr<std::shared_ptr<MeshData>[]> static_models;
-  std::unique_ptr<std::shared_ptr<MeshData>[]> moving_models;
-  std::unique_ptr<std::shared_ptr<MeshInstance>[]> static_instances;
-  std::unique_ptr<std::shared_ptr<MeshInstance>[]> moving_instances;
+  std::unique_ptr<MeshData[]> static_models;
+  std::unique_ptr<MeshData[]> moving_models;
+  std::unique_ptr<MeshInstance[]> static_instances;
+  std::unique_ptr<MeshInstance[]> moving_instances;
  // door controllers
  private :
   uint32 n_door_controllers;

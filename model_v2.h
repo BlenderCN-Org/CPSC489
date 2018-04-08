@@ -113,6 +113,7 @@ class MeshData {
  private :
   void ConstructAnimationData(void);
   ErrorCode ConstructGraphics(void);
+  void FreeGraphics(void);
  public :
   ErrorCode LoadMeshUTF(const wchar_t* filename);
   ErrorCode LoadMeshBIN(const wchar_t* filename);
@@ -123,6 +124,9 @@ class MeshData {
  public : 
   MeshData();
   virtual ~MeshData();
+ public :
+  MeshData(MeshData&& other);
+  MeshData& operator =(MeshData&& other);
  private :
   MeshData(const MeshData&) = delete;
   void operator =(const MeshData&) = delete;  

@@ -12,6 +12,10 @@ ErrorCode InitStencilStates(void)
  ID3D11Device* device = GetD3DDevice();
  if(!device) return EC_D3D_DEVICE;
 
+ // free previous states
+ FreeStencilStates();
+
+
  D3D11_DEPTH_STENCIL_DESC dsd;
  ID3D11DepthStencilState* dss = nullptr;
 
@@ -98,6 +102,7 @@ void FreeStencilStates(void)
      stencils[i]->Release();
      stencils[i] = nullptr;
     }
+ stencils.clear();
 }
 
 ID3D11DepthStencilState* GetStencilState(UINT index)

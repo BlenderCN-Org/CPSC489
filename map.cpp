@@ -46,8 +46,6 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
 
  // temporary data
  uint32 n = 0;
- std::unique_ptr<std::shared_ptr<MeshData>[]> meshdata;
- std::unique_ptr<std::shared_ptr<MeshInstance>[]> instdata;
 
  //
  // PHASE 1:
@@ -63,7 +61,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
  if(n)
    {
     // allocate meshdata
-    meshdata.reset(new std::shared_ptr<MeshData>[n]);
+    std::unique_ptr<MeshData[]> temp(new MeshData[n]);
 
     // load models
     for(uint32 i = 0; i < n; i++)
@@ -74,17 +72,13 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // load model
-        std::shared_ptr<MeshData> model(new MeshData);
-        code = model->LoadMeshUTF(filename.c_str());
+        code = temp[i].LoadMeshUTF(filename.c_str());
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
-        // add model
-        meshdata[i] = model;
        }
 
     // set models
     n_static = n;
-    static_models = std::move(meshdata);
+    static_models = std::move(temp);
    }
 
  //
@@ -101,7 +95,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
  if(n)
    {
     // allocate meshdata
-    meshdata.reset(new std::shared_ptr<MeshData>[n]);
+    std::unique_ptr<MeshData[]> temp(new MeshData[n]);
 
     // load models
     for(uint32 i = 0; i < n; i++)
@@ -112,17 +106,13 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // load model
-        std::shared_ptr<MeshData> model(new MeshData);
-        code = model->LoadMeshUTF(filename.c_str());
+        code = temp[i].LoadMeshUTF(filename.c_str());
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
-        // add model
-        meshdata[i] = model;
        }
 
     // set models
     n_moving = n;
-    moving_models = std::move(meshdata);
+    moving_models = std::move(temp);
    }
 
  //
@@ -181,8 +171,8 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
  // read static instances
  if(n)
    {
-    // allocate meshdata
-    instdata.reset(new std::shared_ptr<MeshInstance>[n]);
+    // allocate instances
+     std::unique_ptr<MeshInstance[]> temp(new MeshInstance[n]);
 
     // load instances
     for(uint32 i = 0; i < n; i++)
@@ -207,15 +197,14 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // add instance
-        MeshData* ptr = static_models[reference].get();
-        instdata[i] = std::make_shared<MeshInstance>(ptr, P, Q);
-        code = instdata[i]->InitInstance();
+        MeshData* ptr = &static_models[reference];
+        code = temp[i].InitInstance(ptr, P, Q);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
        }
 
     // set instance data
     n_static_instances = n;
-    static_instances = std::move(instdata);
+    static_instances = std::move(temp);
    }
 
  //
@@ -231,8 +220,8 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
  // read moving instances
  if(n)
    {
-    // allocate meshdata
-    instdata.reset(new std::shared_ptr<MeshInstance>[n]);
+    // allocate instances
+     std::unique_ptr<MeshInstance[]> temp(new MeshInstance[n]);
 
     // load instances
     for(uint32 i = 0; i < n; i++)
@@ -263,15 +252,14 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
           } 
 
         // add instance
-        MeshData* ptr = moving_models[reference].get();
-        instdata[i] = std::make_shared<MeshInstance>(ptr, P, Q);
-        code = instdata[i]->InitInstance();
+        MeshData* ptr = &moving_models[reference];
+        code = temp[i].InitInstance(ptr, P, Q);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
        }
 
     // set instance data
     n_moving_instances = n;
-    moving_instances = std::move(instdata);
+    moving_instances = std::move(temp);
    }
 
  //
@@ -495,7 +483,7 @@ void Map::RenderMap(real32 dt)
        {
         uint32 door_index = dc.door_index;
         uint32 anim_index = dc.anim_enter;
-        moving_instances[door_index]->SetAnimation(anim_index, false);
+        moving_instances[door_index].SetAnimation(anim_index, false);
         if(!dc.inside) {
            if(dc.sound_opening != 0xFFFFFFFFul) PlayVoice(sounds[dc.sound_opening], false);
            dc.inside = true;
@@ -510,7 +498,7 @@ void Map::RenderMap(real32 dt)
      else if(dc.close_time) {
         dc.close_time -= dt;
         if(!(dc.close_time > 0.0f)) {
-           moving_instances[dc.door_index]->SetAnimation(dc.anim_leave, false);
+           moving_instances[dc.door_index].SetAnimation(dc.anim_leave, false);
            if(dc.sound_closing != 0xFFFFFFFFul) PlayVoice(sounds[dc.sound_closing], false);
            dc.close_time = 0.0f;
           }
@@ -520,12 +508,12 @@ void Map::RenderMap(real32 dt)
  // INEFFICIENT!!!
  // RENDER ALL STATIC MODEL INSTANCES
  for(uint32 i = 0; i < n_static_instances; i++)
-     static_instances[i]->RenderModel();
+     static_instances[i].RenderModel();
 
  // INEFFICIENT!!!
  // RENDER ALL MOVING MODEL INSTANCES
  for(uint32 i = 0; i < n_moving_instances; i++) {
-     moving_instances[i]->Update(dt);
-     moving_instances[i]->RenderModel();
+     moving_instances[i].Update(dt);
+     moving_instances[i].RenderModel();
     }
 }

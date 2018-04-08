@@ -9,7 +9,7 @@
 #include "axes.h"
 #include "meshinst.h"
 
-MeshInstance::MeshInstance(const MeshData* mptr) : mesh(mptr)
+MeshInstance::MeshInstance() : mesh(nullptr)
 {
  // initialize animation data
  time = 0.0f;
@@ -18,16 +18,12 @@ MeshInstance::MeshInstance(const MeshData* mptr) : mesh(mptr)
  // initialize position/orientation data
  mv.load_identity();
 
- // initialize joint matrix data
- jm.reset(new matrix4D[mesh->bones.size()]);
- for(size_t bi = 0; bi < mesh->bones.size(); bi++) jm[bi].load_identity();
-
  // initialize buffers
  permodel = nullptr;
  perframe = nullptr;
 }
 
-MeshInstance::MeshInstance(const MeshData* mptr, const real32* P, const real32* Q) : mesh(mptr)
+MeshInstance::MeshInstance(const real32* P, const real32* Q) : mesh(nullptr)
 {
  // initialize animation data
  time = 0.0f;
@@ -39,10 +35,6 @@ MeshInstance::MeshInstance(const MeshData* mptr, const real32* P, const real32* 
  mv[0x7] = P[1];
  mv[0xB] = P[2];
 
- // initialize skinning matrices
- jm.reset(new matrix4D[mesh->bones.size()]);
- for(size_t bi = 0; bi < mesh->bones.size(); bi++) jm[bi].load_identity();
-
  // initialize buffers
  permodel = nullptr;
  perframe = nullptr;
@@ -53,31 +45,68 @@ MeshInstance::~MeshInstance()
  FreeInstance();
 }
 
-ErrorCode MeshInstance::InitInstance(void)
+ErrorCode MeshInstance::InitInstance(MeshData* ptr)
 {
- // create model matrix
+ // free previous
+ FreeInstance();
+
+ // create per-model matrix
  permodel = nullptr;
  ErrorCode code = CreateDynamicMatrixConstBuffer(&permodel);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
- // set model matrix
+ // set per-model matrix
  DirectX::XMMATRIX m(&mv[0]);
  DirectX::XMMatrixTranspose(m);
  code = UpdateDynamicMatrixConstBuffer(permodel, m);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
- // create skinning matrices
+ // create per-frame matrix
+ jm.reset(new matrix4D[mesh->bones.size()]);
+ for(size_t bi = 0; bi < mesh->bones.size(); bi++) jm[bi].load_identity();
+
+ // set per-frame matrix
  perframe = nullptr;
  if(mesh->bones.size()) {
     UINT size = (UINT)(mesh->bones.size()*sizeof(matrix4D));
     code = CreateDynamicConstBuffer(&perframe, size, jm.get());
     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
    }
- // initialize skinning matrices (no bones, no big deal)
- else {
-    code = CreateDynamicMatrixConstBuffer(&perframe);
-    if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-    code = UpdateDynamicMatrixConstBuffer(perframe, DirectX::XMMatrixIdentity());
+
+ return EC_SUCCESS;
+}
+
+ErrorCode MeshInstance::InitInstance(MeshData* ptr, const real32* P, const real32* Q)
+{
+ // free previous
+ FreeInstance();
+
+ // initialize position/orientation data
+ mv.load_quaternion(Q);
+ mv[0x3] = P[0];
+ mv[0x7] = P[1];
+ mv[0xB] = P[2];
+
+ // create per-model matrix
+ permodel = nullptr;
+ ErrorCode code = CreateDynamicMatrixConstBuffer(&permodel);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+ // set per-model matrix
+ DirectX::XMMATRIX m(&mv[0]);
+ DirectX::XMMatrixTranspose(m);
+ code = UpdateDynamicMatrixConstBuffer(permodel, m);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+ // create per-frame matrix
+ jm.reset(new matrix4D[mesh->bones.size()]);
+ for(size_t bi = 0; bi < mesh->bones.size(); bi++) jm[bi].load_identity();
+
+ // set per-frame matrix
+ perframe = nullptr;
+ if(mesh->bones.size()) {
+    UINT size = (UINT)(mesh->bones.size()*sizeof(matrix4D));
+    code = CreateDynamicConstBuffer(&perframe, size, jm.get());
     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
    }
 
@@ -86,8 +115,21 @@ ErrorCode MeshInstance::InitInstance(void)
 
 void MeshInstance::FreeInstance(void)
 {
- if(permodel) permodel->Release(); permodel = nullptr;
- if(perframe) perframe->Release(); perframe = nullptr;
+ // reset animation data
+ time = 0.0f;
+ anim = 0xFFFFFFFFul;
+
+ // reset position/orientation data
+ mv.load_identity();
+
+ // reset skeleton buffer
+ jm.reset();
+
+ // reset buffers
+ if(permodel) permodel->Release();
+ if(perframe) perframe->Release();
+ permodel = nullptr;
+ perframe = nullptr;
 }
 
 ErrorCode MeshInstance::SetAnimation(uint32 index, bool repeat)
@@ -105,8 +147,9 @@ ErrorCode MeshInstance::SetAnimation(uint32 index, bool repeat)
  // set new animation
  if(!(index < mesh->animations.size())) return DebugErrorCode(EC_ANIM_INDEX, __LINE__, __FILE__);
  anim = index;
+ time = 0.0f;
  loop = repeat;
- return ResetAnimation();
+ return Update();
 }
 
 ErrorCode MeshInstance::SetTime(real32 value)
@@ -130,7 +173,7 @@ ErrorCode MeshInstance::SetTime(real32 value)
     else
        time = duration;
    }
-
+ 
  // update model
  return Update();
 }
@@ -140,6 +183,16 @@ ErrorCode MeshInstance::ResetAnimation(void)
  time = 0.0f;
  return Update();
 }
+
+// static std::ofstream debug("anim.debug");
+// void print(const matrix4D& m, std::ostream& os)
+// {
+//  os << m[0x0] << ", " << m[0x1] << ", " << m[0x2] << ", " << m[0x3] << std::endl;
+//  os << m[0x4] << ", " << m[0x5] << ", " << m[0x6] << ", " << m[0x7] << std::endl;
+//  os << m[0x8] << ", " << m[0x9] << ", " << m[0xA] << ", " << m[0xB] << std::endl;
+//  os << m[0xC] << ", " << m[0xD] << ", " << m[0xE] << ", " << m[0xF] << std::endl;
+//  os << std::endl;
+// }
 
 ErrorCode MeshInstance::Update(void)
 {
@@ -202,21 +255,17 @@ ErrorCode MeshInstance::Update(void)
                real32 Q[4];
                qslerp(Q, &kf1.qlist[bi][0], &kf2.qlist[bi][0], ratio);
                qnormalize(Q);
-
+ 
                // load scaling matrix
                m.load_scaling(S[0], S[1], S[2]);
+
+               matrix4D Tc;
+               Tc.load_translation(T[0], T[1], T[2]);
 
                // rotate, then scale
                matrix4D R;
                R.load_quaternion(Q);
-               m = m * R;
-
-               // translate
-               //matrix4D V;
-               //V.load_translation(T[0], T[1], T[2]);
-               m[0x3] += T[0];
-               m[0x7] += T[1];
-               m[0xB] += T[2];
+               m = m * Tc * R;
 
                // set matrix
                jm[bi] = bones[bi].m_abs * m;
@@ -234,7 +283,7 @@ ErrorCode MeshInstance::Update(void)
     }
  for(size_t bi = 0; bi < bones.size(); bi++) {
      jm[bi] = jm[bi] * bones[bi].m_inv;
-     jm[bi].transpose();
+     // jm[bi].transpose(); // removing this fixed it!
     }
 
  // copy matrices to Direct3D

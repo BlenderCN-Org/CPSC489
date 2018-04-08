@@ -13,11 +13,69 @@ static const real32 SECONDS_PER_FRAME = 1.0f/30.0f;
 
 MeshData::MeshData() : skeletal(false)
 {
+ graphics.vbuffer = nullptr;
+ graphics.ibuffer = nullptr;
  graphics.jbuffer = nullptr;
 }
 
 MeshData::~MeshData()
 {
+}
+
+MeshData::MeshData(MeshData&& other)
+{
+ // move flags
+ skeletal = other.skeletal;
+ other.skeletal = false;
+
+ // move data
+ bonemap = std::move(other.bonemap);
+ bones = std::move(other.bones);
+ animations = std::move(other.animations);
+ collisions = std::move(other.collisions);
+ materials = std::move(other.materials);
+ meshes = std::move(other.meshes);
+
+ // move mesh buffers
+ graphics.vbuffer = std::move(other.graphics.vbuffer);
+ graphics.ibuffer = std::move(other.graphics.ibuffer);
+
+ // move resources
+ graphics.resources = std::move(other.graphics.resources);
+
+ // move joint buffer
+ graphics.jbuffer = other.graphics.jbuffer;
+ other.graphics.jbuffer = nullptr;
+}
+
+MeshData& MeshData::operator =(MeshData&& other)
+{
+ if(this == &other) return *this;
+
+ // move flags
+ skeletal = other.skeletal;
+ other.skeletal = false;
+
+ // move data
+ bonemap = std::move(other.bonemap);
+ bones = std::move(other.bones);
+ animations = std::move(other.animations);
+ collisions = std::move(other.collisions);
+ materials = std::move(other.materials);
+ meshes = std::move(other.meshes);
+
+ // move mesh buffers
+ graphics.vbuffer = std::move(other.graphics.vbuffer);
+ graphics.ibuffer = std::move(other.graphics.ibuffer);
+
+ // move resources
+ graphics.resources = std::move(other.graphics.resources);
+
+ // move joint buffer
+ graphics.jbuffer = other.graphics.jbuffer;
+ other.graphics.jbuffer = nullptr;
+
+ return *this;
 }
 
 /** ConstructAnimationData
@@ -328,6 +386,30 @@ ErrorCode MeshData::ConstructGraphics(void)
     }
 
  return EC_SUCCESS;
+}
+
+void MeshData::FreeGraphics(void)
+{
+ // release mesh buffers
+ for(uint32 i = 0; i < meshes.size(); i++) {
+     if(graphics.vbuffer[i]) graphics.vbuffer[i]->Release();
+     if(graphics.ibuffer[i]) graphics.ibuffer[i]->Release();
+    }
+ graphics.vbuffer.reset();
+ graphics.ibuffer.reset();
+
+ // release joint buffer
+ if(graphics.jbuffer) graphics.jbuffer->Release();
+ graphics.jbuffer = nullptr;
+
+ // release graphics resources (texture manager will delete)
+ for(size_t i = 0; i < materials.size(); i++) {
+     for(size_t j = 0; j < materials[i].textures.size(); j++) {
+         ErrorCode code = FreeTexture(materials[i].textures[j].filename.c_str());
+         if(Fail(code)) DebugErrorCode(code, __LINE__, __FILE__);
+        }
+    }
+ graphics.resources.clear();
 }
 
 ErrorCode MeshData::LoadMeshUTF(const wchar_t* filename)
@@ -872,23 +954,8 @@ ErrorCode MeshData::LoadMeshBIN(const wchar_t* filename)
 
 void MeshData::Free(void)
 {
- // delete graphics buffers
- for(size_t i = 0; i < meshes.size(); i++) {
-     if(graphics.vbuffer[i]) graphics.vbuffer[i]->Release();
-     if(graphics.ibuffer[i]) graphics.ibuffer[i]->Release();
-    }
- if(graphics.jbuffer) graphics.jbuffer->Release();
- graphics.jbuffer = nullptr;
-
- // delete graphics resources
- // do not call Release(), texture manager will do it when reference count goes to zero
- for(size_t i = 0; i < materials.size(); i++) {
-     for(size_t j = 0; j < materials[i].textures.size(); j++) {
-         ErrorCode code = FreeTexture(materials[i].textures[j].filename.c_str());
-         if(Fail(code)) DebugErrorCode(code, __LINE__, __FILE__);
-        }
-    }
- graphics.resources.clear();
+ // delete graphics
+ FreeGraphics();
 
  // delete meshes
  meshes.clear();

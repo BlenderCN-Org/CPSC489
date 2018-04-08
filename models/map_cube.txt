@@ -58,8 +58,8 @@ sounds\door.wav
 1.0 0.5 1.0         # halfdims
 1                   # moving instance reference
 -1                  # animation reference (idle)
-0                   # animation reference (on enter)
-1                   # animation reference (on leave)
+1                   # animation reference (on enter)
+0                   # animation reference (on leave)
 1                   # sound reference
 1                   # sound reference
 5.0 2.0 1.0         # position
@@ -67,8 +67,8 @@ sounds\door.wav
 1.0 0.5 1.0         # halfdims
 2                   # moving instance reference
 -1                  # animation reference (idle)
-0                   # animation reference (on enter)
-1                   # animation reference (on leave)
+1                   # animation reference (on enter)
+0                   # animation reference (on leave)
 1                   # sound reference
 1                   # sound reference
 5.0 4.0 1.0         # position
@@ -76,8 +76,8 @@ sounds\door.wav
 1.0 0.5 1.0         # halfdims
 3                   # moving instance reference
 -1                  # animation reference (idle)
-0                   # animation reference (on enter)
-1                   # animation reference (on leave)
+1                   # animation reference (on enter)
+0                   # animation reference (on leave)
 1                   # sound reference
 1                   # sound reference
 -9.0 0.0 1.0        # position
@@ -85,8 +85,8 @@ sounds\door.wav
 1.0 0.5 1.0         # halfdims
 4                   # moving instance reference
 -1                  # animation reference (idle)
-0                   # animation reference (on enter)
-1                   # animation reference (on leave)
+1                   # animation reference (on enter)
+0                   # animation reference (on leave)
 1                   # sound reference
 1                   # sound reference
 -2.0 7.0 1.0        # position
@@ -94,8 +94,8 @@ sounds\door.wav
 1.0 0.5 1.0         # halfdims
 5                   # moving instance reference
 -1                  # animation reference (idle)
-0                   # animation reference (on enter)
-1                   # animation reference (on leave)
+1                   # animation reference (on enter)
+0                   # animation reference (on leave)
 1                   # sound reference
 1                   # sound reference
 -4.0 7.0 1.0        # position
@@ -103,8 +103,8 @@ sounds\door.wav
 1.0 0.5 1.0         # halfdims
 6                   # moving instance reference
 -1                  # animation reference (idle)
-0                   # animation reference (on enter)
-1                   # animation reference (on leave)
+1                   # animation reference (on enter)
+0                   # animation reference (on leave)
 1                   # sound reference
 1                   # sound reference
 0.0 -9.0 1.0        # position
@@ -112,8 +112,8 @@ sounds\door.wav
 1.0 0.5 1.0         # halfdims
 7                   # moving instance reference
 -1                  # animation reference (idle)
-0                   # animation reference (on enter)
-1                   # animation reference (on leave)
+1                   # animation reference (on enter)
+0                   # animation reference (on leave)
 1                   # sound reference
 1                   # sound reference
 

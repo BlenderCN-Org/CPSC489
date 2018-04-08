@@ -6,7 +6,7 @@
 
 class MeshInstance {
  private :
-  const MeshData* mesh;
+  MeshData* mesh;
   real32 time;
   uint32 anim;
   bool loop;
@@ -17,7 +17,8 @@ class MeshInstance {
   ID3D11Buffer* permodel;
   ID3D11Buffer* perframe;
  public :
-  ErrorCode InitInstance(void);
+  ErrorCode InitInstance(MeshData* ptr);
+  ErrorCode InitInstance(MeshData* ptr, const real32* P, const real32* Q);
   void FreeInstance(void);
  public :
   uint32 GetAnimation(void)const { return anim; }
@@ -32,8 +33,8 @@ class MeshInstance {
   ErrorCode RenderSkeleton(void);
   ErrorCode RenderModel(void);
  public :
-  MeshInstance(const MeshData* mptr);
-  MeshInstance(const MeshData* mptr, const real32* P, const real32* Q);
+  MeshInstance();
+  MeshInstance(const real32* P, const real32* Q);
  ~MeshInstance();
  private :
   MeshInstance(const MeshInstance&) = delete;
