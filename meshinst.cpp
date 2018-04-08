@@ -49,6 +49,7 @@ ErrorCode MeshInstance::InitInstance(MeshData* ptr)
 {
  // free previous
  FreeInstance();
+ mesh = ptr;
 
  // create per-model matrix
  permodel = nullptr;
@@ -80,6 +81,7 @@ ErrorCode MeshInstance::InitInstance(MeshData* ptr, const real32* P, const real3
 {
  // free previous
  FreeInstance();
+ mesh = ptr;
 
  // initialize position/orientation data
  mv.load_quaternion(Q);
@@ -116,6 +118,7 @@ ErrorCode MeshInstance::InitInstance(MeshData* ptr, const real32* P, const real3
 void MeshInstance::FreeInstance(void)
 {
  // reset animation data
+ mesh = nullptr;
  time = 0.0f;
  anim = 0xFFFFFFFFul;
 
@@ -283,7 +286,7 @@ ErrorCode MeshInstance::Update(void)
     }
  for(size_t bi = 0; bi < bones.size(); bi++) {
      jm[bi] = jm[bi] * bones[bi].m_inv;
-     // jm[bi].transpose(); // removing this fixed it!
+     jm[bi].transpose(); // removing this fixed it!
     }
 
  // copy matrices to Direct3D

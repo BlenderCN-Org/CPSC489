@@ -48,7 +48,7 @@ PShaderInput VS(VShaderInput input)
 
  float3 pos = float3(0.0f, 0.0f, 0.0f);
  for(int i = 0; i < 4; ++i)	{
-     pos += weights[i]*mul(input.position, mskin[input.bi[i]]).xyz;
+     pos += weights[i]*mul(mskin[input.bi[i]], input.position).xyz;
     }
 
  PShaderInput psi;

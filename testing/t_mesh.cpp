@@ -16,7 +16,7 @@
 #include "t_mesh.h"
 
 static MeshData mesh;
-static std::unique_ptr<MeshInstance> instance;
+static MeshInstance instance;
 
 BOOL InitMeshTest(void)
 {
@@ -25,19 +25,18 @@ BOOL InitMeshTest(void)
     Error(code);
     return FALSE;
    }
- instance = std::make_unique<MeshInstance>(&mesh);
- instance->InitInstance();
+ instance.InitInstance(&mesh);
 
  return TRUE;
 }
 
 void FreeMeshTest(void)
 {
- instance.reset();
+ instance.FreeInstance();
  mesh.Free();
 }
 
 void RenderMeshTest(real32 dt)
 {
- if(instance) instance->RenderModel();
+ instance.RenderModel();
 }

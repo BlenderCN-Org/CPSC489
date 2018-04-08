@@ -443,8 +443,10 @@ void Map::FreeMap(void)
  n_door_controllers = 0;
 
  // free instances
- if(n_static_instances) static_instances.reset();
- if(n_moving_instances) moving_instances.reset();
+ for(uint32 i = 0; i < n_static_instances; i++) static_instances[i].FreeInstance();
+ for(uint32 i = 0; i < n_moving_instances; i++) moving_instances[i].FreeInstance();
+ static_instances.reset();
+ moving_instances.reset();
  n_static_instances = 0;
  n_moving_instances = 0;
 
@@ -461,8 +463,10 @@ void Map::FreeMap(void)
  sound_start = 0xFFFFFFFFul;
 
  // free models
- if(n_static) static_models.reset();
- if(n_moving) moving_models.reset();
+ for(uint32 i = 0; i < n_static; i++) static_models[i].Free();
+ for(uint32 i = 0; i < n_moving; i++) moving_models[i].Free();
+ static_models.reset();
+ moving_models.reset();
  n_static = 0;
  n_moving = 0;
 }
