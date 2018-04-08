@@ -75,7 +75,8 @@ Integrated sound code into map file format.<br />
 ## 04/04/2018
 * Worked on Blender importer for model format. Currently imports skeletons and animations.
 ## 04/07/2018
-* Fixed skeletal animation issue.
+* Bug Fix: Fixed an issue with skeletal animations.
+* Bug Fix: Fixed an issue with unreleased Direct3D objects in map loader.
 ## 04/09/2018
 * Worked on ExportWorldUTF Blender Python script.
 
