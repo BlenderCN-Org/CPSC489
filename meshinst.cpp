@@ -285,8 +285,10 @@ ErrorCode MeshInstance::Update(void)
      jm[bi] = (jm[parent] * bones[parent].m_inv) * jm[bi];
     }
  for(size_t bi = 0; bi < bones.size(); bi++) {
+     // the transpose is necessary if in shader you use: mul(mskin[input.bi[i]], input.position)
+     // the transpose is NOT necessary if in shader you use: mul(input.position, mskin[input.bi[i]])
      jm[bi] = jm[bi] * bones[bi].m_inv;
-     jm[bi].transpose(); // removing this fixed it!
+     jm[bi].transpose();
     }
 
  // copy matrices to Direct3D
