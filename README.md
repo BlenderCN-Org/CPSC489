@@ -66,9 +66,16 @@ Added a binary stream stream class to read binary file data efficiently.<br />
 Worked on XAudio code.<br />
 03/31/2018<br />
 Integrated sound code into map file format.<br />
-04/01/2018<br />
-Added support for splitscreen play.<br />
-04/04/2018<br />
-Worked on Blender importer for model format. Currently imports skeletons and animations.<br />
-04/07/2018<br />
-Fixed skeletal animation issue.<br />
+
+2018 April
+==========
+
+## 04/01/2018
+* Added support for splitscreen play.
+## 04/04/2018
+* Worked on Blender importer for model format. Currently imports skeletons and animations.
+## 04/07/2018
+* Fixed skeletal animation issue.
+## 04/09/2018
+* Worked on ExportWorldUTF Blender Python script.
+
