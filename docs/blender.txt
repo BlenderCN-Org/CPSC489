@@ -2,6 +2,12 @@
 ### Custom Properties
 ###
 
+Scene Objects
+export_path (string)
+ If this is defined, any maps or models are exported to this folder pathname.
+export_name (string)
+ If this is defined, any maps or models are exported to export_name.txt.
+
 Mesh Objects
 
 entity_type (string enum)
@@ -10,6 +16,7 @@ entity_type (string enum)
  'PORTAL'
  'DOOR_CONTROLLER'
  'COLLISION_MESH'
+ 'CAMERA_MARKER'
 
 Texture Objects
 

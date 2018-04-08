@@ -427,5 +427,14 @@
     <None Include="scripts\blender\importUTF.py">
       <Filter>Script Files</Filter>
     </None>
+    <None Include="scripts\blender\ExportWorldUTF.py">
+      <Filter>Script Files</Filter>
+    </None>
+    <None Include="scripts\blender\ImportWorldUTF.py">
+      <Filter>Script Files</Filter>
+    </None>
+    <None Include="scripts\blender\Tools.py">
+      <Filter>Script Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -389,7 +389,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="scripts\blender\exportUTF.py" />
+    <None Include="scripts\blender\ExportWorldUTF.py" />
     <None Include="scripts\blender\importUTF.py" />
+    <None Include="scripts\blender\ImportWorldUTF.py" />
+    <None Include="scripts\blender\Tools.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

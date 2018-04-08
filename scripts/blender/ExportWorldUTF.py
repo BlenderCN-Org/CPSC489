@@ -51,6 +51,12 @@ bl_info = {
 #  @details
 class WorldUTFExporter:
 
+    export_path = None
+    export_name = None
+    export_fext = None
+    filename = None
+    file = None
+
     ##
     #  @brief
     #  @details 
@@ -60,7 +66,36 @@ class WorldUTFExporter:
     ##
     #  @brief
     #  @details 
-    def execute(self, filename):
+    def execute(self):
+
+        # build export path
+        if 'export_path' in bpy.context.scene: self.export_path = bpy.context.scene['export_path']
+        else: self.export_path = os.path.dirname(bpy.data.filepath) + '\\'
+        print(self.export_path)
+
+        # build export name
+        if 'export_name' in bpy.context.scene: self.export_name = bpy.context.scene['export_name']
+        else: self.export_name = os.path.splitext(os.path.basename(bpy.data.filepath))[0]
+        print(self.export_name)
+
+        # build export file extension
+        if 'export_fext' in bpy.context.scene: self.export_fext = bpy.context.scene['export_fext']
+        else: self.export_fext = 'txt'
+        print(self.export_fext)
+
+        # create file for writing
+        self.filename = self.export_path + self.export_name + '.' + self.export_fext
+        print(self.filename)
+        self.file = open(self.filename, 'w')
+
+        # export camera markers
+        self.ExportCameraMarkers()
+
+    ##
+    #  @brief
+    #  @details 
+    def ExportCameraMarkers(self):
+
         pass
 
 ##
@@ -82,11 +117,6 @@ class ExportWorldUTFOperator(bpy.types.Operator):
     bl_label = 'Export'
     
     ##
-    #  @brief   Selection dialog filename variables.
-    #  @details Required member for fileselect_add to store filename from selection dialog.
-    filepath = bpy.props.StringProperty(subtype='FILE_PATH')
-    
-    ##
     #  @brief   Menu item enabler/disabler.
     #  @details Defines conditions for which menu item should be enabled. True = always enabled.
     @classmethod
@@ -95,17 +125,16 @@ class ExportWorldUTFOperator(bpy.types.Operator):
     ##
     #  @brief   Invoke plugin.
     #  @details Defines what happens immediately after menu item is selected and plugin enters the
-    #  invoked state. Loads a fileselection dialog and remains open until either the 'Export' or
-    #  'Cancel' buttons are chosen.
+    #  invoked state. Simply just calls execute.
     def invoke(self, context, event):
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'} # stay open, wait until user clicks 'Export' or 'Cancel'
+        return self.execute(context)
 
     ##
-    #  @brief Called by the fileselect_add dialog after the user clicks the 'Export' button.
+    #  @brief   Execute export code.
+    #  @details Called by invoke to execute export code.
     def execute(self, context):
         obj = WorldUTFExporter()
-        obj.execute(self.filepath)
+        obj.execute()
         return {'FINISHED'}
 
 ##
