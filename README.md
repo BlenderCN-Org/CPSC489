@@ -70,3 +70,5 @@ Integrated sound code into map file format.<br />
 Added support for splitscreen play.<br />
 04/04/2018<br />
 Worked on Blender importer for model format. Currently imports skeletons and animations.<br />
+04/07/2018<br />
+Fixed skeletal animation issue.<br />
