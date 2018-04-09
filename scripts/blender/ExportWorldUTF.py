@@ -46,6 +46,22 @@ bl_info = {
 'category': 'Import-Export',
 }
 
+class CameraMarker:
+    # location          - vector3
+    # orientation       - matrix4
+    # index             - uint16
+    # speed             - real32
+    # interpolate_speed - bool
+    # fovy              - real32
+    # interpolate_fovy  - bool
+    pass
+class CameraAnimation:
+    # location    - vector3
+    # orientation - matrix4
+    # start       - uint16
+    # markers     - CameraMarker[]
+    pass
+
 ##
 #  @brief 
 #  @details
@@ -57,11 +73,44 @@ class WorldUTFExporter:
     filename = None
     file = None
 
+    # camera animations
+    camera_animations = []
+
     ##
     #  @brief
     #  @details 
     def __init__(self):
         pass
+
+    ##
+    #  @brief
+    #  @details 
+    def WriteInt(self, v): file.write('{}\n'.format(int(v)))
+
+    ##
+    #  @brief
+    #  @details 
+    def WriteFloat(self, v): file.write('{}\n'.format(float(v)))
+
+    ##
+    #  @brief
+    #  @details 
+    def WriteString(self, s): file.write('{}\n'.format(str(s)))
+
+    ##
+    #  @brief
+    #  @details 
+    def WriteVector3(self, v): file.write('{} {} {}\n'.format(v[0], v[1], v[2]))
+
+    ##
+    #  @brief
+    #  @details 
+    def WriteMatrix4(self, m):
+        file.write('{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} \n'.format(
+            m[ 0], m[ 1], m[ 2], m[ 3],
+            m[ 4], m[ 5], m[ 6], m[ 7],
+            m[ 8], m[ 9], m[10], m[11],
+            m[12], m[13], m[14], m[15]))
 
     ##
     #  @brief
@@ -88,15 +137,116 @@ class WorldUTFExporter:
         print(self.filename)
         self.file = open(self.filename, 'w')
 
+        # examine objects
+        prev_mode = bpy.context.mode
+        if bpy.context.mode != 'OBJECT': bpy.ops.object.mode_set(mode='OBJECT')
+        self.ExamineObjects()
+        bpy.ops.object.mode_set(mode=prev_mode)
+
         # export camera markers
         self.ExportCameraMarkers()
 
     ##
     #  @brief
     #  @details 
+    def ExamineObjects(self):
+
+        for object in bpy.data.objects:
+
+            print(object.name + ' - ' + object.type)
+            if 'entity_type' in object:
+
+                entity_type = object['entity_type']
+                if entity_type == 'CAMERA_ANIMATION': self.ProcessCameraAnimation(object)
+                elif entity_type == 'CAMERA_MARKER': pass
+
+    ##
+    #  @brief
+    #  @details 
+    def ProcessCameraAnimation(self, object):
+
+        # must be a Plain Axes or Mesh Group object
+        if object.type != 'EMPTY': raise Exception('Camera animation objects must be EMPTY Blender objects.')
+
+        # nothing to do
+        if len(object.children) == 0: return
+
+        # initialize a camera animation object
+        cao = CameraAnimation()
+        cao.location = object.matrix_world * object.location
+        cao.orientation = object.matrix_world * object.matrix_local
+        cao.start = 0
+        cao.markers = []
+
+        # process children
+        index = 0
+        for child in object.children:
+
+            # must be a Plain Axes or Mesh Group object
+            if child.type != 'EMPTY': raise Exception('Camera markers must be EMPTY Blender objects.')
+
+            # must be a CAMERA_MARKER entity
+            if ('entity_type' not in child) or (child['entity_type'] != 'CAMERA_MARKER'):
+                continue
+ 
+            # initialize a camera animation object
+            cmo = CameraMarker()
+            cmo.location = child.matrix_world * child.location
+            cmo.orientation = child.matrix_world * child.matrix_local
+            cmo.index             = index
+            cmo.speed             = 1.0
+            cmo.interpolate_speed = True
+            cmo.fovy              = 60.0
+            cmo.interpolate_fovy  = True
+
+            # read properties (if present)
+            if 'index' in child: cmo.index = int(child['index'])
+            if 'speed' in child: cmo.speed = float(child['speed'])
+            if 'interpolate_speed' in child: cmo.interpolate_speed = bool(child['interpolate_speed'])
+            if 'fovy' in child: cmo.fovy = child['fovy']
+            if 'interpolate_fovy' in child: cmo.interpolate_fovy = child['interpolate_fovy']
+
+            # validate properties
+            
+
+            # append marker object and increment index
+            cao.markers.append(cmo)
+            index = index + 1
+
+        # append camera animation object only if there are markers
+        if len(cao.markers): self.camera_animations.append(cao)
+
+    ##
+    #  @brief
+    #  @details 
     def ExportCameraMarkers(self):
 
-        pass
+        self.file.write('\n')
+        self.file.write('# CAMERA ANIMATIONS\n')
+        self.file.write('\n')
+
+        # save number of camera animations
+        n_anim = len(self.camera_animations)
+        self.file.write('{} # number of camera animations\n'.format(n_anim))
+
+        # save camera animations
+        for cao in self.camera_animations:
+
+            # save camera animation properties
+            self.WriteVector3(cao.location)
+            self.WriteMatrix4(cao.orientation)
+            self.WriteInt(cao.start)
+            self.WriteString('{} # of markers'.format(len(cao.markers)))
+            # save camera markers
+            for marker in cao.markers:
+                self.WriteVector3(marker.location)
+                self.WriteMatrix4(marker.orientation)
+                self.WriteInt(marker.index)
+                self.WriteFloat(marker.speed)
+                self.WriteInt(marker.interpolate_speed)
+                self.WriteFloat(marker.fovy)
+                self.WriteInt(marker.interpolate_fovy)
+
 
 ##
 #  @brief   ExportWorldUTF Blender operator.

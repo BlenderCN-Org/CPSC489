@@ -58,7 +58,12 @@ particular animation object.
 This property must be set to 'CAMERA_MARKER' and is a requirement. If not set, this entity will be
 ignored.
 * **index** _(uint16)_  
-This property must be defined for every camera marker object.
+This property should be defined for every camera marker object. If not defined, an index value
+representing the order in which this camera marker was processed is used instead. Since there is no
+guarantee that Blender sorts objects as they appear under a parent in the Outliner panel, it is
+_highly_ recommended that you specify this property. Values do not have to start at zero; the only
+requirement is that there are no duplicate values for **index** for any camera marker part of the
+same camera animation object.
 * **speed** _(real32)_  
 The speed, in meters per second, for which the camera moves once it hits this camera marker. If not
 defined, the default value for **speed** is one meter per second.
