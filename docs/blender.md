@@ -34,6 +34,15 @@ The camera marker index to start from. If not defined, this property is assumed 
 
 ### Camera Marker (Mesh Group)
 
+Camera marker objects can either reference a Blender Mesh Group or a Blender Plain Axes object. You
+can use any type of model for your mesh group, but it should be small model since cameras markers
+do not need to be that noticable in your seen.
+
+After all camera markers for a camera animation have been placed, parent the camera markers to the
+camera animation object. Doing this not only allows you to fold the markers under the camera
+animation object in the Outliner panel, but also specifies that these camera markers belong to this
+particular animation object.
+
 * **entity_type** _(string enum)_  
 This property must be set to 'CAMERA_MARKER' and is a requirement. If not set, this entity will be
 ignored.
