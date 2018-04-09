@@ -16,14 +16,14 @@ If not defined, **export_fext** is txt.
 ## Mesh Objects
 
 * **entity_type** _(string enum)_  
-If this is definied, **entity_type** must be one of the following values.
-1. 'CELL'
-2. 'ROOM'
-3. 'PORTAL'
-4. 'DOOR_CONTROLLER'
-5. 'COLLISION_MESH'
-6. 'CAMERA_ANIMATION'
-7. 'CAMERA_MARKER'
+  If this is definied, **entity_type** must be one of the following values.
+  1. 'CELL'
+  2. 'ROOM'
+  3. 'PORTAL'
+  4. 'DOOR_CONTROLLER'
+  5. 'COLLISION_MESH'
+  6. 'CAMERA_ANIMATION'
+  7. 'CAMERA_MARKER'
 
 ## Axis Objects
 
