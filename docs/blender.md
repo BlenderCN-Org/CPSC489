@@ -4,20 +4,26 @@ Custom Properties
 ## Scene Objects
 
 * **export_path** _(string)_  
-If this is defined, any maps or models are exported to this folder pathname.
+If this is defined, any maps or models are exported to export_path\export_name.export_fext.
+If not defined, **export_path** is the path of Blend file.
 * **export_name** _(string)_  
-If this is defined, any maps or models are exported to export_name.txt.
+If this is defined, any maps or models are exported to export_path\export_name.export_fext.
+If not defined, **export_name** is the name of the Blend file.
+* **export_fext** _(string)_  
+If this is defined, any maps or models are exported to export_path\export_name.export_fext.
+If not defined, **export_fext** is txt.
 
 ## Mesh Objects
 
-entity_type (string enum)
- 'CELL'
- 'ROOM'
- 'PORTAL'
- 'DOOR_CONTROLLER'
- 'COLLISION_MESH'
- 'CAMERA_ANIMATION'
- 'CAMERA_MARKER'
+* **entity_type** _(string enum)_  
+If this is definied, **entity_type** must be one of the following values.
+1. 'CELL'
+2. 'ROOM'
+3. 'PORTAL'
+4. 'DOOR_CONTROLLER'
+5. 'COLLISION_MESH'
+6. 'CAMERA_ANIMATION'
+7. 'CAMERA_MARKER'
 
 ## Axis Objects
 
