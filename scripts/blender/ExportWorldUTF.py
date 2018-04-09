@@ -85,32 +85,32 @@ class WorldUTFExporter:
     ##
     #  @brief
     #  @details 
-    def WriteInt(self, v): file.write('{}\n'.format(int(v)))
+    def WriteInt(self, v): self.file.write('{}\n'.format(int(v)))
 
     ##
     #  @brief
     #  @details 
-    def WriteFloat(self, v): file.write('{}\n'.format(float(v)))
+    def WriteFloat(self, v): self.file.write('{}\n'.format(float(v)))
 
     ##
     #  @brief
     #  @details 
-    def WriteString(self, s): file.write('{}\n'.format(str(s)))
+    def WriteString(self, s): self.file.write('{}\n'.format(str(s)))
 
     ##
     #  @brief
     #  @details 
-    def WriteVector3(self, v): file.write('{} {} {}\n'.format(v[0], v[1], v[2]))
+    def WriteVector3(self, v): self.file.write('{} {} {}\n'.format(v[0], v[1], v[2]))
 
     ##
     #  @brief
     #  @details 
     def WriteMatrix4(self, m):
-        file.write('{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} \n'.format(
-            m[ 0], m[ 1], m[ 2], m[ 3],
-            m[ 4], m[ 5], m[ 6], m[ 7],
-            m[ 8], m[ 9], m[10], m[11],
-            m[12], m[13], m[14], m[15]))
+        self.file.write('{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n'.format(
+            m[0][0], m[0][1], m[0][2], m[0][3],
+            m[1][0], m[1][1], m[1][2], m[1][3],
+            m[2][0], m[2][1], m[2][2], m[2][3],
+            m[3][0], m[3][1], m[3][2], m[3][3]))
 
     ##
     #  @brief
@@ -185,9 +185,25 @@ class WorldUTFExporter:
             # must be a Plain Axes or Mesh Group object
             if child.type != 'EMPTY': raise Exception('Camera markers must be EMPTY Blender objects.')
 
-            # must be a CAMERA_MARKER entity
-            if ('entity_type' not in child) or (child['entity_type'] != 'CAMERA_MARKER'):
-                continue
+            # child is a MESH GROUP
+            if child.dupli_type == 'GROUP':
+
+                # validate group object
+                group = child.dupli_group
+                if group is None: raise Exception('Camera marker {} must be made from a Blender mesh group.'.format(child.name))
+                if len(group.objects) != 1: raise Exception('Camera marker {} is made from a Blender mesh group that contains multiple objects. Use only one.'.format(child.name))
+
+                # must be a CAMERA_MARKER entity
+                gobj = group.objects[0]
+                if ('entity_type' not in gobj) or (gobj['entity_type'] != 'CAMERA_MARKER'):
+                    continue
+
+            # child is an OBJECT
+            else:
+
+                # must be a CAMERA_MARKER entity
+                if ('entity_type' not in child) or (child['entity_type'] != 'CAMERA_MARKER'):
+                    continue
  
             # initialize a camera animation object
             cmo = CameraMarker()
@@ -221,9 +237,9 @@ class WorldUTFExporter:
     #  @details 
     def ExportCameraMarkers(self):
 
-        self.file.write('\n')
-        self.file.write('# CAMERA ANIMATIONS\n')
-        self.file.write('\n')
+        self.file.write('###\n')
+        self.file.write('### CAMERA ANIMATIONS\n')
+        self.file.write('###\n')
 
         # save number of camera animations
         n_anim = len(self.camera_animations)
