@@ -1,14 +1,14 @@
-###
-### Custom Properties
-###
+Custom Properties
+=================
 
-Scene Objects
+## Scene Objects
+
 export_path (string)
  If this is defined, any maps or models are exported to this folder pathname.
 export_name (string)
  If this is defined, any maps or models are exported to export_name.txt.
 
-Mesh Objects
+## Mesh Objects
 
 entity_type (string enum)
  'CELL'
@@ -19,10 +19,10 @@ entity_type (string enum)
  'CAMERA_ANIMATION'
  'CAMERA_MARKER'
 
-Axis Objects
+## Axis Objects
 
  
-Texture Objects
+## Texture Objects
 
 path (string)
  Use this to replace Blender's default pathname conventions, which are quite ugly.
