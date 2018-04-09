@@ -22,6 +22,49 @@
 #include "player.h"
 #include "map.h"
 
+class Timer {
+ private :
+  real32 delta;
+  real32 limit;
+  bool started;
+ public :
+  bool triggered(void)const {
+   return (started && delta == limit);
+  }
+  void start(void) {
+   started = true;
+  }
+  void stop(void) {
+   started = false;
+  }
+  void update(real32 dt) {
+   if(started) {
+      delta += dt;
+      if(limit < delta) delta = limit;
+     }
+  }
+  void reset(real32 time) {
+   started = false;
+   delta = 0.0f;
+   limit = time;
+  }
+  void reset(void) {
+   started = false;
+   delta = 0.0f;
+  }
+ public :
+  Timer() {
+   started = false;
+   delta = 0.0f;
+   limit = 1.0f;
+  }
+  Timer(real32 value) {
+   started = false;
+   delta = 0.0f;
+   limit = value;
+  }
+};
+
 class Game {
 
  // Player Variables
@@ -34,16 +77,29 @@ class Game {
  private :
   typedef std::pair<STDSTRINGW, STDSTRINGW> MAPITEM;
   std::deque<MAPITEM> maplist;
+  size_t map_index;
   Map map;
 
  // Time Variables
  private :
   real32 delta;
 
+ // Controller Variables
+ private :
+  struct ControllerData {
+   uint32 controller_id;
+   uint32 viewport;
+  };
+  ControllerData ctrlinfo[4];
+  Timer ctrlpoller;
+
  // Game Functions
  public :
   ErrorCode InitGame(void);
   void FreeGame(void);
+  ErrorCode StartGame(void);
+  void StopGame(void);
+  void PauseGame(void);
   void UpdateGame(real32 dt);
 
  // Controller Functions

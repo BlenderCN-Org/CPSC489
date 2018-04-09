@@ -27,7 +27,15 @@ Game::Game()
  n_players = 0;
  players.reset(new PlayerEntity[MAX_PLAYERS]);
 
+ map_index = 0xFFFFFFFFul;
  delta = 0.0f;
+
+ // controller variables
+ for(int i = 0; i < 4; i++) {
+     ctrlinfo[i].controller_id = 0xFFFFFFFFul;
+     ctrlinfo[i].viewport = 0xFFFFFFFFul;
+    }
+ ctrlpoller.reset(5.0f);
 }
 
 Game::Game(Game&& other)
@@ -55,8 +63,31 @@ void Game::FreeGame(void)
 {
 }
 
+ErrorCode Game::StartGame(void)
+{
+ return EC_SUCCESS;
+}
+
+void Game::StopGame(void)
+{
+}
+
+void Game::PauseGame(void)
+{
+}
+
 void Game::UpdateGame(real32 dt)
 {
+ // update time
+ real32 prev_delta = delta;
+ real32 next_delta = delta + dt;
+
+ // poll for controllers every five seconds
+ ctrlpoller.update(dt);
+ if(ctrlpoller.triggered()) {
+    PollForControllers();
+    ctrlpoller.reset();
+   }
 }
 
 #pragma endregion GAME_FUNCTIONS
