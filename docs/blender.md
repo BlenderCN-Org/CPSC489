@@ -4,9 +4,12 @@ Custom Properties
 ## Scene Objects
 
 * **export_path** _(string)_
- If this is defined, any maps or models are exported to this folder pathname.
+
+If this is defined, any maps or models are exported to this folder pathname.
+ 
 * **export_name** _(string)_
- If this is defined, any maps or models are exported to export_name.txt.
+
+If this is defined, any maps or models are exported to export_name.txt.
 
 ## Mesh Objects
 
