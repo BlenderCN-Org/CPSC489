@@ -29,14 +29,25 @@ If this is defined, **entity_type** must be one of the following values.
 
 ### Camera Animation (Axis Object)
 
+A camera animation object is a container that holds an ordered set of camera animation markers.
+Starting with the first marker, a camera is animated by moving it through these ordered set of
+markers.
+
+Camera animation objects can be represented in Blender using Mesh Groups or Plain Axes. It is
+highly recommended to use a Plain Axes object and place it somewhere near the first camera marker
+the camera is supposed to pass through.
+
+* **entity_type** _(string enum)_  
+This property must be set to 'CAMERA_ANIMATION' and is a requirement. If not set, this entity and
+all of its children will be ignored.
 * **start** _(uint16)_  
 The camera marker index to start from. If not defined, this property is assumed to be zero.
 
 ### Camera Marker (Mesh Group)
 
-Camera marker objects can either reference a Blender Mesh Group or a Blender Plain Axes object. You
-can use any type of model for your mesh group, but it should be small model since cameras markers
-do not need to be that noticable in your seen.
+Camera marker objects can be represented in Blender using Mesh Groups or Plain Axes. You can use
+any type of model for your mesh group, but it should be small model since cameras markers do not
+need to be that noticable in your seen.
 
 After all camera markers for a camera animation have been placed, parent the camera markers to the
 camera animation object. Doing this not only allows you to fold the markers under the camera
@@ -49,7 +60,8 @@ ignored.
 * **index** _(uint16)_  
 This property must be defined for every camera marker object.
 * **speed** _(real32)_  
-If defined, this property indicates 
+The speed, in meters per second, for which the camera moves once it hits this camera marker. If not
+defined, the default value for **speed** is one meter per second.
 * **interpolate_speed** _(bool)_  
 If defined and set to False, camera speed is not interpolated between markers and the current speed
 is always the speed of the last marker that the camera passed through. If defined and set to True,
