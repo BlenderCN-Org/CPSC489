@@ -25,8 +25,9 @@ Map::Map()
  n_static_instances = 0;
  n_moving_instances = 0;
 
- // door controllers
+ // entities
  n_door_controllers = 0;
+ n_cam_anims = 0;
 }
 
 Map::~Map()
@@ -365,6 +366,93 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
     door_controllers = std::move(dcdata);
    }
 
+ //
+ // PHASE ?:
+ // READ CAMERA ANIMATIONS
+ //
+
+ // read number of entities
+ n_cam_anims = 0;
+ code = ASCIIReadUint32(linelist, &n_cam_anims);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+ // read entities
+ if(n)
+   {
+    // allocate animations
+    cam_anims.reset(new CameraAnimation[n_cam_anims]);
+
+    // read animations
+    for(uint32 i = 0; i < n_cam_anims; i++)
+       {
+        // load filename
+        code = ASCIIReadUTF8String(linelist, cam_anims[i].name);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read position
+        code = ASCIIReadVector3(linelist, &cam_anims[i].location[0], false);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read orientation
+        code = ASCIIReadMatrix4(linelist, &cam_anims[i].orientation[0], false);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read start index
+        cam_anims[i].start = 0;
+        code = ASCIIReadUint16(linelist, &cam_anims[i].start);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read number of markers
+        cam_anims[i].n_markers = 0;
+        code = ASCIIReadUint32(linelist, &cam_anims[i].n_markers);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // TODO: camera animation must have at least one marker
+
+        // allocate markers
+        cam_anims[i].markers.reset(new CameraMarker[cam_anims[i].n_markers]);
+
+        // read markers
+        for(uint32 j = 0; j < cam_anims[i].n_markers; j++)
+           {
+            auto& marker = cam_anims[i].markers[j];
+
+            // read position
+            code = ASCIIReadVector3(linelist, &marker.location[0], false);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read orientation
+            code = ASCIIReadMatrix4(linelist, &marker.orientation[0], false);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read index
+            marker.index = 0;
+            code = ASCIIReadUint16(linelist, &marker.index);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read speed
+            marker.speed = 1.0f;
+            code = ASCIIReadReal32(linelist, &marker.speed);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read interpolate_speed
+            marker.interpolate_speed = 0;
+            code = ASCIIReadBool(linelist, &marker.interpolate_speed);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read fovy
+            marker.fovy = 1.0f;
+            code = ASCIIReadReal32(linelist, &marker.fovy);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read interpolate_fovy
+            marker.interpolate_fovy = 0;
+            code = ASCIIReadBool(linelist, &marker.interpolate_fovy);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+           }
+       }
+   }
+
 /*
  // read number of portal cells
  uint32 n_cells = 0;
@@ -439,8 +527,11 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
 
 void Map::FreeMap(void)
 {
+ // free entities
  if(n_door_controllers) door_controllers.reset();
+ if(n_cam_anims) cam_anims.reset();
  n_door_controllers = 0;
+ n_cam_anims = 0;
 
  // free instances
  for(uint32 i = 0; i < n_static_instances; i++) static_instances[i].FreeInstance();

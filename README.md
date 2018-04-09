@@ -80,4 +80,5 @@ Integrated sound code into map file format.<br />
 ## 04/09/2018
 * Began adding GNU 3.0 licensing information in every source file.
 * Worked on ExportWorldUTF Blender Python script.
+* Added partial and incomplete support for cutscene cameras (camera animations).
 

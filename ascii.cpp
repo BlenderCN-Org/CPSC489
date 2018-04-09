@@ -49,6 +49,15 @@ ErrorCode ASCIIReadUTF8String(std::deque<std::string>& linelist, STDSTRINGW& str
  return EC_SUCCESS;
 }
 
+ErrorCode ASCIIReadBool(std::deque<std::string>& linelist, bool* x)
+{
+ if(linelist.empty()) return EC_FILE_EOF;
+ uint32 temp = strtoul(linelist.front().c_str(), nullptr, 10);
+ *x = (temp ? true : false);
+ linelist.pop_front();
+ return EC_SUCCESS;
+}
+
 ErrorCode ASCIIReadSint32(std::deque<std::string>& linelist, sint32* x)
 {
  if(linelist.empty()) return EC_FILE_EOF;
@@ -70,6 +79,14 @@ ErrorCode ASCIIReadUint32(std::deque<std::string>& linelist, uint32* x)
 {
  if(linelist.empty()) return EC_FILE_EOF;
  *x = strtoul(linelist.front().c_str(), nullptr, 10);
+ linelist.pop_front();
+ return EC_SUCCESS;
+}
+
+ErrorCode ASCIIReadReal32(std::deque<std::string>& linelist, real32* x)
+{
+ if(linelist.empty()) return EC_FILE_EOF;
+ *x = (float)strtod(linelist.front().c_str(), nullptr);
  linelist.pop_front();
  return EC_SUCCESS;
 }

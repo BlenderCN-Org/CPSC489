@@ -56,6 +56,7 @@ class CameraMarker:
     # interpolate_fovy  - bool
     pass
 class CameraAnimation:
+    # name        - string
     # location    - vector3
     # orientation - matrix4
     # start       - uint16
@@ -173,6 +174,7 @@ class WorldUTFExporter:
 
         # initialize a camera animation object
         cao = CameraAnimation()
+        cao.name = object.name
         cao.location = object.matrix_world * object.location
         cao.orientation = object.matrix_world * object.matrix_local
         cao.start = 0
@@ -223,7 +225,7 @@ class WorldUTFExporter:
             if 'interpolate_fovy' in child: cmo.interpolate_fovy = child['interpolate_fovy']
 
             # validate properties
-            
+            # TODO: finish this
 
             # append marker object and increment index
             cao.markers.append(cmo)
@@ -249,6 +251,7 @@ class WorldUTFExporter:
         for cao in self.camera_animations:
 
             # save camera animation properties
+            self.WriteString(cao.name)
             self.WriteVector3(cao.location)
             self.WriteMatrix4(cao.orientation)
             self.WriteInt(cao.start)

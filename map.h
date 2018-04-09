@@ -2,6 +2,7 @@
 #define __CS489_MAP_H
 
 #include "errors.h"
+#include "matrix4.h"
 #include "xaudio.h"
 #include "model_v2.h"
 #include "meshinst.h"
@@ -16,6 +17,25 @@ struct DoorController {
  uint32 sound_closing;
  bool   inside;
  real32 close_time;
+};
+
+struct CameraMarker {
+ real32 location[3];
+ matrix4D orientation;
+ uint16 index;
+ real32 speed;
+ bool interpolate_speed;
+ real32 fovy;
+ bool interpolate_fovy;
+};
+
+struct CameraAnimation {
+ STDSTRINGW name;
+ real32 location[3];
+ matrix4D orientation;
+ uint16 start;
+ uint32 n_markers;
+ std::unique_ptr<CameraMarker[]> markers;
 };
 
 class Map {
@@ -39,6 +59,10 @@ class Map {
  private :
   uint32 n_door_controllers;
   std::unique_ptr<DoorController[]> door_controllers;
+ // camera animations
+ private :
+  uint32 n_cam_anims;
+  std::unique_ptr<CameraAnimation[]> cam_anims;
  // portal variables
  private :
   std::vector<std::vector<uint32>> cell_graph;
