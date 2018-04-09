@@ -34,6 +34,9 @@ The camera marker index to start from. If not defined, this property is assumed 
 
 ### Camera Marker (Mesh Group)
 
+* **entity_type** _(string enum)_  
+This property must be set to 'CAMERA_MARKER' and is a requirement. If not set, this entity will be
+ignored.
 * **index** _(uint16)_  
 This property must be defined for every camera marker object.
 * **speed** _(real32)_  
