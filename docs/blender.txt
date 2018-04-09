@@ -16,8 +16,12 @@ entity_type (string enum)
  'PORTAL'
  'DOOR_CONTROLLER'
  'COLLISION_MESH'
+ 'CAMERA_ANIMATION'
  'CAMERA_MARKER'
 
+Axis Objects
+
+ 
 Texture Objects
 
 path (string)
