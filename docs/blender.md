@@ -29,6 +29,9 @@ If this is defined, **entity_type** must be one of the following values.
 
 ### Camera Animation (Axis Object)
 
+* **start** _(uint16)_  
+The camera marker index to start from. If not defined, this property is assumed to be zero.
+
 ### Camera Marker (Mesh Group)
 
 * **index** _(uint16)_  
@@ -39,6 +42,13 @@ If defined, this property indicates
 If defined and set to False, camera speed is not interpolated between markers and the current speed
 is always the speed of the last marker that the camera passed through. If defined and set to True,
 or if the property is not defined, camera speed is interpolated between markers.
+* **fovy** _(uint16)_  
+The field of view of the viewing frustum along the y-axis at the time the camera hits the marker.
+If not defined, **fovy** is assumed to be 60 degrees. If defined, **fovy** must be a value between
+30 and 120.
+* **interpolate_fovy** _(bool)_  
+Boolean flag to indicate whether or not the **fovy** property is interpolated between camera
+markers. The default value is True.
  
 ## Texture Objects
 
