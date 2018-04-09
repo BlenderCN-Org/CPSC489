@@ -119,6 +119,7 @@ enum ErrorCode {
  // Game Errors
  EC_LOAD_LEVEL,
  EC_HUD_INIT,
+ EC_MAP_NAME,
 };
 
 enum LanguageCode {

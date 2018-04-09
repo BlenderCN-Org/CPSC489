@@ -26,6 +26,8 @@ Game::Game()
 {
  n_players = 0;
  players.reset(new PlayerEntity[MAX_PLAYERS]);
+
+ delta = 0.0f;
 }
 
 Game::Game(Game&& other)
@@ -71,16 +73,36 @@ void Game::PollForControllers(void)
 
 ErrorCode Game::InsertMap(const STDSTRINGW& filename)
 {
+ // make sure file exists
  std::ifstream ifile(filename);
+ if(!ifile) return DebugErrorCode(EC_FILE_OPEN, __LINE__, __FILE__);
+
+ // read first line to get map name
+ char buffer[1024];
+ ifile.getline(buffer, 1024);
+ if(ifile.fail()) return DebugErrorCode(EC_FILE_READ, __LINE__, __FILE__);
+ if(!strlen(buffer)) return DebugErrorCode(EC_MAP_NAME, __LINE__, __FILE__);
+
+ // convert map name to UTF16
+ STDSTRINGW mapname = ConvertUTF8ToUTF16(buffer);
+ if(!mapname.length()) return DebugErrorCode(EC_MAP_NAME, __LINE__, __FILE__);
 
  // insert filename into playlist
- maplist.push_back(filename);
+ maplist.push_back(std::make_pair(filename, mapname));
  return EC_SUCCESS;
 }
 
-ErrorCode Game::RemoveMap(const STDSTRINGW& name)
+void Game::RemoveMap(const STDSTRINGW& name, bool all)
 {
- return EC_SUCCESS;
+ // the same map can be added multiple times
+ std::deque<MAPITEM>::iterator iter = maplist.begin();
+ while(iter != maplist.end()) {
+       if(iter->second == name) {
+          iter = maplist.erase(iter);
+          if(!all) break;
+         }
+       else iter++;
+      }
 }
 
 ErrorCode Game::LoadMap(const STDSTRINGW& name)

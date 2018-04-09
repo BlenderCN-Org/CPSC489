@@ -32,7 +32,8 @@ class Game {
 
  // Map Variables
  private :
-  std::vector<STDSTRINGW> maplist;
+  typedef std::pair<STDSTRINGW, STDSTRINGW> MAPITEM;
+  std::deque<MAPITEM> maplist;
   Map map;
 
  // Time Variables
@@ -52,7 +53,7 @@ class Game {
   // Map Functions
  public :
   ErrorCode InsertMap(const STDSTRINGW& filename);
-  ErrorCode RemoveMap(const STDSTRINGW& name);
+  void RemoveMap(const STDSTRINGW& name, bool all = true);
   ErrorCode LoadMap(const STDSTRINGW& name);
   void FreeMap(void);
 

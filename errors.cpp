@@ -158,6 +158,8 @@ void InitErrorStrings(void)
  // Game Errors
  InsertErrorString(EC_LOAD_LEVEL, LC_ENGLISH, L"Failed to load level.");
  InsertErrorString(EC_HUD_INIT, LC_ENGLISH, L"Failed to initialize HUD.");
+
+ InsertErrorString(EC_MAP_NAME, LC_ENGLISH, L"Invalid map name.");
 }
 
 void FreeErrorStrings(void)

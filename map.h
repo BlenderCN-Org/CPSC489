@@ -22,6 +22,7 @@
 #include "errors.h"
 #include "vector3.h"
 #include "matrix4.h"
+#include "collision.h" // for OBB, move this later
 #include "xaudio.h"
 #include "model_v2.h"
 #include "meshinst.h"
