@@ -25,8 +25,20 @@ If this is defined, **entity_type** must be one of the following values.
   - 'CAMERA_ANIMATION'
   - 'CAMERA_MARKER'
 
-## Axis Objects
+## Camera Objects
 
+### Camera Animation (Axis Object)
+
+### Camera Marker (Mesh Group)
+
+* **index** _(uint16)_  
+This property must be defined for every camera marker object.
+* **speed** _(real32)_  
+If defined, this property indicates 
+* **interpolate_speed** _(bool)_  
+If defined and set to False, camera speed is not interpolated between markers and the current speed
+is always the speed of the last marker that the camera passed through. If defined and set to True,
+or if the property is not defined, camera speed is interpolated between markers.
  
 ## Texture Objects
 
