@@ -301,7 +301,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
 
         // convert quaternion to matrix
         real32 M[9];
-        matrix3D_quaternion(M, Q);
+        quaternion_to_matrix3(M, Q);
 
         // read half-widths
         real32 H[3];

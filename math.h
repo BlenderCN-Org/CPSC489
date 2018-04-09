@@ -68,6 +68,34 @@ inline real32 degrees(real32 r) { return r*pi_under_180(); }
 
 #pragma endregion TRIGNOMETRY
 
+#pragma region EULER_ANGLES
+
+void matrix4_to_eulerXYZ(real32* v, const real32* m)
+{
+ // if z-axis row is close to <+1, 0, 0>
+ real32 t1 = std::fabs(1.0f - m[0x8]);
+ real32 t2 = std::fabs(1.0f + m[0x8]);
+ if(t1 < 1.0e-6f) {
+    v[2] = 0.0f;
+    v[1] = -pi_over_2();
+    v[0] = std::atan2(-m[0x1], -m[0x2]);
+   }
+ // if z-axis row is close to <-1, 0, 0>
+ else if(t2 < 1.0e-6f) {
+    v[2] = 0.0f;
+    v[1] = +pi_over_2();
+    v[0] = std::atan2(m[0x1], m[0x2]);
+   }
+ else {
+    v[1] = -std::asin(m[0x8]);
+    real32 div = std::cos(v[1]);
+    v[0] = std::atan2(m[0x9]/div, m[0xA]/div);
+    v[2] = std::atan2(m[0x4]/div, m[0x0]/div);
+   }
+}
+
+#pragma endregion EULER_ANGLES
+
 // QUATERNIONS
 #pragma region QUATERNIONS
 
@@ -84,7 +112,7 @@ inline real32 qnormalize(real32* q)
 }
 
 // returns m = q
-inline void matrix3D_quaternion(real32* m, const real32* q)
+inline void quaternion_to_matrix3(real32* m, const real32* q)
 {
  // factors
  real32 a2 = q[0] + q[0];
@@ -114,6 +142,95 @@ inline void matrix3D_quaternion(real32* m, const real32* q)
  m[6] = bd2 - ac2;
  m[7] = cd2 + ab2;
  m[8] = one - bb2 - cc2;
+}
+
+inline void quaternion_to_matrix4(real32* m, const real32* q)
+{
+ // factors
+ real32 a2 = q[0] + q[0];
+ real32 b2 = q[1] + q[1];
+ real32 c2 = q[2] + q[2];
+ real32 d2 = q[3] + q[3];
+
+ // factors
+ real32 ab2 = q[0] * b2;
+ real32 ac2 = q[0] * c2;
+ real32 ad2 = q[0] * d2;
+ real32 bb2 = q[1] * b2;
+ real32 bc2 = q[1] * c2;
+ real32 bd2 = q[1] * d2;
+ real32 cc2 = q[2] * c2;
+ real32 cd2 = q[2] * d2;
+ real32 dd2 = q[3] * d2;
+
+ // reinterpret matrix
+ real32 one = 1.0f;
+ m[0x0] = one - cc2 - dd2;
+ m[0x1] = bc2 - ad2;
+ m[0x2] = bd2 + ac2;
+ m[0x3] = 0.0f;
+ m[0x4] = bc2 + ad2;
+ m[0x5] = one - bb2 - dd2;
+ m[0x6] = cd2 - ab2;
+ m[0x7] = 0.0f;
+ m[0x8] = bd2 - ac2;
+ m[0x9] = cd2 + ab2;
+ m[0xA] = one - bb2 - cc2;
+ m[0xB] = 0.0f;
+ m[0xC] = 0.0f;
+ m[0xD] = 0.0f;
+ m[0xE] = 0.0f;
+ m[0xF] = 1.0f;
+}
+
+inline void matrix3_to_quaternion(real32* q, const real32* m)
+{
+ // row 1
+ // m[0x0] = 1 - 2*q[2]*q[2] - 2*q[3]*q[3]
+ // m[0x1] = 2*q[1]*q[2] - 2*q[0]*q[3]
+ // m[0x2] = 2*q[1]*q[3] + 2*q[0]*q[2]
+
+ // m[0x1]*q[2] = 2*q[1]*q[2]*q[2] - 2*q[0]*q[2]*q[3]
+ // m[0x2]*q[3] = 2*q[1]*q[3]*q[3] + 2*q[0]*q[2]*q[3]
+
+ // m[0x1]*q[2] + m[0x2]*q[3] = 2*q[1]*q[2]*q[2] + 2*q[1]*q[3]*q[3]
+ // m[0x1]*q[2] + m[0x2]*q[3] = q[1]*(2*q[2]*q[2] + 2*q[3]*q[3])
+ // m[0x1]*q[2] + m[0x2]*q[3] = q[1]*(1 - m[0x0])
+
+ // row 1 result
+ // (m[0x0] - 1)*q[1] + m[0x1]*q[2] + m[0x2]*q[3] = 0
+
+ // row 2
+ // m[0x3] = 2*q[1]*q[2] + 2*q[0]*q[3]
+ // m[0x4] = 1 - 2*q[1]*q[1] - 2*q[3]*q[3]
+ // m[0x5] = 2*q[2]*q[3] - 2*q[0]*q[1]
+
+ // q[1]*m[0x3] = 2*q[1]*q[1]*q[2] + 2*q[0]*q[1]*q[3]
+ // q[3]*m[0x5] = 2*q[2]*q[3]*q[3] - 2*q[0]*q[1]*q[3]
+
+ // q[1]*m[0x3] + q[3]*m[0x5] = 2*q[1]*q[1]*q[2] + 2*q[2]*q[3]*q[3]
+
+ // q[1]*m[0x3] + q[3]*m[0x5] = q[2]*(2*q[1]*q[1] + 2*q[3]*q[3])
+ // 1 - m[0x4] = 2*q[1]*q[1] + 2*q[3]*q[3]
+ // q[1]*m[0x3] + q[3]*m[0x5] = q[2]*(1 - m[0x4])
+
+ // row 2 result
+ // m[0x3]*q[1] + (m[0x4] - 1)*q[2] + m[0x5]*q[3] = 0
+
+ // results three equations - three unknowns
+ // (m[0x0] - 1)*q[1] + m[0x1]*q[2] + m[0x2]*q[3] = 0
+ // m[0x3]*q[1] + (m[0x4] - 1)*q[2] + m[0x5]*q[3] = 0
+ // m[0x6]*q[1] + m[0x7]*q[2] + (m[0x8] - 1)*q[3] = 0
+
+ //  m[0x3]*m[0x6]*q[1] + (m[0x4] - 1)*m[0x6]*q[2] + m[0x5]*m[0x6]*q[3] = 0
+ // -m[0x3]*m[0x6]*q[1] - m[0x3]*m[0x7]*q[2] - m[0x3]*(m[0x8] - 1)*q[3] = 0
+ // -----------------------------------------------------------------------
+ // [(m[0x4] - 1)*m[0x6] - m[0x3]*m[0x7]]*q[2] + [m[0x5]*m[0x6] - m[0x3]*(m[0x8] - 1)]*q[3] = 0
+
+}
+
+inline void matrix4_to_quaternion(real32* q, const real32* m)
+{
 }
 
 #pragma endregion QUATERNIONS
