@@ -18,6 +18,9 @@
 #include "stdafx.h"
 #include "game.h"
 
+#include "viewport.h"
+#include "xinput.h"
+
 static LPCWSTR filename = L"map.txt"; // L"levels//map1.txt"
 
 #pragma region SPECIAL_MEMBER_FUNCTIONS
@@ -31,10 +34,7 @@ Game::Game()
  delta = 0.0f;
 
  // controller variables
- for(int i = 0; i < 4; i++) {
-     ctrlinfo[i].controller_id = 0xFFFFFFFFul;
-     ctrlinfo[i].viewport = 0xFFFFFFFFul;
-    }
+ for(int i = 0; i < 4; i++) controller[i] = 0xFFFFFFFFul;
  ctrlpoller.reset(5.0f);
 }
 
@@ -83,19 +83,34 @@ void Game::UpdateGame(real32 dt)
  real32 next_delta = delta + dt;
 
  // poll for controllers every five seconds
- ctrlpoller.update(dt);
- if(ctrlpoller.triggered()) {
-    PollForControllers();
-    ctrlpoller.reset();
-   }
+ PollForControllers(dt);
 }
 
 #pragma endregion GAME_FUNCTIONS
 
 #pragma region CONTROLLER_FUNCTIONS
 
-void Game::PollForControllers(void)
+void Game::PollForControllers(real32 dt)
 {
+ ctrlpoller.update(dt);
+ if(!ctrlpoller.triggered()) return;
+
+ // check for disconnected controllers and release them
+ for(uint32 i = 0; i < n_players; i++) {
+     if(controller[i] != 0xFFFFFFFFul && !IsControllerConnected(controller[i])) {
+        ReleaseController(controller[i]);
+        controller[i] = 0xFFFFFFFFul;
+       }
+    }
+
+ // reserve controllers for each player (if possible)
+ for(uint32 i = 0; i < n_players; i++) {
+     if(controller[i] == 0xFFFFFFFFul && IsControllerAvailable())
+        controller[i] = ReserveController();
+    }
+
+ // reset five second timer
+ ctrlpoller.reset();
 } 
 
 #pragma endregion CONTROLLER_FUNCTIONS

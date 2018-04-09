@@ -86,11 +86,7 @@ class Game {
 
  // Controller Variables
  private :
-  struct ControllerData {
-   uint32 controller_id;
-   uint32 viewport;
-  };
-  ControllerData ctrlinfo[4];
+  uint32 controller[4];
   Timer ctrlpoller;
 
  // Game Functions
@@ -104,7 +100,7 @@ class Game {
 
  // Controller Functions
  public :
-  void PollForControllers(void); 
+  void PollForControllers(real32 dt); 
 
   // Map Functions
  public :
