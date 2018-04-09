@@ -20,22 +20,76 @@
 
 static LPCWSTR filename = L"map.txt"; // L"levels//map1.txt"
 
-// General Functions
-ErrorCode InitGame(void)
+#pragma region SPECIAL_MEMBER_FUNCTIONS
+
+Game::Game()
+{
+ n_players = 0;
+ players.reset(new PlayerEntity[MAX_PLAYERS]);
+}
+
+Game::Game(Game&& other)
+{
+}
+
+Game& Game::operator =(Game&& other)
+{
+} 
+
+Game::~Game()
+{
+}
+
+#pragma endregion SPECIAL_MEMBER_FUNCTIONS
+
+#pragma region GAME_FUNCTIONS
+
+ErrorCode Game::InitGame(void)
 {
  return EC_SUCCESS;
 }
 
-void FreeGame(void)
+void Game::FreeGame(void)
 {
 }
 
-// Level Loading
-ErrorCode LoadLevel(void)
+void Game::UpdateGame(real32 dt)
+{
+}
+
+#pragma endregion GAME_FUNCTIONS
+
+#pragma region CONTROLLER_FUNCTIONS
+
+void Game::PollForControllers(void)
+{
+} 
+
+#pragma endregion CONTROLLER_FUNCTIONS
+
+#pragma region MAP_FUNCTIONS
+
+ErrorCode Game::InsertMap(const STDSTRINGW& filename)
+{
+ std::ifstream ifile(filename);
+
+ // insert filename into playlist
+ maplist.push_back(filename);
+ return EC_SUCCESS;
+}
+
+ErrorCode Game::RemoveMap(const STDSTRINGW& name)
 {
  return EC_SUCCESS;
 }
 
-void FreeLevel(void)
+ErrorCode Game::LoadMap(const STDSTRINGW& name)
+{
+ return EC_SUCCESS;
+}
+
+void Game::FreeMap(void)
 {
 }
+
+#pragma endregion MAP_FUNCTIONS

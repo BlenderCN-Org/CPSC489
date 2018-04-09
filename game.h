@@ -20,23 +20,41 @@
 
 #include "errors.h"
 #include "player.h"
+#include "map.h"
 
 class Game {
+
  // Player Variables
- public :
+ private :
   static const uint32 MAX_PLAYERS = 4;
   uint32 n_players;
-  PlayerEntity players[4];
+  std::unique_ptr<PlayerEntity[]> players;
 
- // General Functions
+ // Map Variables
+ private :
+  std::vector<STDSTRINGW> maplist;
+  Map map;
+
+ // Time Variables
+ private :
+  real32 delta;
+
+ // Game Functions
  public :
   ErrorCode InitGame(void);
   void FreeGame(void);
+  void UpdateGame(real32 dt);
 
-  // Level Functions
+ // Controller Functions
  public :
-  ErrorCode LoadLevel(void);
-  void FreeLevel(void);
+  void PollForControllers(void); 
+
+  // Map Functions
+ public :
+  ErrorCode InsertMap(const STDSTRINGW& filename);
+  ErrorCode RemoveMap(const STDSTRINGW& name);
+  ErrorCode LoadMap(const STDSTRINGW& name);
+  void FreeMap(void);
 
  // Player Functions
  public :
@@ -54,7 +72,5 @@ class Game {
   Game& operator =(Game&& other); 
   virtual ~Game();
 };
-
-
 
 #endif
