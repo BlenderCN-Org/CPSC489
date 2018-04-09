@@ -70,9 +70,9 @@ inline real32 degrees(real32 r) { return r*pi_under_180(); }
 
 #pragma region EULER_ANGLES
 
-void matrix4_to_eulerXYZ(real32* v, const real32* m)
+inline void matrix4_to_eulerXYZ(real32* v, const real32* m)
 {
- // if z-axis row is close to <+1, 0, 0>
+ // degenerate case if z-axis row is close to <+1, 0, 0>
  real32 t1 = std::fabs(1.0f - m[0x8]);
  real32 t2 = std::fabs(1.0f + m[0x8]);
  if(t1 < 1.0e-6f) {
@@ -80,7 +80,7 @@ void matrix4_to_eulerXYZ(real32* v, const real32* m)
     v[1] = -pi_over_2();
     v[0] = std::atan2(-m[0x1], -m[0x2]);
    }
- // if z-axis row is close to <-1, 0, 0>
+ // degenerate case if z-axis row is close to <-1, 0, 0>
  else if(t2 < 1.0e-6f) {
     v[2] = 0.0f;
     v[1] = +pi_over_2();
@@ -190,47 +190,148 @@ inline void matrix3_to_quaternion(real32* q, const real32* m)
  // m[0x1] = 2*q[1]*q[2] - 2*q[0]*q[3]
  // m[0x2] = 2*q[1]*q[3] + 2*q[0]*q[2]
 
- // m[0x1]*q[2] = 2*q[1]*q[2]*q[2] - 2*q[0]*q[2]*q[3]
- // m[0x2]*q[3] = 2*q[1]*q[3]*q[3] + 2*q[0]*q[2]*q[3]
-
- // m[0x1]*q[2] + m[0x2]*q[3] = 2*q[1]*q[2]*q[2] + 2*q[1]*q[3]*q[3]
- // m[0x1]*q[2] + m[0x2]*q[3] = q[1]*(2*q[2]*q[2] + 2*q[3]*q[3])
- // m[0x1]*q[2] + m[0x2]*q[3] = q[1]*(1 - m[0x0])
-
- // row 1 result
- // (m[0x0] - 1)*q[1] + m[0x1]*q[2] + m[0x2]*q[3] = 0
-
  // row 2
  // m[0x3] = 2*q[1]*q[2] + 2*q[0]*q[3]
  // m[0x4] = 1 - 2*q[1]*q[1] - 2*q[3]*q[3]
  // m[0x5] = 2*q[2]*q[3] - 2*q[0]*q[1]
 
- // q[1]*m[0x3] = 2*q[1]*q[1]*q[2] + 2*q[0]*q[1]*q[3]
- // q[3]*m[0x5] = 2*q[2]*q[3]*q[3] - 2*q[0]*q[1]*q[3]
+ // row 3
+ // m[0x6] = 2*q[1]*q[3] - 2*q[0]*q[2]
+ // m[0x7] = 2*q[2]*q[3] + 2*q[0]*q[1]
+ // m[0x8] = 1 - 2*q[1]*q[1] - 2*q[2]*q[2]
 
- // q[1]*m[0x3] + q[3]*m[0x5] = 2*q[1]*q[1]*q[2] + 2*q[2]*q[3]*q[3]
+ // m[0x1] = 2*q[1]*q[2] - 2*q[0]*q[3]
+ // m[0x3] = 2*q[1]*q[2] + 2*q[0]*q[3]
+ // ----------------------------------
+ // m[0x3] - m[0x1] = 4*q[0]*q[3]
 
- // q[1]*m[0x3] + q[3]*m[0x5] = q[2]*(2*q[1]*q[1] + 2*q[3]*q[3])
- // 1 - m[0x4] = 2*q[1]*q[1] + 2*q[3]*q[3]
- // q[1]*m[0x3] + q[3]*m[0x5] = q[2]*(1 - m[0x4])
+ // m[0x2] = 2*q[1]*q[3] + 2*q[0]*q[2]
+ // m[0x6] = 2*q[1]*q[3] - 2*q[0]*q[2]
+ // ----------------------------------
+ // m[0x2] - m[0x6] = 4*q[0]*q[2]
 
- // row 2 result
- // m[0x3]*q[1] + (m[0x4] - 1)*q[2] + m[0x5]*q[3] = 0
+ // m[0x5] = 2*q[2]*q[3] - 2*q[0]*q[1]
+ // m[0x7] = 2*q[2]*q[3] + 2*q[0]*q[1]
+ // ----------------------------------
+ // m[0x7] - m[0x5] = 4*q[0]*q[1]
 
- // results three equations - three unknowns
- // (m[0x0] - 1)*q[1] + m[0x1]*q[2] + m[0x2]*q[3] = 0
- // m[0x3]*q[1] + (m[0x4] - 1)*q[2] + m[0x5]*q[3] = 0
- // m[0x6]*q[1] + m[0x7]*q[2] + (m[0x8] - 1)*q[3] = 0
+ // q[1] = (m[0x7] - m[0x5])/(4*q[0])
+ // q[2] = (m[0x2] - m[0x6])/(4*q[0])
+ // q[3] = (m[0x3] - m[0x1])/(4*q[0])
 
- //  m[0x3]*m[0x6]*q[1] + (m[0x4] - 1)*m[0x6]*q[2] + m[0x5]*m[0x6]*q[3] = 0
- // -m[0x3]*m[0x6]*q[1] - m[0x3]*m[0x7]*q[2] - m[0x3]*(m[0x8] - 1)*q[3] = 0
- // -----------------------------------------------------------------------
- // [(m[0x4] - 1)*m[0x6] - m[0x3]*m[0x7]]*q[2] + [m[0x5]*m[0x6] - m[0x3]*(m[0x8] - 1)]*q[3] = 0
+ // m[0x0] = 1 - 2*q[2]*q[2] - 2*q[3]*q[3]
+ // m[0x4] = 1 - 2*q[1]*q[1] - 2*q[3]*q[3]
+ // m[0x8] = 1 - 2*q[1]*q[1] - 2*q[2]*q[2]
+ // m[0x0] + m[0x4] + m[0x8] = 3 - 4*q[1]*q[1] - 4*q[2]*q[2] - 4*q[3]*q[3]
+ // m[0x0] + m[0x4] + m[0x8] = 3 - 4*(q[1]*q[1] + *q[2]*q[2] + q[3]*q[3])
 
+ // q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3] = 1
+ // q[1]*q[1] + q[2]*q[2] + q[3]*q[3] = 1 - q[0]*q[0]
+
+ // m[0x0] + m[0x4] + m[0x8] = 3 - 4*(q[1]*q[1] + *q[2]*q[2] + q[3]*q[3])
+ // m[0x0] + m[0x4] + m[0x8] = 3 - 4*(1 - q[0]*q[0])
+ // m[0x0] + m[0x4] + m[0x8] = 4*q[0]*q[0] - 1
+ // q[0]*q[0] = (1 + m[0x0] + m[0x4] + m[0x8])/4
+ // q[0] = sqrt(1 + m[0x0] + m[0x4] + m[0x8])/2
+
+ // q[0] = sqrt(1 + m[0x0] + m[0x4] + m[0x8])/2
+ // q[1] = (m[0x7] - m[0x5])/(4*q[0])
+ // q[2] = (m[0x2] - m[0x6])/(4*q[0])
+ // q[3] = (m[0x3] - m[0x1])/(4*q[0])
+
+
+ // m[0x0] + m[0x4] + m[0x8] can be 3
+ // 1 0 0
+ // 0 1 0
+ // 0 0 1
+ real32 trace = m[0x0] + m[0x4] + m[0x8];
+ if(trace > 0.0f) {
+    float temp = 2.0f*std::sqrt(1 + trace);
+    q[0] = 0.25f*temp;
+    q[1] = (m[0x7] - m[0x5])/temp;
+    q[2] = (m[0x2] - m[0x6])/temp;
+    q[3] = (m[0x3] - m[0x1])/temp;
+    return;
+   }
+
+ // m[0x0] - m[0x4] - m[0x8] can be 3
+ // 1  0  0
+ // 0 -1  0
+ // 0  0 -1
+ trace = m[0x0] - m[0x4] - m[0x8];
+ if(trace > 0.0f) {
+    float temp = 2.0f*std::sqrt(1 + trace);
+    q[0] = (m[0x7] - m[0x5])/temp; // OK
+    q[1] = 0.25f*temp;
+    q[2] = (m[0x1] + m[0x3])/temp; // OK
+    q[3] = (m[0x2] + m[0x6])/temp; // OK
+    return;
+   }
+
+ // -m[0x0] + m[0x4] - m[0x8] can be 3
+ // -1  0  0
+ //  0  1  0
+ //  0  0 -1
+ trace = m[0x4] - m[0x0] - m[0x8];
+ if(trace > 0.0f) {
+    float temp = 2.0f*std::sqrt(1 + trace);
+    q[0] = (m[0x2] - m[0x6])/temp; // OK
+    q[1] = (m[0x1] + m[0x3])/temp; // OK
+    q[2] = 0.25f*temp;
+    q[3] = (m[0x5] + m[0x7])/temp; // OK
+    return;
+   }
+
+ // -m[0x0] - m[0x4] + m[0x8] can be 3
+ // -1  0  0
+ //  0 -1  0
+ //  0  0  1
+ trace = m[0x8] - m[0x0] - m[0x4];
+ float temp = 2.0f*std::sqrt(1 + trace);
+ q[0] = (m[0x3] - m[0x1])/temp; // OK
+ q[1] = (m[0x2] + m[0x6])/temp; // OK
+ q[2] = (m[0x5] + m[0x7])/temp; // OK
+ q[3] = 0.25f*temp;
 }
 
 inline void matrix4_to_quaternion(real32* q, const real32* m)
 {
+ real32 trace = m[0x0] + m[0x5] + m[0xA];
+ if(trace > 0.0f) {
+    float temp = 2.0f*std::sqrt(1 + trace);
+    q[0] = 0.25f*temp;
+    q[1] = (m[0xA] - m[0x7])/temp;
+    q[2] = (m[0x3] - m[0x8])/temp;
+    q[3] = (m[0x4] - m[0x1])/temp;
+    return;
+   }
+
+ trace = m[0x0] - m[0x5] - m[0xA];
+ if(trace > 0.0f) {
+    float temp = 2.0f*std::sqrt(1 + trace);
+    q[0] = (m[0xA] - m[0x7])/temp;
+    q[1] = 0.25f*temp;
+    q[2] = (m[0x1] + m[0x4])/temp;
+    q[3] = (m[0x3] + m[0x8])/temp;
+    return;
+   }
+
+ trace = m[0x5] - m[0x0] - m[0xA];
+ if(trace > 0.0f) {
+    float temp = 2.0f*std::sqrt(1 + trace);
+    q[0] = (m[0x3] - m[0x8])/temp;
+    q[1] = (m[0x1] + m[0x4])/temp;
+    q[2] = 0.25f*temp;
+    q[3] = (m[0x7] + m[0xA])/temp;
+    return;
+   }
+
+ trace = m[0xA] - m[0x0] - m[0x5];
+ float temp = 2.0f*std::sqrt(1 + trace);
+ q[0] = (m[0x4] - m[0x1])/temp;
+ q[1] = (m[0x3] + m[0x8])/temp;
+ q[2] = (m[0x7] + m[0xA])/temp;
+ q[3] = 0.25f*temp;
 }
 
 #pragma endregion QUATERNIONS
