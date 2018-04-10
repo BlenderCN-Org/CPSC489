@@ -3,14 +3,18 @@ Custom Properties
 
 ## Scene Objects
 
+* **export_name** _(string)_
+If this is defined, **map_name** is the name of your map, which should be unique to your game. It's
+not necessary to be unique, but **map_name** can be used by the game engine to remove maps from the
+playlist, and if **map_name** is not unique, your game might not work as intended.
 * **export_path** _(string)_  
-If this is defined, any maps or models are exported to export_path\export_name.export_fext.
+If this is defined, any maps or models are exported to export_path\export_file.export_fext.
 If not defined, **export_path** is the path of Blend file.
-* **export_name** _(string)_  
-If this is defined, any maps or models are exported to export_path\export_name.export_fext.
-If not defined, **export_name** is the name of the Blend file.
+* **export_file** _(string)_  
+If this is defined, any maps or models are exported to export_path\export_file.export_fext.
+If not defined, **export_file** is the name of the Blend file.
 * **export_fext** _(string)_  
-If this is defined, any maps or models are exported to export_path\export_name.export_fext.
+If this is defined, any maps or models are exported to export_path\export_file.export_fext.
 If not defined, **export_fext** is txt.
 
 ## Mesh Objects
