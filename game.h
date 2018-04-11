@@ -111,7 +111,7 @@ class Game {
 
  // Player Functions
  public :
-  uint32 GetNumberOfPlayers(void);
+  uint32 GetNumberOfPlayers(void)const { return n_players; }
   void SetNumberOfPlayers(uint32 n);
   void AppendPlayer(void);
   void RemovePlayer(uint32 index);

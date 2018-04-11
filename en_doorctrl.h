@@ -10,12 +10,20 @@ enum class DoorType {
 
 // Door Controller
 class DoorController : public Entity {
+
  private :
   float dim[3]; // dimensions <dx, dy, dz>
   
+ // Events
+ public :
+  virtual void EvTrigger(Entity* source);
+
+ // Special Member Functions
  public :
   DoorController();
+  DoorController(const DoorController&) = delete;
   virtual ~DoorController();
+  void operator =(const DoorController&) = delete;
 };
 
 #endif

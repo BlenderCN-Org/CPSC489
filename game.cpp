@@ -161,3 +161,19 @@ void Game::FreeMap(void)
 }
 
 #pragma endregion MAP_FUNCTIONS
+
+#pragma region PLAYER_FUNCTIONS
+
+void Game::SetNumberOfPlayers(uint32 n)
+{
+}
+
+void Game::AppendPlayer(void)
+{
+}
+
+void Game::RemovePlayer(uint32 index)
+{
+}
+
+#pragma endregion PLAYER_FUNCTIONS

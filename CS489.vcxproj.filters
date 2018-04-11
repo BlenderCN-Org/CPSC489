@@ -42,6 +42,9 @@
     <Filter Include="Source Files\Testing\General">
       <UniqueIdentifier>{e77e82c1-bb82-416a-b777-7b22d8c807eb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Game\Entities">
+      <UniqueIdentifier>{cd6f5cb0-ea6c-46c7-8e4a-4d3607689c5e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winmain.cpp">
@@ -152,9 +155,6 @@
     <ClCompile Include="game.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="door.cpp">
-      <Filter>Source Files\Game</Filter>
-    </ClCompile>
     <ClCompile Include="map.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
@@ -217,6 +217,15 @@
     </ClCompile>
     <ClCompile Include="viewport.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="en_camanim.cpp">
+      <Filter>Source Files\Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="en_cammark.cpp">
+      <Filter>Source Files\Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="en_doorctrl.cpp">
+      <Filter>Source Files\Game\Entities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -328,9 +337,6 @@
     <ClInclude Include="game.h">
       <Filter>Source Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="door.h">
-      <Filter>Source Files\Game</Filter>
-    </ClInclude>
     <ClInclude Include="map.h">
       <Filter>Source Files\Game</Filter>
     </ClInclude>
@@ -393,6 +399,15 @@
     </ClInclude>
     <ClInclude Include="viewport.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="en_camanim.h">
+      <Filter>Source Files\Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="en_cammark.h">
+      <Filter>Source Files\Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="en_doorctrl.h">
+      <Filter>Source Files\Game\Entities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

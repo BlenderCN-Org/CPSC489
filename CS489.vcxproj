@@ -177,8 +177,10 @@
     <ClCompile Include="bvh.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="collision.cpp" />
-    <ClCompile Include="door.cpp" />
     <ClCompile Include="entity.cpp" />
+    <ClCompile Include="en_camanim.cpp" />
+    <ClCompile Include="en_cammark.cpp" />
+    <ClCompile Include="en_doorctrl.cpp" />
     <ClCompile Include="errors.cpp" />
     <ClCompile Include="fileio.cpp" />
     <ClCompile Include="game.cpp" />
@@ -237,8 +239,10 @@
     <ClInclude Include="bvh.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="collision.h" />
-    <ClInclude Include="door.h" />
     <ClInclude Include="entity.h" />
+    <ClInclude Include="en_camanim.h" />
+    <ClInclude Include="en_cammark.h" />
+    <ClInclude Include="en_doorctrl.h" />
     <ClInclude Include="errors.h" />
     <ClInclude Include="fileio.h" />
     <ClInclude Include="game.h" />
