@@ -68,8 +68,9 @@ class CameraAnimation:
 #  @details
 class WorldUTFExporter:
 
-    export_path = None
     export_name = None
+    export_path = None
+    export_file = None
     export_fext = None
     filename = None
     file = None
@@ -121,22 +122,24 @@ class WorldUTFExporter:
         # build export path
         if 'export_path' in bpy.context.scene: self.export_path = bpy.context.scene['export_path']
         else: self.export_path = os.path.dirname(bpy.data.filepath) + '\\'
-        print(self.export_path)
 
-        # build export name
-        if 'export_name' in bpy.context.scene: self.export_name = bpy.context.scene['export_name']
-        else: self.export_name = os.path.splitext(os.path.basename(bpy.data.filepath))[0]
-        print(self.export_name)
+        # build export filename
+        if 'export_file' in bpy.context.scene: self.export_file = bpy.context.scene['export_file']
+        else: self.export_file = os.path.splitext(os.path.basename(bpy.data.filepath))[0]
 
         # build export file extension
         if 'export_fext' in bpy.context.scene: self.export_fext = bpy.context.scene['export_fext']
         else: self.export_fext = 'txt'
-        print(self.export_fext)
 
         # create file for writing
-        self.filename = self.export_path + self.export_name + '.' + self.export_fext
+        self.filename = self.export_path + self.export_file + '.' + self.export_fext
         print(self.filename)
         self.file = open(self.filename, 'w')
+
+        # save map name
+        if 'export_name' in bpy.context.scene: self.export_name = bpy.context.scene['export_name']
+        else: self.export_name = 'default'
+        self.WriteString(self.export_name)
 
         # examine objects
         prev_mode = bpy.context.mode

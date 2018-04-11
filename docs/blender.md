@@ -12,7 +12,8 @@ If this is defined, any maps or models are exported to export_path\export_file.e
 If not defined, **export_path** is the path of Blend file.
 * **export_file** _(string)_  
 If this is defined, any maps or models are exported to export_path\export_file.export_fext.
-If not defined, **export_file** is the name of the Blend file.
+If not defined, **export_file** is the name of the Blend file with neither the path nor the
+extension.
 * **export_fext** _(string)_  
 If this is defined, any maps or models are exported to export_path\export_file.export_fext.
 If not defined, **export_fext** is txt.
