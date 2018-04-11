@@ -17,16 +17,17 @@
 */
 #include "stdafx.h"
 #include "errors.h"
-#include "player.h"
+#include "trigger.h"
 
-PlayerEntity::PlayerEntity() : Entity()
+Trigger::Trigger() : Entity()
+{
+ active = false;
+}
+
+Trigger::~Trigger()
 {
 }
 
-PlayerEntity::~PlayerEntity()
-{
-}
-
-void PlayerEntity::EvTrigger(Entity* source)
+void Trigger::EvTrigger(Entity* source)
 {
 }

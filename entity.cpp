@@ -23,10 +23,18 @@ std::map<uint32, Entity*> Entity::entity_map = std::map<uint32, Entity*>();
 
 Entity::Entity()
 {
- // set ID and increment base
+ // Base Properties
  id = baseID;
  baseID++;
  entity_map.insert(std::make_pair(id, this));
+ for(int i = 0; i < 16; i++) targets[i] = nullptr;
+
+ // Positioning Properties
+ position.reset(0.0f, 0.0f, 0.0f);
+ orientation.load_identity();
+
+ // Mesh Properties
+ mesh = nullptr;
 }
 
 Entity::~Entity()
@@ -39,4 +47,12 @@ Entity* Entity::GetEntity(uint32 eid)
  auto iter = entity_map.find(eid);
  if(iter == entity_map.end()) return nullptr;
  return iter->second;
+}
+
+void Entity::Render(void)
+{
+ // nothing to do
+ if(!mesh) return;
+
+ // by default we could render an axis object here
 }

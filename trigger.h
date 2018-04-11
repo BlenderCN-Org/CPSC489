@@ -15,18 +15,28 @@
 ** You should have received a copy of the GNU General Public License
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "stdafx.h"
-#include "errors.h"
-#include "player.h"
+#ifndef __CS489_TRIGGER_H
+#define __CS489_TRIGGER_H
 
-PlayerEntity::PlayerEntity() : Entity()
-{
-}
+#include "entity.h"
 
-PlayerEntity::~PlayerEntity()
-{
-}
+class Trigger : public Entity {
 
-void PlayerEntity::EvTrigger(Entity* source)
-{
-}
+ // Properties
+ private :
+  bool active;
+  uint32 n_tr;
+
+ // Events
+ public :
+  virtual void EvTrigger(Entity* source);
+
+ // Special Member Functions
+ public :
+  Trigger();
+  Trigger(const Trigger&) = delete;
+  virtual ~Trigger();
+  void operator =(const Trigger&) = delete;
+};
+
+#endif

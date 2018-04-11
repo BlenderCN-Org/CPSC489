@@ -18,7 +18,10 @@
 #ifndef __CS489_ENTITY_H
 #define __CS489_ENTITY_H
 
-//#include "vector3.h"
+#include "vector3.h"
+#include "matrix4.h"
+#include "model_v2.h"
+#include "meshinst.h"
 
 class Entity {
 
@@ -28,6 +31,16 @@ class Entity {
   static std::map<uint32, Entity*> entity_map;
   STDSTRINGW name;
   uint32 id;
+  Entity* targets[16];
+
+ // Positioning Properties
+ private :
+  vector3D position;
+  matrix4D orientation;
+
+ // Model Properties
+ private :
+  MeshInstance* mesh;
 
  // Static Member Functions
  public :
@@ -37,6 +50,10 @@ class Entity {
  public :
   const STDSTRINGW& GetName(void)const { return name; }
   uint32 GetID(void)const { return id; }
+
+ //
+ public :
+  virtual void Render(void);
 
  // Events
  public :
