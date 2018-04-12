@@ -1,7 +1,9 @@
-#
-# CAMERA ANIMATIONS
-#
+Simple Map Example
+###
+### CAMERA ANIMATIONS
+###
 1 # number of camera animations
+CameraAnimation_01
 -0.978547990322113 -59.04844284057617 26.371200561523438
 1.0 0.0 0.0 -0.978547990322113 0.0 1.0 0.0 -59.04844284057617 0.0 0.0 1.0 26.371200561523438 0.0 0.0 0.0 1.0
 0
@@ -69,3 +71,16 @@
 1
 60.0
 1
+###
+### DOOR CONTROLLERS
+###
+1 # number of door controllers
+DCG_001
+3.0 -13.0 1.0
+1.0 0.0 0.0 0.0
+1.5 6.5 0.5
+none
+none
+none
+none
+none

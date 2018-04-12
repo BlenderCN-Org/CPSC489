@@ -46,6 +46,11 @@ bl_info = {
 'category': 'Import-Export',
 }
 
+class BoundingBox:
+    # position - vector3
+    # rotation - vector4
+    # halfdims - vector3
+    pass
 class CameraMarker:
     # location          - vector3
     # orientation       - matrix4
@@ -62,21 +67,69 @@ class CameraAnimation:
     # start       - uint16
     # markers     - CameraMarker[]
     pass
+class DoorController:
+    # name         - string
+    # bbox         - BoundingBox
+    # door         - string
+    # anim_default - string
+    # anim_enter   - string
+    # anim_leave   - string
+    # sound_enter  - string
+    # sound_leave  - string
+    pass
+
+def IsMeshObject(obj):
+
+    return (True if obj.type == 'MESH' else False)
+
+def IsMeshGroup(obj, n = 1):
+
+    if obj.type != 'EMPTY': return False
+    if obj.dupli_type != 'GROUP': return False
+    if obj.dupli_group is None: return False
+    if len(obj.dupli_group.objects) != n: return False
+    return True
+
+#region DOOR CONTROLLER FUNCTIONS
+
+##
+#  @brief   Queries Blender object.
+#  @details 
+def IsDoorController(obj):
+
+    # get mesh object from group
+    if IsMeshGroup(obj, 1) == False: return False
+    mesh_object = obj.dupli_group.objects[0]
+
+    # 1st try - check custom property
+    if mesh_object is None: return False
+    if 'entity_type' in mesh_object:
+        entity_type = mesh_object['entity_type']
+        return entity_type == 'DOOR_CONTROLLER'
+
+    # 2nd try - check object name
+    list = mesh_object.name.split('_')
+    if (len(list) and list[0] == 'DC'): return True
+
+    return False
+
+#endregion DOOR CONTROLLER FUNCTIONS
 
 ##
 #  @brief 
 #  @details
 class WorldUTFExporter:
 
-    export_name = None
+    mapname     = None
     export_path = None
-    export_file = None
+    export_name = None
     export_fext = None
     filename = None
     file = None
 
-    # camera animations
+    # entity lists
     camera_animations = []
+    door_controllers  = []
 
     ##
     #  @brief
@@ -107,6 +160,11 @@ class WorldUTFExporter:
     ##
     #  @brief
     #  @details 
+    def WriteVector4(self, v): self.file.write('{} {} {} {}\n'.format(v[0], v[1], v[2], v[3]))
+
+    ##
+    #  @brief
+    #  @details 
     def WriteMatrix4(self, m):
         self.file.write('{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n'.format(
             m[0][0], m[0][1], m[0][2], m[0][3],
@@ -123,23 +181,23 @@ class WorldUTFExporter:
         if 'export_path' in bpy.context.scene: self.export_path = bpy.context.scene['export_path']
         else: self.export_path = os.path.dirname(bpy.data.filepath) + '\\'
 
-        # build export filename
-        if 'export_file' in bpy.context.scene: self.export_file = bpy.context.scene['export_file']
-        else: self.export_file = os.path.splitext(os.path.basename(bpy.data.filepath))[0]
+        # build export name
+        if 'export_name' in bpy.context.scene: self.export_name = bpy.context.scene['export_name']
+        else: self.export_name = os.path.splitext(os.path.basename(bpy.data.filepath))[0]
 
         # build export file extension
         if 'export_fext' in bpy.context.scene: self.export_fext = bpy.context.scene['export_fext']
         else: self.export_fext = 'txt'
 
         # create file for writing
-        self.filename = self.export_path + self.export_file + '.' + self.export_fext
+        self.filename = self.export_path + self.export_name + '.' + self.export_fext
         print(self.filename)
         self.file = open(self.filename, 'w')
 
         # save map name
-        if 'export_name' in bpy.context.scene: self.export_name = bpy.context.scene['export_name']
+        if 'mapname' in bpy.context.scene: self.mapname = bpy.context.scene['mapname']
         else: self.export_name = 'default'
-        self.WriteString(self.export_name)
+        self.WriteString(self.mapname)
 
         # examine objects
         prev_mode = bpy.context.mode
@@ -147,8 +205,9 @@ class WorldUTFExporter:
         self.ExamineObjects()
         bpy.ops.object.mode_set(mode=prev_mode)
 
-        # export camera markers
+        # export entities
         self.ExportCameraMarkers()
+        self.ExportDoorControllers()
 
     ##
     #  @brief
@@ -163,6 +222,8 @@ class WorldUTFExporter:
                 entity_type = object['entity_type']
                 if entity_type == 'CAMERA_ANIMATION': self.ProcessCameraAnimation(object)
                 elif entity_type == 'CAMERA_MARKER': pass
+
+            if IsDoorController(object): self.ProcessDoorController(object)
 
     ##
     #  @brief
@@ -269,6 +330,71 @@ class WorldUTFExporter:
                 self.WriteFloat(marker.fovy)
                 self.WriteInt(marker.interpolate_fovy)
 
+    ##
+    #  @brief
+    #  @details 
+    def ProcessDoorController(self, object):
+
+        # must be a Group object
+        if IsMeshGroup(object, 1) == False:
+            raise Exception('The door controller is a Blender mesh group object.')
+
+        # compute entity bounding box
+        min_v = [ object.bound_box[0][0], object.bound_box[0][1], object.bound_box[0][2] ]
+        max_v = [ object.bound_box[0][0], object.bound_box[0][1], object.bound_box[0][2] ]
+        for p in object.bound_box:
+            v = object.matrix_world*mathutils.Vector(p)
+            if v[0] < min_v[0]: min_v[0] = v[0]
+            if v[1] < min_v[1]: min_v[1] = v[1]
+            if v[2] < min_v[2]: min_v[2] = v[2]
+            if max_v[0] < v[0]: max_v[0] = v[0]
+            if max_v[1] < v[1]: max_v[1] = v[1]
+            if max_v[2] < v[2]: max_v[2] = v[2]
+        rv = BoundingBox()
+        rv.position = object.location
+        rv.rotation = object.rotation_quaternion
+        rv.halfdims = [(max_v[0] - min_v[0])/2.0, (max_v[1] - min_v[1])/2.0, (max_v[2] - min_v[2])/2.0]
+
+        # initialize entity
+        dc = DoorController()
+        dc.name         = object.name
+        dc.bbox         = rv
+        dc.door         = 'door_model'
+        dc.anim_default = 'none'
+        dc.anim_enter   = 'none'
+        dc.anim_leave   = 'none'
+        dc.sound_enter  = 'none'
+        dc.sound_leave  = 'none'
+
+        # insert entity
+        self.door_controllers.append(dc)
+
+    ##
+    #  @brief
+    #  @details 
+    def ExportDoorControllers(self):
+
+        self.file.write('###\n')
+        self.file.write('### DOOR CONTROLLERS\n')
+        self.file.write('###\n')
+        
+        # save number of camera animations
+        n = len(self.door_controllers)
+        self.file.write('{} # number of door controllers\n'.format(n))
+
+        # save camera animations
+        for dc in self.door_controllers:
+
+            # save camera animation properties
+            self.WriteString(dc.name)
+            self.WriteVector3(dc.bbox.position)
+            self.WriteVector4(dc.bbox.rotation)
+            self.WriteVector3(dc.bbox.halfdims)
+            self.WriteString(dc.anim_default)
+            self.WriteString(dc.anim_enter)
+            self.WriteString(dc.anim_leave)
+            self.WriteString(dc.sound_enter)
+            self.WriteString(dc.sound_leave)
 
 ##
 #  @brief   ExportWorldUTF Blender operator.
