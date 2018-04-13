@@ -46,14 +46,34 @@ bl_info = {
 'category': 'Import-Export',
 }
 
+class StaticModel:
+    # group     - string
+    # link_path - string
+    # link_file - string
+    pass
+class DynamicModel:
+    # group     - string
+    # link_path - string
+    # link_file - string
+    pass
+class ModelInstance:
+    # model
+    # position
+    # rotation
+    pass
+class SoundItem:
+    # link_path - string
+    # link_file - string
+    pass
 class BoundingBox:
     # position - vector3
     # rotation - vector4
     # halfdims - vector3
     pass
 class CameraMarker:
-    # location          - vector3
-    # orientation       - matrix4
+    # position          - vector3
+    # rotation          - matrix4
+    # euler_angle       - vector3
     # index             - uint16
     # speed             - real32
     # interpolate_speed - bool
@@ -62,8 +82,8 @@ class CameraMarker:
     pass
 class CameraAnimation:
     # name        - string
-    # location    - vector3
-    # orientation - matrix4
+    # position    - vector3
+    # rotation    - matrix4
     # start       - uint16
     # markers     - CameraMarker[]
     pass
@@ -79,16 +99,32 @@ class DoorController:
     pass
 
 def IsMeshObject(obj):
-
     return (True if obj.type == 'MESH' else False)
-
-def IsMeshGroup(obj, n = 1):
-
+def IsMeshGroup(obj):
+    if obj.type != 'EMPTY': return False
+    if obj.dupli_type != 'GROUP': return False
+    if obj.dupli_group is None: return False
+    return True
+def IsMeshGroup(obj, n):
     if obj.type != 'EMPTY': return False
     if obj.dupli_type != 'GROUP': return False
     if obj.dupli_group is None: return False
     if len(obj.dupli_group.objects) != n: return False
     return True
+def GetMeshGroupObjects(obj):
+    if IsMeshGroup(obj) == False: return None
+    return obj.dupli_group.objects
+
+##
+#  @brief   Gets rid of annoying small values.
+#  @details 
+def ClearVector(v):
+    for i in range(len(v)):
+        if abs(v[i]) < 1.0e-5: v[i] = 0.0
+def ClearMatrix(m):
+    for r in range(4):
+        for c in range(4):
+            if abs(m[r][c]) < 1.0e-5: m[r][c] = 0.0
 
 #region DOOR CONTROLLER FUNCTIONS
 
@@ -127,8 +163,17 @@ class WorldUTFExporter:
     filename = None
     file = None
 
+    # data lists
+    static_models = []
+    dynamic_models = []
+    soundlist = []
+
+    # instance lists
+    smi_list = []
+    dmi_list = []
+
     # entity lists
-    camera_animations = []
+    cam_list = []
     door_controllers  = []
 
     ##
@@ -203,10 +248,9 @@ class WorldUTFExporter:
         prev_mode = bpy.context.mode
         if bpy.context.mode != 'OBJECT': bpy.ops.object.mode_set(mode='OBJECT')
         self.ExamineObjects()
-        bpy.ops.object.mode_set(mode=prev_mode)
+        if prev_mode != bpy.context.mode: bpy.ops.object.mode_set(mode=prev_mode)
 
         # export entities
-        self.ExportCameraMarkers()
         self.ExportDoorControllers()
 
     ##
@@ -214,16 +258,303 @@ class WorldUTFExporter:
     #  @details 
     def ExamineObjects(self):
 
+        # process static models
         for object in bpy.data.objects:
+            if 'entity_type' not in object: continue
+            entity_type = object['entity_type']
+            if entity_type == 'STATIC_MODEL_LIST': self.ProcessStaticModelList(object)
 
-            print(object.name + ' - ' + object.type)
-            if 'entity_type' in object:
+        # process dynamic models
+        for object in bpy.data.objects:
+            if 'entity_type' not in object: continue
+            entity_type = object['entity_type']
+            if entity_type == 'DYNAMIC_MODEL_LIST': self.ProcessDynamicModelList(object)
 
-                entity_type = object['entity_type']
-                if entity_type == 'CAMERA_ANIMATION': self.ProcessCameraAnimation(object)
-                elif entity_type == 'CAMERA_MARKER': pass
+        # process sound and music files
+        for object in bpy.data.objects:
+            if 'entity_type' not in object: continue
+            entity_type = object['entity_type']
+            if entity_type == 'SOUND_LIST': self.ProcessSoundList(object)
 
-            if IsDoorController(object): self.ProcessDoorController(object)
+        # process sound and music files
+        for object in bpy.data.objects:
+            if 'entity_type' not in object: continue
+            entity_type = object['entity_type']
+            if entity_type == 'CAMERA_ANIMATION': self.ProcessCameraAnimation(object)
+
+        # process static model instances
+        for object in bpy.data.objects:
+            if 'entity_type' not in object: continue
+            entity_type = object['entity_type']
+            if entity_type == 'STATIC_MODEL_INSTANCES': self.ProcessStaticModelInstances(object)
+
+        # process dynamic model instances
+        for object in bpy.data.objects:
+            if 'entity_type' not in object: continue
+            entity_type = object['entity_type']
+            if entity_type == 'DYNAMIC_MODEL_INSTANCES': self.ProcessDynamicModelInstances(object)
+
+        # save static models
+        self.WriteString('###')
+        self.WriteString('### STATIC MODELS')
+        self.WriteString('###')
+        n = len(self.static_models)
+        self.WriteString('{} # number of static models'.format(n))
+        for item in self.static_models: self.WriteString(item.link_path + '\\' + item.link_file)
+
+        # save dynamic models
+        self.WriteString('###')
+        self.WriteString('### DYNAMIC MODELS')
+        self.WriteString('###')
+        n = len(self.dynamic_models)
+        self.WriteString('{} # number of dynamic models'.format(n))
+        for item in self.dynamic_models: self.WriteString(item.link_path + '\\' + item.link_file)
+
+        # save dynamic models
+        self.WriteString('###')
+        self.WriteString('### SOUNDS')
+        self.WriteString('###')
+        n = len(self.soundlist)
+        self.WriteString('{} # number of sounds'.format(n))
+        for item in self.soundlist: self.WriteString(item.link_path + '\\' + item.link_file)
+
+        # save static model instances
+        self.WriteString('###')
+        self.WriteString('### STATIC MODEL INSTANCESS')
+        self.WriteString('###')
+        n = len(self.smi_list)
+        self.WriteString('{} # number of static model instances'.format(n))
+        for item in self.smi_list:
+            self.WriteInt(item.model)
+            self.WriteVector3(item.position)
+            self.WriteMatrix4(item.rotation)
+
+        # save dynamic model instances
+        self.WriteString('###')
+        self.WriteString('### DYNAMIC MODEL INSTANCESS')
+        self.WriteString('###')
+        n = len(self.dmi_list)
+        self.WriteString('{} # number of dynamic model instances'.format(n))
+        for item in self.dmi_list:
+            self.WriteInt(item.model)
+            self.WriteVector3(item.position)
+            self.WriteMatrix4(item.rotation)
+
+        # save camera animations
+        self.file.write('###\n')
+        self.file.write('### CAMERA ANIMATIONS\n')
+        self.file.write('###\n')
+        n_anim = len(self.cam_list)
+        self.file.write('{} # number of camera animations\n'.format(n_anim))
+        for cao in self.cam_list:
+            self.WriteString(cao.name)
+            self.WriteVector3(cao.position)
+            self.WriteMatrix4(cao.rotation)
+            self.WriteInt(cao.start)
+            self.WriteString('{} # of camera markers'.format(len(cao.markers)))
+            for marker in cao.markers:
+                self.WriteVector3(marker.position)
+                self.WriteMatrix4(marker.rotation)
+                self.WriteVector3(marker.euler_angle)
+                self.WriteInt(marker.index)
+                self.WriteFloat(marker.speed)
+                self.WriteInt(marker.interpolate_speed)
+                self.WriteFloat(marker.fovy)
+                self.WriteInt(marker.interpolate_fovy)
+
+        #     if IsDoorController(object): self.ProcessDoorController(object)
+
+    ##
+    #  @brief
+    #  @details 
+    def ProcessStaticModelList(self, object):
+
+        # must be an EMPTY object type
+        self.static_models = []
+        if object.type != 'EMPTY': raise Exception('Static model lists must be EMPTY Blender objects.')
+
+        # nothing to do
+        if len(object.children) == 0: return
+
+        for mdlobj in object.children:
+        
+            # nothing to do
+            if mdlobj.type != 'EMPTY': raise Exception('Static model references must be EMPTY Blender objects.')
+
+            # must have path and file defined
+            msg = 'Static model list \"{}\" contains an object \"{}\" with missing \"{}\" declaration.'
+            if 'group' not in mdlobj: raise Exception(msg.format(object.name, mdlobj.name, 'group'))
+            if 'link_path' not in mdlobj: raise Exception(msg.format(object.name, mdlobj.name, 'link_path'))
+            if 'link_file' not in mdlobj: raise Exception(msg.format(object.name, mdlobj.name, 'link_file'))
+        
+            # otherwise static model is valid
+            sm = StaticModel()
+            sm.group = mdlobj['group']
+            sm.link_path = mdlobj['link_path']
+            sm.link_file = mdlobj['link_file']
+            self.static_models.append(sm)
+        
+    ##
+    #  @brief
+    #  @details 
+    def ProcessStaticModelInstances(self, object):
+
+        # must be an EMPTY object type
+        self.smi_list = []
+        if object.type != 'EMPTY': raise Exception('The static model instance list \"{}\" must be an EMPTY Blender object.'.format(object.name))
+
+        # nothing to do
+        if len(object.children) == 0: return
+
+        # create a group map to map names to indices
+        gmap = {}
+        for i, item in enumerate(self.static_models): gmap[item.group] = i
+
+        # for each child
+        for item in object.children:
+
+            # child must be a MESH GROUP
+            pf = '{}[{}] '.format(object.name, item.name)
+            if item.type != 'EMPTY': raise Exception(pf + 'must be an EMPTY Blender object.')
+            if item.dupli_type != 'GROUP': raise Exception(pf + 'must reference a Blender mesh group object.')
+
+            # child must be a validate MESH GROUP object
+            group = item.dupli_group
+            if group is None: raise Exception(pf + 'must reference a valid Blender mesh group object.')
+            if len(group.objects) == 0: raise Exception(pf + 'is a Blender mesh group that contains no meshes.')
+
+            # child must index into the STATIC_MODEL_LIST
+            if group.name not in gmap:
+                raise Exception(pf + 'must reference a model from a static models list.')
+
+            # must be a STATIC_MODEL
+            if 'entity_type' in item:
+                if item['entity_type'] != 'STATIC_MODEL':
+                    raise Exception(pf + 'is not a static model.')
+            else:
+                print('Warning: ' + pf + 'is missing the entity_type declaration. Assuming STATIC_MODEL.')
+
+            # otherwise static model is valid
+            mi = ModelInstance()
+            mi.model = gmap[group.name]
+            mi.position = item.matrix_world * item.location
+            mi.rotation = item.matrix_world * item.matrix_local
+            ClearVector(mi.position)
+            ClearMatrix(mi.rotation)
+            self.smi_list.append(mi)
+
+    ##
+    #  @brief
+    #  @details 
+    def ProcessDynamicModelList(self, object):
+
+        # must be an EMPTY object type
+        self.dynamic_models = []
+        if object.type != 'EMPTY': raise Exception('Dynamic model lists must be EMPTY Blender objects.')
+
+        # nothing to do
+        if len(object.children) == 0: return
+
+        for mdlobj in object.children:
+        
+            # nothing to do
+            if mdlobj.type != 'EMPTY': raise Exception('Dynamic model references must be EMPTY Blender objects.')
+
+            # must have path and file defined
+            msg = 'Dynamic model list \"{}\" contains an object \"{}\" with missing \"{}\" declaration.'
+            if 'group' not in mdlobj: raise Exception(msg.format(object.name, mdlobj.name, 'group'))
+            if 'link_path' not in mdlobj: raise Exception(msg.format(object.name, mdlobj.name, 'link_path'))
+            if 'link_file' not in mdlobj: raise Exception(msg.format(object.name, mdlobj.name, 'link_file'))
+        
+            # otherwise static model is valid
+            dm = DynamicModel()
+            dm.group = mdlobj['group']
+            dm.link_path = mdlobj['link_path']
+            dm.link_file = mdlobj['link_file']
+            self.dynamic_models.append(dm)
+            print('adding ' + dm.group)
+        
+    ##
+    #  @brief
+    #  @details 
+    def ProcessDynamicModelInstances(self, object):
+
+        # must be an EMPTY object type
+        self.dmi_list = []
+        if object.type != 'EMPTY': raise Exception('The dynamic model instance list \"{}\" must be an EMPTY Blender object.'.format(object.name))
+
+        # nothing to do
+        if len(object.children) == 0: return
+
+        # create a group map to map names to indices
+        gmap = {}
+        for i, item in enumerate(self.dynamic_models): gmap[item.group] = i
+
+        # for each child
+        for item in object.children:
+
+            # child must be a MESH GROUP
+            pf = '{}[{}] '.format(object.name, item.name)
+            if item.type != 'EMPTY': raise Exception(pf + 'must be an EMPTY Blender object.')
+            if item.dupli_type != 'GROUP': raise Exception(pf + 'must reference a Blender mesh group object.')
+
+            # child must be a validate MESH GROUP object
+            group = item.dupli_group
+            if group is None: raise Exception(pf + 'must reference a valid Blender mesh group object.')
+            if len(group.objects) == 0: raise Exception(pf + 'is a Blender mesh group that contains no meshes.')
+
+            # child must index into the DYNAMIC_MODEL_LIST
+            if group.name not in gmap:
+                raise Exception(pf + 'must reference a model from a dynamic models list.')
+
+            # must be a DYNAMIC_MODEL
+            if 'entity_type' in item:
+                if item['entity_type'] != 'DYNAMIC_MODEL':
+                    raise Exception(pf + 'is not a dynamic model.')
+            else:
+                print('Warning: ' + pf + 'is missing the entity_type declaration. Assuming DYNAMIC_MODEL.')
+
+            # otherwise static model is valid
+            mi = ModelInstance()
+            mi.model = gmap[group.name]
+            mi.position = item.matrix_world * item.location
+            mi.rotation = item.matrix_world * item.matrix_local
+            ClearVector(mi.position)
+            ClearMatrix(mi.rotation)
+            self.dmi_list.append(mi)
+
+    ##
+    #  @brief
+    #  @details 
+    def ProcessSoundList(self, object):
+
+        # must be an EMPTY object type
+        self.soundlist = []
+        if object.type != 'EMPTY': raise Exception('Sound lists must be EMPTY Blender objects.')
+
+        # nothing to do
+        if len(object.children) == 0:
+            print("SOUNDLIST HAS NO CHILDREN")
+            return
+        else:
+            print("SOUNDLIST HAS CHILDREN")
+
+        for child in object.children:
+        
+            # nothing to do
+            if child.type != 'EMPTY': raise Exception('Sound items must be EMPTY Blender objects.')
+
+            # must have path and file defined
+            msg = 'Sound list \"{}\" contains an item \"{}\" with missing \"{}\" declaration.'
+            if 'link_path' not in child: raise Exception(msg.format(object.name, mdlobj.name, 'link_path'))
+            if 'link_file' not in child: raise Exception(msg.format(object.name, mdlobj.name, 'link_file'))
+        
+            # otherwise static model is valid
+            item = SoundItem()
+            item.link_path = child['link_path']
+            item.link_file = child['link_file']
+            self.soundlist.append(item)
+ 
 
     ##
     #  @brief
@@ -231,7 +562,8 @@ class WorldUTFExporter:
     def ProcessCameraAnimation(self, object):
 
         # must be a Plain Axes or Mesh Group object
-        if object.type != 'EMPTY': raise Exception('Camera animation objects must be EMPTY Blender objects.')
+        self.cam_list = []
+        if object.type != 'EMPTY': raise Exception('Camera animation object {} must be an EMPTY Blender object.'.format(object.name))
 
         # nothing to do
         if len(object.children) == 0: return
@@ -239,54 +571,54 @@ class WorldUTFExporter:
         # initialize a camera animation object
         cao = CameraAnimation()
         cao.name = object.name
-        cao.location = object.matrix_world * object.location
-        cao.orientation = object.matrix_world * object.matrix_local
+        cao.position = object.matrix_world * object.location
+        cao.rotation = object.matrix_world * object.matrix_local
         cao.start = 0
         cao.markers = []
+        ClearVector(cao.position)
+        ClearMatrix(cao.rotation)
 
         # process children
         index = 0
-        for child in object.children:
+        for item in object.children:
 
-            # must be a Plain Axes or Mesh Group object
-            if child.type != 'EMPTY': raise Exception('Camera markers must be EMPTY Blender objects.')
+            # child must be an EMPTY GROUP
+            pf = '{}[{}] '.format(object.name, item.name)
+            if item.type != 'EMPTY': raise Exception(pf + 'must be an EMPTY Blender object.')
+            if item.dupli_type != 'GROUP': raise Exception(pf + 'must reference a Blender mesh group object.')
 
-            # child is a MESH GROUP
-            if child.dupli_type == 'GROUP':
+            # child must be a valid GROUP object
+            group = item.dupli_group
+            if group is None: raise Exception(pf + 'must reference a valid Blender group object.')
+            if len(group.objects) == 0: raise Exception(pf + 'is a Blender mesh group that contains no meshes.')
 
-                # validate group object
-                group = child.dupli_group
-                if group is None: raise Exception('Camera marker {} must be made from a Blender mesh group.'.format(child.name))
-                if len(group.objects) != 1: raise Exception('Camera marker {} is made from a Blender mesh group that contains multiple objects. Use only one.'.format(child.name))
-
-                # must be a CAMERA_MARKER entity
-                gobj = group.objects[0]
-                if ('entity_type' not in gobj) or (gobj['entity_type'] != 'CAMERA_MARKER'):
-                    continue
-
-            # child is an OBJECT
+            # must be a DYNAMIC_MODEL
+            if 'entity_type' in item:
+                if item['entity_type'] != 'CAMERA_MARKER':
+                    raise Exception(pf + 'is not a CAMERA_MARKER.')
             else:
-
-                # must be a CAMERA_MARKER entity
-                if ('entity_type' not in child) or (child['entity_type'] != 'CAMERA_MARKER'):
-                    continue
+                print('Warning: ' + pf + 'is missing the entity_type declaration. Assuming CAMERA_MARKER.')
  
             # initialize a camera animation object
             cmo = CameraMarker()
-            cmo.location = child.matrix_world * child.location
-            cmo.orientation = child.matrix_world * child.matrix_local
+            cmo.position = item.matrix_world * item.location
+            cmo.rotation = item.matrix_world * item.matrix_local
+            cmo.euler_angle       = item.rotation_euler
             cmo.index             = index
             cmo.speed             = 1.0
             cmo.interpolate_speed = True
             cmo.fovy              = 60.0
             cmo.interpolate_fovy  = True
+            ClearVector(cmo.position)
+            ClearMatrix(cmo.rotation)
+            ClearVector(cmo.euler_angle)
 
             # read properties (if present)
-            if 'index' in child: cmo.index = int(child['index'])
-            if 'speed' in child: cmo.speed = float(child['speed'])
-            if 'interpolate_speed' in child: cmo.interpolate_speed = bool(child['interpolate_speed'])
-            if 'fovy' in child: cmo.fovy = child['fovy']
-            if 'interpolate_fovy' in child: cmo.interpolate_fovy = child['interpolate_fovy']
+            if 'index' in item: cmo.index = int(item['index'])
+            if 'speed' in item: cmo.speed = float(item['speed'])
+            if 'interpolate_speed' in item: cmo.interpolate_speed = bool(item['interpolate_speed'])
+            if 'fovy' in item: cmo.fovy = item['fovy']
+            if 'interpolate_fovy' in item: cmo.interpolate_fovy = item['interpolate_fovy']
 
             # validate properties
             # TODO: finish this
@@ -296,39 +628,7 @@ class WorldUTFExporter:
             index = index + 1
 
         # append camera animation object only if there are markers
-        if len(cao.markers): self.camera_animations.append(cao)
-
-    ##
-    #  @brief
-    #  @details 
-    def ExportCameraMarkers(self):
-
-        self.file.write('###\n')
-        self.file.write('### CAMERA ANIMATIONS\n')
-        self.file.write('###\n')
-
-        # save number of camera animations
-        n_anim = len(self.camera_animations)
-        self.file.write('{} # number of camera animations\n'.format(n_anim))
-
-        # save camera animations
-        for cao in self.camera_animations:
-
-            # save camera animation properties
-            self.WriteString(cao.name)
-            self.WriteVector3(cao.location)
-            self.WriteMatrix4(cao.orientation)
-            self.WriteInt(cao.start)
-            self.WriteString('{} # of markers'.format(len(cao.markers)))
-            # save camera markers
-            for marker in cao.markers:
-                self.WriteVector3(marker.location)
-                self.WriteMatrix4(marker.orientation)
-                self.WriteInt(marker.index)
-                self.WriteFloat(marker.speed)
-                self.WriteInt(marker.interpolate_speed)
-                self.WriteFloat(marker.fovy)
-                self.WriteInt(marker.interpolate_fovy)
+        if len(cao.markers): self.cam_list.append(cao)
 
     ##
     #  @brief
