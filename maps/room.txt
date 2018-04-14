@@ -17,14 +17,14 @@ models\boss.txt
 music\theme.wav
 sounds\door.wav
 ###
-### STATIC MODEL INSTANCESS
+### STATIC MODEL INSTANCES
 ###
 1 # number of static model instances
 0
 0.0 0.0 0.0
 1.0 0.0 0.0 -7.025261402130127 0.0 0.9999998211860657 0.0 9.5902681350708 0.0 0.0 1.0 -0.00011247386282775551 0.0 0.0 0.0 1.0
 ###
-### DYNAMIC MODEL INSTANCESS
+### DYNAMIC MODEL INSTANCES
 ###
 9 # number of dynamic model instances
 1
@@ -138,4 +138,84 @@ CameraAnimation_01
 ###
 ### DOOR CONTROLLERS
 ###
-0 # number of door controllers
+8 # number of door controllers
+dc001
+6.0 -12.0 2.0
+1.0 0.0 0.0 6.0 0.0 0.25 0.0 -12.0 0.0 0.0 1.0 2.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0
+1
+none
+none
+none
+none
+none
+dc002
+6.0 -9.0 2.0
+1.0 0.0 0.0 6.0 0.0 0.25 0.0 -9.0 0.0 0.0 1.0 2.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0
+2
+none
+none
+none
+none
+none
+dc003
+10.0 3.0 2.0
+1.0 0.0 0.0 10.0 0.0 0.25 0.0 3.0 0.0 0.0 1.0 2.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0
+3
+none
+none
+none
+none
+none
+dc004
+10.0 6.0 2.0
+1.0 0.0 0.0 10.0 0.0 0.25 0.0 6.0 0.0 0.0 1.0 2.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0
+4
+none
+none
+none
+none
+none
+dc005
+-3.0 14.0 2.0
+0.25 0.0 0.0 -3.0 0.0 1.0 0.0 14.0 0.0 0.0 1.0 2.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0
+5
+none
+none
+none
+none
+none
+dc006
+-6.0 14.0 2.0
+0.25 0.0 0.0 -6.0 0.0 1.0 0.0 14.0 0.0 0.0 1.0 2.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0
+6
+none
+none
+none
+none
+none
+dc007
+-18.0 0.0 2.0
+1.0 0.0 0.0 -18.0 0.0 0.25 0.0 0.0 0.0 0.0 1.0 2.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0
+7
+none
+none
+none
+none
+none
+dc008
+0.0 -18.0 2.0
+0.25 0.0 0.0 0.0 0.0 1.0 0.0 -18.0 0.0 0.0 1.0 2.0 0.0 0.0 0.0 1.0
+0.0 0.0 0.0
+8
+none
+none
+none
+none
+none

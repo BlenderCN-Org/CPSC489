@@ -57,6 +57,7 @@ class DynamicModel:
     # link_file - string
     pass
 class ModelInstance:
+    # name
     # model
     # position
     # rotation
@@ -64,11 +65,6 @@ class ModelInstance:
 class SoundItem:
     # link_path - string
     # link_file - string
-    pass
-class BoundingBox:
-    # position - vector3
-    # rotation - vector4
-    # halfdims - vector3
     pass
 class CameraMarker:
     # position          - vector3
@@ -81,15 +77,17 @@ class CameraMarker:
     # interpolate_fovy  - bool
     pass
 class CameraAnimation:
-    # name        - string
-    # position    - vector3
-    # rotation    - matrix4
-    # start       - uint16
-    # markers     - CameraMarker[]
+    # name     - string
+    # position - vector3
+    # rotation - matrix4
+    # start    - uint16
+    # markers  - CameraMarker[]
     pass
 class DoorController:
     # name         - string
-    # bbox         - BoundingBox
+    # position     - vector3
+    # rotation     - matrix4
+    # halfdims     - vector3
     # door         - string
     # anim_default - string
     # anim_enter   - string
@@ -174,7 +172,7 @@ class WorldUTFExporter:
 
     # entity lists
     cam_list = []
-    door_controllers  = []
+    dct_list = []
 
     ##
     #  @brief
@@ -250,9 +248,6 @@ class WorldUTFExporter:
         self.ExamineObjects()
         if prev_mode != bpy.context.mode: bpy.ops.object.mode_set(mode=prev_mode)
 
-        # export entities
-        self.ExportDoorControllers()
-
     ##
     #  @brief
     #  @details 
@@ -263,12 +258,22 @@ class WorldUTFExporter:
             if 'entity_type' not in object: continue
             entity_type = object['entity_type']
             if entity_type == 'STATIC_MODEL_LIST': self.ProcessStaticModelList(object)
+        # process static model instances
+        for object in bpy.data.objects:
+            if 'entity_type' not in object: continue
+            entity_type = object['entity_type']
+            if entity_type == 'STATIC_MODEL_INSTANCES': self.ProcessStaticModelInstances(object)
 
         # process dynamic models
         for object in bpy.data.objects:
             if 'entity_type' not in object: continue
             entity_type = object['entity_type']
             if entity_type == 'DYNAMIC_MODEL_LIST': self.ProcessDynamicModelList(object)
+        # process dynamic model instances
+        for object in bpy.data.objects:
+            if 'entity_type' not in object: continue
+            entity_type = object['entity_type']
+            if entity_type == 'DYNAMIC_MODEL_INSTANCES': self.ProcessDynamicModelInstances(object)
 
         # process sound and music files
         for object in bpy.data.objects:
@@ -276,23 +281,17 @@ class WorldUTFExporter:
             entity_type = object['entity_type']
             if entity_type == 'SOUND_LIST': self.ProcessSoundList(object)
 
-        # process sound and music files
+        # process camera animations
         for object in bpy.data.objects:
             if 'entity_type' not in object: continue
             entity_type = object['entity_type']
             if entity_type == 'CAMERA_ANIMATION': self.ProcessCameraAnimation(object)
 
-        # process static model instances
+        # process door controllers
         for object in bpy.data.objects:
             if 'entity_type' not in object: continue
             entity_type = object['entity_type']
-            if entity_type == 'STATIC_MODEL_INSTANCES': self.ProcessStaticModelInstances(object)
-
-        # process dynamic model instances
-        for object in bpy.data.objects:
-            if 'entity_type' not in object: continue
-            entity_type = object['entity_type']
-            if entity_type == 'DYNAMIC_MODEL_INSTANCES': self.ProcessDynamicModelInstances(object)
+            if entity_type == 'DOOR_CONTROLLER_LIST': self.ProcessDoorControllerList(object)
 
         # save static models
         self.WriteString('###')
@@ -320,7 +319,7 @@ class WorldUTFExporter:
 
         # save static model instances
         self.WriteString('###')
-        self.WriteString('### STATIC MODEL INSTANCESS')
+        self.WriteString('### STATIC MODEL INSTANCES')
         self.WriteString('###')
         n = len(self.smi_list)
         self.WriteString('{} # number of static model instances'.format(n))
@@ -331,7 +330,7 @@ class WorldUTFExporter:
 
         # save dynamic model instances
         self.WriteString('###')
-        self.WriteString('### DYNAMIC MODEL INSTANCESS')
+        self.WriteString('### DYNAMIC MODEL INSTANCES')
         self.WriteString('###')
         n = len(self.dmi_list)
         self.WriteString('{} # number of dynamic model instances'.format(n))
@@ -341,11 +340,11 @@ class WorldUTFExporter:
             self.WriteMatrix4(item.rotation)
 
         # save camera animations
-        self.file.write('###\n')
-        self.file.write('### CAMERA ANIMATIONS\n')
-        self.file.write('###\n')
-        n_anim = len(self.cam_list)
-        self.file.write('{} # number of camera animations\n'.format(n_anim))
+        self.WriteString('###')
+        self.WriteString('### CAMERA ANIMATIONS')
+        self.WriteString('###')
+        n = len(self.cam_list)
+        self.WriteString('{} # number of camera animations'.format(n))
         for cao in self.cam_list:
             self.WriteString(cao.name)
             self.WriteVector3(cao.position)
@@ -362,7 +361,23 @@ class WorldUTFExporter:
                 self.WriteFloat(marker.fovy)
                 self.WriteInt(marker.interpolate_fovy)
 
-        #     if IsDoorController(object): self.ProcessDoorController(object)
+        # save door controllers
+        self.WriteString('###')
+        self.WriteString('### DOOR CONTROLLERS')
+        self.WriteString('###')
+        n = len(self.dct_list)
+        self.WriteString('{} # number of door controllers'.format(n))
+        for dc in self.dct_list:
+            self.WriteString(dc.name)
+            self.WriteVector3(dc.position)
+            self.WriteMatrix4(dc.rotation)
+            self.WriteVector3(dc.halfdims)
+            self.WriteInt(dc.door)
+            self.WriteString(dc.anim_default)
+            self.WriteString(dc.anim_enter)
+            self.WriteString(dc.anim_leave)
+            self.WriteString(dc.sound_enter)
+            self.WriteString(dc.sound_leave)
 
     ##
     #  @brief
@@ -436,6 +451,7 @@ class WorldUTFExporter:
 
             # otherwise static model is valid
             mi = ModelInstance()
+            mi.name = item.name
             mi.model = gmap[group.name]
             mi.position = item.matrix_world * item.location
             mi.rotation = item.matrix_world * item.matrix_local
@@ -472,7 +488,6 @@ class WorldUTFExporter:
             dm.link_path = mdlobj['link_path']
             dm.link_file = mdlobj['link_file']
             self.dynamic_models.append(dm)
-            print('adding ' + dm.group)
         
     ##
     #  @brief
@@ -516,6 +531,7 @@ class WorldUTFExporter:
 
             # otherwise static model is valid
             mi = ModelInstance()
+            mi.name = item.name
             mi.model = gmap[group.name]
             mi.position = item.matrix_world * item.location
             mi.rotation = item.matrix_world * item.matrix_local
@@ -533,12 +549,9 @@ class WorldUTFExporter:
         if object.type != 'EMPTY': raise Exception('Sound lists must be EMPTY Blender objects.')
 
         # nothing to do
-        if len(object.children) == 0:
-            print("SOUNDLIST HAS NO CHILDREN")
-            return
-        else:
-            print("SOUNDLIST HAS CHILDREN")
+        if len(object.children) == 0:  return
 
+        # for each child
         for child in object.children:
         
             # nothing to do
@@ -561,7 +574,7 @@ class WorldUTFExporter:
     #  @details 
     def ProcessCameraAnimation(self, object):
 
-        # must be a Plain Axes or Mesh Group object
+        # must be a Plain Axes or Group object
         self.cam_list = []
         if object.type != 'EMPTY': raise Exception('Camera animation object {} must be an EMPTY Blender object.'.format(object.name))
 
@@ -633,68 +646,64 @@ class WorldUTFExporter:
     ##
     #  @brief
     #  @details 
-    def ProcessDoorController(self, object):
+    def ProcessDoorControllerList(self, object):
 
-        # must be a Group object
-        if IsMeshGroup(object, 1) == False:
-            raise Exception('The door controller is a Blender mesh group object.')
+        # validate object
+        if object.type != 'EMPTY': raise Exception('Door controller list {} must be an EMPTY Blender object.'.format(object.name))
+        if len(object.children) == 0: return
 
-        # compute entity bounding box
-        min_v = [ object.bound_box[0][0], object.bound_box[0][1], object.bound_box[0][2] ]
-        max_v = [ object.bound_box[0][0], object.bound_box[0][1], object.bound_box[0][2] ]
-        for p in object.bound_box:
-            v = object.matrix_world*mathutils.Vector(p)
-            if v[0] < min_v[0]: min_v[0] = v[0]
-            if v[1] < min_v[1]: min_v[1] = v[1]
-            if v[2] < min_v[2]: min_v[2] = v[2]
-            if max_v[0] < v[0]: max_v[0] = v[0]
-            if max_v[1] < v[1]: max_v[1] = v[1]
-            if max_v[2] < v[2]: max_v[2] = v[2]
-        rv = BoundingBox()
-        rv.position = object.location
-        rv.rotation = object.rotation_quaternion
-        rv.halfdims = [(max_v[0] - min_v[0])/2.0, (max_v[1] - min_v[1])/2.0, (max_v[2] - min_v[2])/2.0]
+        # create a group map to map names to indices
+        gmap = {}
+        for i, item in enumerate(self.dmi_list):
+            print('name = {}'.format(item.name))
+            gmap[item.name] = i
 
-        # initialize entity
-        dc = DoorController()
-        dc.name         = object.name
-        dc.bbox         = rv
-        dc.door         = 'door_model'
-        dc.anim_default = 'none'
-        dc.anim_enter   = 'none'
-        dc.anim_leave   = 'none'
-        dc.sound_enter  = 'none'
-        dc.sound_leave  = 'none'
+        # process children, appending in case there are multiple lists
+        for item in object.children:
 
-        # insert entity
-        self.door_controllers.append(dc)
+            # child must be a GROUP
+            pf = '{}[{}] '.format(object.name, item.name)
+            if item.type != 'EMPTY': raise Exception(pf + 'must be an EMPTY Blender object.')
+            if item.dupli_type != 'GROUP': raise Exception(pf + 'must reference a Blender mesh group object.')
 
-    ##
-    #  @brief
-    #  @details 
-    def ExportDoorControllers(self):
+            # child must be a valid GROUP object
+            group = item.dupli_group
+            if group is None: raise Exception(pf + 'must reference a valid Blender mesh group object.')
+            if len(group.objects) == 0: raise Exception(pf + 'is a Blender mesh group that contains no meshes.')
 
-        self.file.write('###\n')
-        self.file.write('### DOOR CONTROLLERS\n')
-        self.file.write('###\n')
-        
-        # save number of camera animations
-        n = len(self.door_controllers)
-        self.file.write('{} # number of door controllers\n'.format(n))
+            # compute entity bounding box
+            min_v = [ object.bound_box[0][0], object.bound_box[0][1], object.bound_box[0][2] ]
+            max_v = [ object.bound_box[0][0], object.bound_box[0][1], object.bound_box[0][2] ]
+            for pt in object.bound_box:
+                v = object.matrix_world*mathutils.Vector(pt)
+                if v[0] < min_v[0]: min_v[0] = v[0]
+                if v[1] < min_v[1]: min_v[1] = v[1]
+                if v[2] < min_v[2]: min_v[2] = v[2]
+                if max_v[0] < v[0]: max_v[0] = v[0]
+                if max_v[1] < v[1]: max_v[1] = v[1]
+                if max_v[2] < v[2]: max_v[2] = v[2]
 
-        # save camera animations
-        for dc in self.door_controllers:
+            # door must exist in DYNAMIC_MODEL_LIST
+            if 'door' not in item: raise Exception(pf + ' missing \"door\" declaration.')
+            door = item['door']
+            if door not in gmap:
+                raise Exception(pf + 'must reference a model from a dynamic model instance list.'.format(door))
 
-            # save camera animation properties
-            self.WriteString(dc.name)
-            self.WriteVector3(dc.bbox.position)
-            self.WriteVector4(dc.bbox.rotation)
-            self.WriteVector3(dc.bbox.halfdims)
-            self.WriteString(dc.anim_default)
-            self.WriteString(dc.anim_enter)
-            self.WriteString(dc.anim_leave)
-            self.WriteString(dc.sound_enter)
-            self.WriteString(dc.sound_leave)
+            # initialize door controller
+            dc = DoorController()
+            dc.name         = item.name
+            dc.position     = item.matrix_world * item.location
+            dc.rotation     = item.matrix_world * item.matrix_local
+            dc.halfdims     = [(max_v[0] - min_v[0])/2.0, (max_v[1] - min_v[1])/2.0, (max_v[2] - min_v[2])/2.0]
+            dc.door         = gmap[door]
+            dc.anim_default = 'none'
+            dc.anim_enter   = 'none'
+            dc.anim_leave   = 'none'
+            dc.sound_enter  = 'none'
+            dc.sound_leave  = 'none'
+
+            # insert entity
+            self.dct_list.append(dc)
 
 ##
 #  @brief   ExportWorldUTF Blender operator.
