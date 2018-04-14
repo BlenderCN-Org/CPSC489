@@ -394,6 +394,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="scripts\blender\cs489menu.py" />
     <None Include="scripts\blender\exportUTF.py" />
     <None Include="scripts\blender\ExportWorldUTF.py" />
     <None Include="scripts\blender\importUTF.py" />

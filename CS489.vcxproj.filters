@@ -457,5 +457,8 @@
     <None Include="scripts\blender\Tools.py">
       <Filter>Script Files</Filter>
     </None>
+    <None Include="scripts\blender\cs489menu.py">
+      <Filter>Script Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
