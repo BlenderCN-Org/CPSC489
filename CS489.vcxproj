@@ -394,11 +394,11 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="scripts\blender\cs489menu.py" />
     <None Include="scripts\blender\exportUTF.py" />
     <None Include="scripts\blender\ExportWorldUTF.py" />
     <None Include="scripts\blender\importUTF.py" />
     <None Include="scripts\blender\ImportWorldUTF.py" />
+    <None Include="scripts\blender\object_cs489.py" />
     <None Include="scripts\blender\Tools.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

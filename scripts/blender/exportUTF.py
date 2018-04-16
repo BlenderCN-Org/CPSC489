@@ -92,6 +92,11 @@ def InPoseMode(self): return (bpy.context.mode == 'POSE')
 # OBJECT FUNCTIONS
 #
 def GetObjects(): return bpy.data.objects
+def GetSelectedObjects():
+    rv = []
+    for obj in bpy.data.objects:
+        if obj.select: rv.append(obj)
+    return rv
 def IsArmatureObject(obj): return (True if obj.type == 'ARMATURE' else False)
 def IsMeshObject(obj): return (True if obj.type == 'MESH' else False)
 def GetArmatureObjects():

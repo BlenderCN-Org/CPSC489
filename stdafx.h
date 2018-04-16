@@ -94,6 +94,7 @@
 #include<boost/algorithm/string/split.hpp>
 #include<boost/algorithm/string/trim.hpp>
 #include<boost/algorithm/string/trim_all.hpp>
+#include<boost/signals2.hpp>
 #endif
 
 //
