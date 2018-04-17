@@ -128,84 +128,71 @@ def IsMusicHolder(obj): return IsEntity(obj, 'MUSIC_HOLDER')
 
 #endregion
 
-#region CAMERA_OPERATORS
-
+#
+# CAMERA OPERATORS
+#
+#region
 class MarkCameraAnimationListOp(bpy.types.Operator):
-
-    bl_idname = 'cs489.mark_calist_op'
+    #
+    bl_idname = 'cs489.mark_camlist_op'
     bl_label = 'CS489'
-    
     # menuitem is enabled only if objects are selected
     @classmethod
     def poll(cls, context):
         objlist = GetSelectedObjects()
         return True if len(objlist) > 0 else False
-    
     # menuitem is invoked
     def invoke(self, context, event):
         return self.execute(context)
-
     # called by invoke
     def execute(self, context):
-
+        #
         objlist = GetSelectedObjects()
         for object in objlist:
             if IsEmptyObject(object):
                 InsertProperty(object, 'entity_type', 'CAMERA_ANIMATION_LIST')
-
         # redraw properties panel
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
-
         return {'FINISHED'}
-
 class UnmarkCameraAnimationListOp(bpy.types.Operator):
-
-    bl_idname = 'cs489.unmark_calist_op'
+    #
+    bl_idname = 'cs489.unmark_camlist_op'
     bl_label = 'CS489'
-    
     # menuitem is enabled only if objects are selected
     @classmethod
     def poll(cls, context):
         objlist = GetSelectedObjects()
         return True if len(objlist) > 0 else False
-    
     # menuitem is invoked
     def invoke(self, context, event):
         return self.execute(context)
-
     # called by invoke
     def execute(self, context):
-
+        #
         objlist = GetSelectedObjects()
         for object in objlist:
             if IsCameraAnimationList(object):
                 RemoveProperty(object, 'entity_type')
-
         # redraw properties panel
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
-
         return {'FINISHED'}
-
 class MarkCameraMarkerOp(bpy.types.Operator):
-
-    bl_idname = 'cs489.mark_camark_op'
+    #
+    bl_idname = 'cs489.mark_cammark_op'
     bl_label = 'CS489'
-    
     # menuitem is enabled only if objects are selected
     @classmethod
     def poll(cls, context):
         objlist = GetSelectedObjects()
         return True if len(objlist) > 0 else False
-    
     # menuitem is invoked
     def invoke(self, context, event):
         return self.execute(context)
-
     # called by invoke
     def execute(self, context):
-
+        #
         objlist = GetSelectedObjects()
         index = 0
         time = 0.0
@@ -220,13 +207,10 @@ class MarkCameraMarkerOp(bpy.types.Operator):
                 InsertProperty(object, 'stop', False)
                 index = index + 1
                 time = time + 1.0
-
         # redraw properties panel
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
-
         return {'FINISHED'}
-
 class UnmarkCameraMarkerOp(bpy.types.Operator):
     #
     bl_idname = 'cs489.unmark_camark_op'
@@ -255,7 +239,6 @@ class UnmarkCameraMarkerOp(bpy.types.Operator):
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
         return {'FINISHED'}
-
 #endregion
 
 #
@@ -327,12 +310,14 @@ class MarkDoorControllerOp(bpy.types.Operator):
         for object in objlist:
             if IsEmptyObject(object):
                 InsertProperty(object, 'entity_type', 'DOOR_CONTROLLER')
-                InsertProperty(object, 'door', 'doorname')
-                InsertProperty(object, 'anim_idle', 'animname')
-                InsertProperty(object, 'anim_open', 'animname')
-                InsertProperty(object, 'anim_close', 'animname')
-                InsertProperty(object, 'sound_open', 'soundname')
-                InsertProperty(object, 'sound_close', 'soundname')
+                InsertProperty(object, 'door', '')
+                InsertProperty(object, 'anim_idle', '')
+                InsertProperty(object, 'anim_open', '')
+                InsertProperty(object, 'anim_close', '')
+                InsertProperty(object, 'sound_open', '')
+                InsertProperty(object, 'sound_close', '')
+                InsertProperty(object, 'stay_open', False)
+                InsertProperty(object, 'close_timer', 5.0)
         # redraw properties panel
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
@@ -477,10 +462,10 @@ class CS489PopupMenu(bpy.types.Menu):
     bl_label = 'CS489'
     def draw(self, context):
         self.layout.operator_context = 'INVOKE_DEFAULT'
-        self.layout.operator(MarkMusicListOp.bl_idname, text='Mark Music List')
-        self.layout.operator(UnmarkMusicListOp.bl_idname, text='Unmark Music List')
-        self.layout.operator(MarkMusicHolder.bl_idname, text='Mark Music Holder')
-        self.layout.operator(UnmarkMusicHolder.bl_idname, text='Unmark Music Holder')
+        self.layout.operator(MarkMusicListOp.bl_idname, text='Mark Music Holder List')
+        self.layout.operator(UnmarkMusicListOp.bl_idname, text='Unmark Music Holder List')
+        self.layout.operator(MarkMusicHolderOp.bl_idname, text='Mark Music Holder')
+        self.layout.operator(UnmarkMusicHolderOp.bl_idname, text='Unmark Music Holder')
         self.layout.separator()
         self.layout.operator(MarkCameraAnimationListOp.bl_idname, text='Mark Camera Animation List')
         self.layout.operator(UnmarkCameraAnimationListOp.bl_idname, text='Unmark Camera Animation List')
@@ -491,8 +476,6 @@ class CS489PopupMenu(bpy.types.Menu):
         self.layout.operator(UnmarkDoorControllerListOp.bl_idname, text='Unmark Door Controller List')
         self.layout.operator(MarkDoorControllerOp.bl_idname, text='Mark Door Controller')
         self.layout.operator(UnmarkDoorControllerOp.bl_idname, text='Unmark Door Controller')
-        self.layout.separator()
-
         
 # define menuitem
 def InsertDCProps_MenuFunction(self, context):

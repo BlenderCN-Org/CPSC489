@@ -94,6 +94,8 @@ class DoorController:
     # anim_leave   - string
     # sound_enter  - string
     # sound_leave  - string
+    # close_timer  - real32
+    # stay_open    - bool
     pass
 
 def IsMeshObject(obj):
@@ -165,6 +167,7 @@ class WorldUTFExporter:
     static_models = []
     dynamic_models = []
     soundlist = []
+    sounddict = {}
 
     # instance lists
     smi_list = []
@@ -373,11 +376,13 @@ class WorldUTFExporter:
             self.WriteMatrix4(dc.rotation)
             self.WriteVector3(dc.halfdims)
             self.WriteInt(dc.door)
-            self.WriteString(dc.anim_default)
-            self.WriteString(dc.anim_enter)
-            self.WriteString(dc.anim_leave)
+            self.WriteString('[' + dc.anim_default + ']')
+            self.WriteString('[' + dc.anim_enter + ']')
+            self.WriteString('[' + dc.anim_leave + ']')
             self.WriteString(dc.sound_enter)
             self.WriteString(dc.sound_leave)
+            self.WriteFloat(dc.close_timer)
+            self.WriteInt(dc.stay_open)
 
     ##
     #  @brief
@@ -559,14 +564,20 @@ class WorldUTFExporter:
 
             # must have path and file defined
             msg = 'Sound list \"{}\" contains an item \"{}\" with missing \"{}\" declaration.'
-            if 'link_path' not in child: raise Exception(msg.format(object.name, mdlobj.name, 'link_path'))
-            if 'link_file' not in child: raise Exception(msg.format(object.name, mdlobj.name, 'link_file'))
+            if 'link_path' not in child: raise Exception(msg.format(object.name, child.name, 'link_path'))
+            if 'link_file' not in child: raise Exception(msg.format(object.name, child.name, 'link_file'))
         
             # otherwise static model is valid
             item = SoundItem()
+            item.name = child.name
             item.link_path = child['link_path']
             item.link_file = child['link_file']
             self.soundlist.append(item)
+
+        # build a dictionary to map <item.name> to <index>
+        self.sounddict = {}
+        for i, item in enumerate(self.soundlist):
+            self.sounddict[item.name] = i
  
 
     ##
@@ -696,11 +707,16 @@ class WorldUTFExporter:
             dc.rotation     = item.matrix_world * item.matrix_local
             dc.halfdims     = [(max_v[0] - min_v[0])/2.0, (max_v[1] - min_v[1])/2.0, (max_v[2] - min_v[2])/2.0]
             dc.door         = gmap[door]
-            dc.anim_default = 'none'
-            dc.anim_enter   = 'none'
-            dc.anim_leave   = 'none'
-            dc.sound_enter  = 'none'
-            dc.sound_leave  = 'none'
+            dc.anim_default = '' if 'anim_idle' not in item else item['anim_idle']
+            dc.anim_enter   = '' if 'anim_open' not in item else item['anim_open']
+            dc.anim_leave   = '' if 'anim_close' not in item else item['anim_close']
+            dc.sound_enter  = '' if 'sound_open' not in item else item['sound_open']
+            dc.sound_leave  = '' if 'sound_close' not in item else item['sound_close']
+            dc.close_timer  = 5.0 if 'close_timer' not in item else item['close_timer']
+            if 'stay_open' in item:
+                dc.stay_open = False if item['stay_open'] == 0 else True
+            else:
+                dc.stay_open = False
 
             # insert entity
             self.dct_list.append(dc)
