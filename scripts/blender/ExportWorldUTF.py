@@ -92,8 +92,8 @@ class DoorController:
     # anim_default - string
     # anim_enter   - string
     # anim_leave   - string
-    # sound_enter  - string
-    # sound_leave  - string
+    # sound_enter  - int
+    # sound_leave  - int
     # close_timer  - real32
     # stay_open    - bool
     pass
@@ -376,11 +376,11 @@ class WorldUTFExporter:
             self.WriteMatrix4(dc.rotation)
             self.WriteVector3(dc.halfdims)
             self.WriteInt(dc.door)
-            self.WriteString('[' + dc.anim_default + ']')
-            self.WriteString('[' + dc.anim_enter + ']')
-            self.WriteString('[' + dc.anim_leave + ']')
-            self.WriteString(dc.sound_enter)
-            self.WriteString(dc.sound_leave)
+            self.WriteString('-' + dc.anim_default)
+            self.WriteString('-' + dc.anim_enter)
+            self.WriteString('-' + dc.anim_leave)
+            self.WriteInt(dc.sound_enter)
+            self.WriteInt(dc.sound_leave)
             self.WriteFloat(dc.close_timer)
             self.WriteInt(dc.stay_open)
 
@@ -700,6 +700,16 @@ class WorldUTFExporter:
             if door not in gmap:
                 raise Exception(pf + 'must reference a model from a dynamic model instance list.'.format(door))
 
+            # lookup sound references
+            sndo = -1
+            sndc = -1
+            if 'sound_open' in item:
+                name = item['sound_open']
+                if name in self.sounddict: sndo = self.sounddict[name]
+            if 'sound_close' in item:
+                name = item['sound_close']
+                if name in self.sounddict: sndc = self.sounddict[name]
+
             # initialize door controller
             dc = DoorController()
             dc.name         = item.name
@@ -710,8 +720,8 @@ class WorldUTFExporter:
             dc.anim_default = '' if 'anim_idle' not in item else item['anim_idle']
             dc.anim_enter   = '' if 'anim_open' not in item else item['anim_open']
             dc.anim_leave   = '' if 'anim_close' not in item else item['anim_close']
-            dc.sound_enter  = '' if 'sound_open' not in item else item['sound_open']
-            dc.sound_leave  = '' if 'sound_close' not in item else item['sound_close']
+            dc.sound_enter  = sndo
+            dc.sound_leave  = sndc
             dc.close_timer  = 5.0 if 'close_timer' not in item else item['close_timer']
             if 'stay_open' in item:
                 dc.stay_open = False if item['stay_open'] == 0 else True
