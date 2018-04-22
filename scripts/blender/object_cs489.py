@@ -454,6 +454,13 @@ class UnmarkMusicHolderOp(bpy.types.Operator):
         return {'FINISHED'}
 #endregion
 
+#
+# EXTRA OPERATORS
+#
+#region
+#endregion
+
+
 ## @brief   CS489 Popup Menu
 #  @details Use this class to define the popup menu items that are going to appear under the CS489
 #           menuitem.
@@ -476,6 +483,7 @@ class CS489PopupMenu(bpy.types.Menu):
         self.layout.operator(UnmarkDoorControllerListOp.bl_idname, text='Unmark Door Controller List')
         self.layout.operator(MarkDoorControllerOp.bl_idname, text='Mark Door Controller')
         self.layout.operator(UnmarkDoorControllerOp.bl_idname, text='Unmark Door Controller')
+        #self.layout.separator()
         
 # define menuitem
 def InsertDCProps_MenuFunction(self, context):

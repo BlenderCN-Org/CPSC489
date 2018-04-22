@@ -21,6 +21,7 @@
 #
 # PYTHON IMPORTS
 #
+import math
 import os
 import re
 
@@ -67,6 +68,7 @@ class SoundItem:
     # link_file - string
     pass
 class CameraMarker:
+    # name              - string
     # position          - vector3
     # rotation          - matrix4
     # euler_angle       - vector3
@@ -97,6 +99,12 @@ class DoorController:
     # close_timer  - real32
     # stay_open    - bool
     pass
+class Portal:
+    # name - string
+    # type - uint32
+    # vb   - vector3[]
+    # ib   - uint32[]
+    pass
 
 def IsMeshObject(obj):
     return (True if obj.type == 'MESH' else False)
@@ -119,12 +127,31 @@ def GetMeshGroupObjects(obj):
 #  @brief   Gets rid of annoying small values.
 #  @details 
 def ClearVector(v):
+    # zero check
     for i in range(len(v)):
-        if abs(v[i]) < 1.0e-5: v[i] = 0.0
+        if abs(v[i]) < 1.0e-4: v[i] = 0.0
+    # integer check
+    for i in range(len(v)):
+        if v[i] > 0:
+            t = math.modf(v[i])
+            if t[0] < 1.0e-4: v[i] = t[1]
+            elif (1.0 - t[0]) < 1.0e-4: v[i] = t[1] + 1.0
+        elif v[i] < 0:
+            t = math.modf(-v[i])
+            if t[0] < 1.0e-4: v[i] = -t[1]
+            elif (1.0 - t[0]) < 1.0e-4: v[i] = -t[1] - 1.0
+
 def ClearMatrix(m):
     for r in range(4):
         for c in range(4):
-            if abs(m[r][c]) < 1.0e-5: m[r][c] = 0.0
+            if m[r][c] > 0:
+                t = math.modf(m[r][c])
+                if t[0] < 1.0e-4: m[r][c] = t[1]
+                elif (1.0 - t[0]) < 1.0e-4: m[r][c] = t[1] + 1.0
+            elif m[r][c] < 0:
+                t = math.modf(-m[r][c])
+                if t[0] < 1.0e-4: m[r][c] = -t[1]
+                elif (1.0 - t[0]) < 1.0e-4: m[r][c] = -t[1] - 1.0
 
 #region DOOR CONTROLLER FUNCTIONS
 
@@ -177,6 +204,9 @@ class WorldUTFExporter:
     cam_list = []
     dct_list = []
 
+    # portal list
+    portal_list = []
+
     ##
     #  @brief
     #  @details 
@@ -212,11 +242,15 @@ class WorldUTFExporter:
     #  @brief
     #  @details 
     def WriteMatrix4(self, m):
-        self.file.write('{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n'.format(
-            m[0][0], m[0][1], m[0][2], m[0][3],
-            m[1][0], m[1][1], m[1][2], m[1][3],
-            m[2][0], m[2][1], m[2][2], m[2][3],
-            m[3][0], m[3][1], m[3][2], m[3][3]))
+        # tmp1 = '{0:.6f} {0:.6f} {0:.6f} {0:.6f}'.format(m[0][0], m[0][1], m[0][2], m[0][3])
+        # tmp2 = '{0:.6f} {0:.6f} {0:.6f} {0:.6f}'.format(m[1][0], m[1][1], m[1][2], m[1][3])
+        # tmp3 = '{0:.6f} {0:.6f} {0:.6f} {0:.6f}'.format(m[2][0], m[2][1], m[2][2], m[2][3])
+        # tmp4 = '{0:.6f} {0:.6f} {0:.6f} {0:.6f}'.format(m[3][0], m[3][1], m[3][2], m[3][3])
+        tmp1 = '{} {} {} {}'.format(m[0][0], m[0][1], m[0][2], m[0][3])
+        tmp2 = '{} {} {} {}'.format(m[1][0], m[1][1], m[1][2], m[1][3])
+        tmp3 = '{} {} {} {}'.format(m[2][0], m[2][1], m[2][2], m[2][3])
+        tmp4 = '{} {} {} {}'.format(m[3][0], m[3][1], m[3][2], m[3][3])
+        self.file.write(tmp1 + ' ' + tmp2 + ' ' + tmp3 + ' ' + tmp4 + '\n')
 
     ##
     #  @brief
@@ -250,6 +284,9 @@ class WorldUTFExporter:
         if bpy.context.mode != 'OBJECT': bpy.ops.object.mode_set(mode='OBJECT')
         self.ExamineObjects()
         if prev_mode != bpy.context.mode: bpy.ops.object.mode_set(mode=prev_mode)
+
+        # export objects
+        self.ExportObjects()
 
     ##
     #  @brief
@@ -288,13 +325,30 @@ class WorldUTFExporter:
         for object in bpy.data.objects:
             if 'entity_type' not in object: continue
             entity_type = object['entity_type']
-            if entity_type == 'CAMERA_ANIMATION': self.ProcessCameraAnimation(object)
+            if entity_type == 'CAMERA_ANIMATION_LIST': self.ProcessCameraAnimationList(object)
 
         # process door controllers
         for object in bpy.data.objects:
             if 'entity_type' not in object: continue
             entity_type = object['entity_type']
             if entity_type == 'DOOR_CONTROLLER_LIST': self.ProcessDoorControllerList(object)
+
+        # process portals
+        for object in bpy.data.objects:
+            if 'entity_type' not in object: continue
+            entity_type = object['entity_type']
+            if entity_type == 'PORTAL_LIST': self.ProcessPortalList(object)
+
+        # process cells
+        for object in bpy.data.objects:
+            if 'entity_type' not in object: continue
+            entity_type = object['entity_type']
+            if entity_type == 'CELL_LIST': self.ProcessCellList(object)
+
+    ##
+    #  @brief
+    #  @details 
+    def ExportObjects(self):
 
         # save static models
         self.WriteString('###')
@@ -327,6 +381,7 @@ class WorldUTFExporter:
         n = len(self.smi_list)
         self.WriteString('{} # number of static model instances'.format(n))
         for item in self.smi_list:
+            self.WriteString(item.name)
             self.WriteInt(item.model)
             self.WriteVector3(item.position)
             self.WriteMatrix4(item.rotation)
@@ -338,6 +393,7 @@ class WorldUTFExporter:
         n = len(self.dmi_list)
         self.WriteString('{} # number of dynamic model instances'.format(n))
         for item in self.dmi_list:
+            self.WriteString(item.name)
             self.WriteInt(item.model)
             self.WriteVector3(item.position)
             self.WriteMatrix4(item.rotation)
@@ -355,6 +411,7 @@ class WorldUTFExporter:
             self.WriteInt(cao.start)
             self.WriteString('{} # of camera markers'.format(len(cao.markers)))
             for marker in cao.markers:
+                self.WriteString(marker.name)
                 self.WriteVector3(marker.position)
                 self.WriteMatrix4(marker.rotation)
                 self.WriteVector3(marker.euler_angle)
@@ -383,6 +440,22 @@ class WorldUTFExporter:
             self.WriteInt(dc.sound_leave)
             self.WriteFloat(dc.close_timer)
             self.WriteInt(dc.stay_open)
+
+        # save portals
+        self.WriteString('###')
+        self.WriteString('### PORTALS')
+        self.WriteString('###')
+        n = len(self.dct_list)
+        self.WriteString('{} # number of portals'.format(n))
+        for portal in self.portal_list:
+            self.WriteString(portal.name)
+            self.WriteInt(portal.type)
+            self.WriteVector3(portal.vb[0])
+            self.WriteVector3(portal.vb[1])
+            self.WriteVector3(portal.vb[2])
+            if portal.type == 4: self.WriteVector3(portal.vb[3])
+            if portal.type == 3: self.WriteVector3(portal.ib)
+            if portal.type == 4: self.WriteVector4(portal.ib)
 
     ##
     #  @brief
@@ -458,8 +531,8 @@ class WorldUTFExporter:
             mi = ModelInstance()
             mi.name = item.name
             mi.model = gmap[group.name]
-            mi.position = item.matrix_world * item.location
-            mi.rotation = item.matrix_world * item.matrix_local
+            mi.position = item.location
+            mi.rotation = item.matrix_world
             ClearVector(mi.position)
             ClearMatrix(mi.rotation)
             self.smi_list.append(mi)
@@ -538,8 +611,8 @@ class WorldUTFExporter:
             mi = ModelInstance()
             mi.name = item.name
             mi.model = gmap[group.name]
-            mi.position = item.matrix_world * item.location
-            mi.rotation = item.matrix_world * item.matrix_local
+            mi.position = item.location
+            mi.rotation = item.matrix_world
             ClearVector(mi.position)
             ClearMatrix(mi.rotation)
             self.dmi_list.append(mi)
@@ -579,15 +652,17 @@ class WorldUTFExporter:
         for i, item in enumerate(self.soundlist):
             self.sounddict[item.name] = i
  
-
     ##
     #  @brief
     #  @details 
-    def ProcessCameraAnimation(self, object):
+    def ProcessCameraAnimationList(self, object):
+
+        if object is None: raise Exception('Invalid argument.')
+        pf1 = '{} '.format(object.name)
 
         # must be a Plain Axes or Group object
         self.cam_list = []
-        if object.type != 'EMPTY': raise Exception('Camera animation object {} must be an EMPTY Blender object.'.format(object.name))
+        if object.type != 'EMPTY': raise Exception(pf1 + 'must be an EMPTY Blender object.')
 
         # nothing to do
         if len(object.children) == 0: return
@@ -607,14 +682,14 @@ class WorldUTFExporter:
         for item in object.children:
 
             # child must be an EMPTY GROUP
-            pf = '{}[{}] '.format(object.name, item.name)
-            if item.type != 'EMPTY': raise Exception(pf + 'must be an EMPTY Blender object.')
-            if item.dupli_type != 'GROUP': raise Exception(pf + 'must reference a Blender mesh group object.')
+            pf2 = '{}[{}] '.format(object.name, item.name)
+            if item.type != 'EMPTY': raise Exception(pf2 + 'must be an EMPTY Blender object.')
+            if item.dupli_type != 'GROUP': raise Exception(pf2 + 'must reference a Blender mesh group object.')
 
             # child must be a valid GROUP object
             group = item.dupli_group
-            if group is None: raise Exception(pf + 'must reference a valid Blender group object.')
-            if len(group.objects) == 0: raise Exception(pf + 'is a Blender mesh group that contains no meshes.')
+            if group is None: raise Exception(pf2 + 'must reference a valid Blender group object.')
+            if len(group.objects) == 0: raise Exception(pf2 + 'is a Blender mesh group that contains no meshes.')
 
             # must be a DYNAMIC_MODEL
             if 'entity_type' in item:
@@ -625,17 +700,15 @@ class WorldUTFExporter:
  
             # initialize a camera animation object
             cmo = CameraMarker()
-            cmo.position = item.matrix_world * item.location
-            cmo.rotation = item.matrix_world * item.matrix_local
+            cmo.name = item.name
+            cmo.position = item.location
+            cmo.rotation = item.matrix_world
             cmo.euler_angle       = item.rotation_euler
             cmo.index             = index
             cmo.speed             = 1.0
             cmo.interpolate_speed = True
             cmo.fovy              = 60.0
             cmo.interpolate_fovy  = True
-            ClearVector(cmo.position)
-            ClearMatrix(cmo.rotation)
-            ClearVector(cmo.euler_angle)
 
             # read properties (if present)
             if 'index' in item: cmo.index = int(item['index'])
@@ -646,6 +719,11 @@ class WorldUTFExporter:
 
             # validate properties
             # TODO: finish this
+
+            # small numbers are annoying
+            ClearVector(cmo.position)
+            ClearMatrix(cmo.rotation)
+            ClearVector(cmo.euler_angle)
 
             # append marker object and increment index
             cao.markers.append(cmo)
@@ -660,7 +738,7 @@ class WorldUTFExporter:
     def ProcessDoorControllerList(self, object):
 
         # validate object
-        if object.type != 'EMPTY': raise Exception('Door controller list {} must be an EMPTY Blender object.'.format(object.name))
+        if object.type != 'EMPTY': raise Exception('{} must be an EMPTY Blender object.'.format(object.name))
         if len(object.children) == 0: return
 
         # create a group map to map names to indices
@@ -680,13 +758,18 @@ class WorldUTFExporter:
             # child must be a valid GROUP object
             group = item.dupli_group
             if group is None: raise Exception(pf + 'must reference a valid Blender mesh group object.')
-            if len(group.objects) == 0: raise Exception(pf + 'is a Blender mesh group that contains no meshes.')
+            if len(group.objects) == 0: raise Exception(pf + 'is an invalid Blender mesh group object.')
+            if group.objects[0].type != 'MESH': raise Exception(pf + 'is an invalid Blender mesh group object.')
+
+            # get mesh object and its bounding box
+            meshobj = group.objects[0]
+            bb = group.objects[0].bound_box
 
             # compute entity bounding box
-            min_v = [ object.bound_box[0][0], object.bound_box[0][1], object.bound_box[0][2] ]
-            max_v = [ object.bound_box[0][0], object.bound_box[0][1], object.bound_box[0][2] ]
-            for pt in object.bound_box:
-                v = object.matrix_world*mathutils.Vector(pt)
+            min_v = [ bb[0][0], bb[0][1], bb[0][2] ]
+            max_v = [ bb[0][0], bb[0][1], bb[0][2] ]
+            for pt in bb:
+                v = mathutils.Vector(pt)
                 if v[0] < min_v[0]: min_v[0] = v[0]
                 if v[1] < min_v[1]: min_v[1] = v[1]
                 if v[2] < min_v[2]: min_v[2] = v[2]
@@ -713,8 +796,8 @@ class WorldUTFExporter:
             # initialize door controller
             dc = DoorController()
             dc.name         = item.name
-            dc.position     = item.matrix_world * item.location
-            dc.rotation     = item.matrix_world * item.matrix_local
+            dc.position     = item.matrix_world * meshobj.location
+            dc.rotation     = item.matrix_world * meshobj.matrix_local
             dc.halfdims     = [(max_v[0] - min_v[0])/2.0, (max_v[1] - min_v[1])/2.0, (max_v[2] - min_v[2])/2.0]
             dc.door         = gmap[door]
             dc.anim_default = '' if 'anim_idle' not in item else item['anim_idle']
@@ -730,6 +813,97 @@ class WorldUTFExporter:
 
             # insert entity
             self.dct_list.append(dc)
+
+    ##
+    #  @brief
+    #  @details 
+    def ProcessPortalList(self, object):
+
+        # Portals are just the windows that connect adjacent cells.
+        # Every cell needs to know what portals it needs to check.
+
+        # validate object
+        if object.type != 'EMPTY': raise Exception('{} must be an EMPTY Blender object.'.format(object.name))
+        if len(object.children) == 0: return
+
+        # process children, appending in case there are multiple lists
+        for item in object.children:
+
+            # meshobj must be a MESH or a GROUP MESH
+            pf = '{}[{}] '.format(object.name, item.name)
+            meshobj = None
+            if item.type == 'MESH':
+                meshobj = item
+            # child must be a GROUP
+            elif item.type == 'EMPTY' and item.dupli_type == 'GROUP':
+                if item.group is None: raise Exception(pf + 'is an invalid Blender mesh group object.')
+                if len(item.group) == 0: raise Exception(pf + 'is an invalid Blender mesh group object.')
+                meshobj = item.group[0]
+            # error
+            else:
+                raise Exception(pf + 'must be an EMPTY or MESH Blender object.')
+
+            # portals must have three or four vertices
+            verts = meshobj.data.vertices
+            n_verts = len(verts)
+            if (n_verts < 3) or (n_verts > 4): raise Exception(pf + 'must be a mesh with 3 or 4 vertices.')
+
+            # portal must have only one polygon
+            polys = meshobj.data.polygons
+            n_polys = len(polys)
+            if n_polys != 1: raise Exception(pf + 'must be a single polygon mesh.')
+
+            # portal must have three or four face indices
+            n_indices = len(meshobj.data.loops)
+            vb = None
+            ib = None
+            if n_verts == 3 and n_indices == 3:
+                vb = [verts[0].co, verts[1].co, verts[2].co]
+                ClearVector(vb[0])
+                ClearVector(vb[1])
+                ClearVector(vb[2])
+                ib = [meshobj.data.loops[0].vertex_index,
+                      meshobj.data.loops[1].vertex_index,
+                      meshobj.data.loops[2].vertex_index]
+            elif n_verts == 4 and n_indices == 4:
+                vb = [verts[0].co, verts[1].co, verts[2].co, verts[3].co]
+                ClearVector(vb[0])
+                ClearVector(vb[1])
+                ClearVector(vb[2])
+                ClearVector(vb[3])
+                ib = [meshobj.data.loops[0].vertex_index,
+                      meshobj.data.loops[1].vertex_index,
+                      meshobj.data.loops[2].vertex_index,
+                      meshobj.data.loops[3].vertex_index]
+            else:
+                print('n_verts = {} n_indices = {}'.format(n_verts, n_indices))
+                raise Exception(pf + 'must be a single polygon mesh with 3 or 4 vertices.')
+
+            # insert portal
+            portal = Portal()
+            portal.name = item.name
+            portal.type = n_verts
+            portal.vb = vb
+            portal.ib = ib
+            self.portal_list.append(portal)
+
+    ##
+    #  @brief
+    #  @details 
+    def ProcessCellList(self, object):
+
+        # validate object
+        if object.type != 'EMPTY': raise Exception('{} must be an EMPTY Blender object.'.format(object.name))
+        if len(object.children) == 0: return
+
+        # process children, appending in case there are multiple lists
+        for item in object.children:
+
+            # meshobj must be an EMPTY object
+            pf = '{}[{}] '.format(object.name, item.name)
+            if item.type != 'EMPTY': raise Exception(pf + 'must be an EMPTY Blender object.')
+
+
 
 ##
 #  @brief   ExportWorldUTF Blender operator.
