@@ -85,6 +85,24 @@ class CameraAnimation:
     # start    - uint16
     # markers  - CameraMarker[]
     pass
+class EntityMarker:
+    # name              - string
+    # position          - vector3
+    # rotation          - matrix4
+    # euler_angle       - vector3
+    # index             - uint32
+    # speed             - real32
+    # interpolate_speed - bool
+    # anim              - uint32 (animation to play)
+    # anim_loop         - bool   (repeat animation)
+    # sound             - uint32 (sound to play)
+    # sound_loop        - bool   (repeat sound)
+class EntityAnimation:
+    # name     - string
+    # position - vector3
+    # rotation - matrix4
+    # markers  - EntityMarker[]
+    pass
 class DoorController:
     # name         - string
     # position     - vector3
@@ -902,8 +920,6 @@ class WorldUTFExporter:
             # meshobj must be an EMPTY object
             pf = '{}[{}] '.format(object.name, item.name)
             if item.type != 'EMPTY': raise Exception(pf + 'must be an EMPTY Blender object.')
-
-
 
 ##
 #  @brief   ExportWorldUTF Blender operator.

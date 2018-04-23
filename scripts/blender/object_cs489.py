@@ -132,6 +132,7 @@ def IsMusicHolder(obj): return IsEntity(obj, 'MUSIC_HOLDER')
 # CAMERA OPERATORS
 #
 #region
+
 class MarkCameraAnimationListOp(bpy.types.Operator):
     #
     bl_idname = 'cs489.mark_camlist_op'
@@ -155,6 +156,7 @@ class MarkCameraAnimationListOp(bpy.types.Operator):
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
         return {'FINISHED'}
+
 class UnmarkCameraAnimationListOp(bpy.types.Operator):
     #
     bl_idname = 'cs489.unmark_camlist_op'
@@ -178,6 +180,7 @@ class UnmarkCameraAnimationListOp(bpy.types.Operator):
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
         return {'FINISHED'}
+
 class MarkCameraMarkerOp(bpy.types.Operator):
     #
     bl_idname = 'cs489.mark_cammark_op'
@@ -195,22 +198,21 @@ class MarkCameraMarkerOp(bpy.types.Operator):
         #
         objlist = GetSelectedObjects()
         index = 0
-        time = 0.0
         for object in objlist:
             if IsEmptyObject(object):
                 InsertProperty(object, 'entity_type', 'CAMERA_MARKER')
                 InsertProperty(object, 'index', index)
-                InsertProperty(object, 'time', time)
-                InsertProperty(object, 'iterpolate_time', True)
+                InsertProperty(object, 'speed', 1.0)
+                InsertProperty(object, 'iterpolate_speed', True)
                 InsertProperty(object, 'fovy', 60.0)
                 InsertProperty(object, 'iterpolate_fovy', True)
                 InsertProperty(object, 'stop', False)
                 index = index + 1
-                time = time + 1.0
         # redraw properties panel
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
         return {'FINISHED'}
+
 class UnmarkCameraMarkerOp(bpy.types.Operator):
     #
     bl_idname = 'cs489.unmark_camark_op'
@@ -230,8 +232,8 @@ class UnmarkCameraMarkerOp(bpy.types.Operator):
             if IsCameraMarker(object):
                 RemoveProperty(object, 'entity_type')
                 RemoveProperty(object, 'index')
-                RemoveProperty(object, 'time')
-                RemoveProperty(object, 'iterpolate_time')
+                RemoveProperty(object, 'speed')
+                RemoveProperty(object, 'iterpolate_speed')
                 RemoveProperty(object, 'fovy')
                 RemoveProperty(object, 'iterpolate_fovy')
                 RemoveProperty(object, 'stop')
@@ -239,6 +241,129 @@ class UnmarkCameraMarkerOp(bpy.types.Operator):
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
         return {'FINISHED'}
+
+#endregion
+
+#
+# ENTITY ANIMATION AND MARKER OPERATORS
+#
+#region
+
+class MarkEntityAnimationListOp(bpy.types.Operator):
+    #
+    bl_idname = 'cs489.mark_entity_anim_list_op'
+    bl_label = 'CS489'
+    # menuitem is enabled only if objects are selected
+    @classmethod
+    def poll(cls, context):
+        objlist = GetSelectedObjects()
+        return True if len(objlist) > 0 else False
+    # menuitem is invoked
+    def invoke(self, context, event):
+        return self.execute(context)
+    # called by invoke
+    def execute(self, context):
+        #
+        objlist = GetSelectedObjects()
+        for object in objlist:
+            if IsEmptyObject(object):
+                InsertProperty(object, 'entity_type', 'ENTITY_MARKER_ANIMATION')
+        # redraw properties panel
+        for area in bpy.context.screen.areas:
+            if area.type in ['PROPERTIES']: area.tag_redraw()
+        return {'FINISHED'}
+
+class UnmarkEntityAnimationListOp(bpy.types.Operator):
+    #
+    bl_idname = 'cs489.unmark_entity_anim_list_op'
+    bl_label = 'CS489'
+    # menuitem is enabled only if objects are selected
+    @classmethod
+    def poll(cls, context):
+        objlist = GetSelectedObjects()
+        return True if len(objlist) > 0 else False
+    # menuitem is invoked
+    def invoke(self, context, event):
+        return self.execute(context)
+    # called by invoke
+    def execute(self, context):
+        #
+        objlist = GetSelectedObjects()
+        for object in objlist:
+            if IsCameraAnimationList(object):
+                RemoveProperty(object, 'entity_type')
+        # redraw properties panel
+        for area in bpy.context.screen.areas:
+            if area.type in ['PROPERTIES']: area.tag_redraw()
+        return {'FINISHED'}
+
+class MarkEntityMarkerOp(bpy.types.Operator):
+    #
+    bl_idname = 'cs489.mark_entity_marker_op'
+    bl_label = 'CS489'
+    # menuitem is enabled only if objects are selected
+    @classmethod
+    def poll(cls, context):
+        objlist = GetSelectedObjects()
+        return True if len(objlist) > 0 else False
+    # menuitem is invoked
+    def invoke(self, context, event):
+        return self.execute(context)
+    # called by invoke
+    def execute(self, context):
+        #
+        objlist = GetSelectedObjects()
+        index = 0
+        time = 0.0
+        for object in objlist:
+            if IsEmptyObject(object):
+                InsertProperty(object, 'entity_type', 'ENTITY_MARKER')
+                InsertProperty(object, 'index', index)
+                InsertProperty(object, 'speed', time)
+                InsertProperty(object, 'iterpolate_speed', True)
+                InsertProperty(object, 'anim', -1)
+                InsertProperty(object, 'anim_loop', False)
+                InsertProperty(object, 'sound', -1)
+                InsertProperty(object, 'sound_loop', False)
+                InsertProperty(object, 'stop', False)
+                index = index + 1
+                time = time + 1.0
+        # redraw properties panel
+        for area in bpy.context.screen.areas:
+            if area.type in ['PROPERTIES']: area.tag_redraw()
+        return {'FINISHED'}
+
+class UnmarkEntityMarkerOp(bpy.types.Operator):
+    #
+    bl_idname = 'cs489.unmark_entity_marker_op'
+    bl_label = 'CS489'
+    # menuitem is enabled only if objects are selected
+    @classmethod
+    def poll(cls, context):
+        objlist = GetSelectedObjects()
+        return True if len(objlist) > 0 else False
+    # menuitem is invoked
+    def invoke(self, context, event):
+        return self.execute(context)
+    # called by invoke
+    def execute(self, context):
+        objlist = GetSelectedObjects()
+        for object in objlist:
+            if IsEntityMarker(object):
+                RemoveProperty(object, 'entity_type')
+                RemoveProperty(object, 'index')
+                RemoveProperty(object, 'speed')
+                RemoveProperty(object, 'iterpolate_speed')
+                RemoveProperty(object, 'anim')
+                RemoveProperty(object, 'anim_loop')
+                RemoveProperty(object, 'sound')
+                RemoveProperty(object, 'sound_loop')
+                RemoveProperty(object, 'stop')
+        # redraw properties panel
+        for area in bpy.context.screen.areas:
+            if area.type in ['PROPERTIES']: area.tag_redraw()
+        return {'FINISHED'}
+
 #endregion
 
 #
@@ -478,6 +603,11 @@ class CS489PopupMenu(bpy.types.Menu):
         self.layout.operator(UnmarkCameraAnimationListOp.bl_idname, text='Unmark Camera Animation List')
         self.layout.operator(MarkCameraMarkerOp.bl_idname, text='Mark Camera Marker')
         self.layout.operator(UnmarkCameraMarkerOp.bl_idname, text='Unmark Camera Marker')
+        self.layout.separator()
+        self.layout.operator(MarkEntityAnimationListOp.bl_idname, text='Mark Entity Animation List')
+        self.layout.operator(UnmarkEntityAnimationListOp.bl_idname, text='Unmark Entity Animation List')
+        self.layout.operator(MarkEntityMarkerOp.bl_idname, text='Mark Entity Marker')
+        self.layout.operator(UnmarkEntityMarkerOp.bl_idname, text='Unmark Entity Marker')
         self.layout.separator()
         self.layout.operator(MarkDoorControllerListOp.bl_idname, text='Mark Door Controller List')
         self.layout.operator(UnmarkDoorControllerListOp.bl_idname, text='Unmark Door Controller List')

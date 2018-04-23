@@ -83,7 +83,32 @@ If not defined, **fovy** is assumed to be 60 degrees. If defined, **fovy** must 
 * **interpolate_fovy** _(bool)_  
 Boolean flag to indicate whether or not the **fovy** property is interpolated between camera
 markers. The default value is True.
- 
+
+## Entity Placement
+
+### Entity Animations
+
+### Entity Markers
+
+* **entity_type** _(string enum)_
+This property must be set to 'ENTITY_MARKER' and is a requirement.
+* **index** _(uint16)_
+An ordinal value used to determine the order markers are visited. Blender stores objects in
+alphabetical order, and if 'index' is not specified, markers are visited in alphabetical order.
+* **speed** _(real32)_
+The speed, in meters per second, for which the entity moves once it hits this marker.
+Default value is one meter per second.
+* **interpolate_speed** _(bool)_  
+If defined and set to False, speed is not interpolated between markers and the current speed
+is always the speed of the last marker that the camera passed through. Default value is True.
+* **anim** _(int32)_
+Animation index to switch to when entity hits this marker. Default value is -1, which
+means no animation.
+* **anim_loop** _(bool)_
+* **sound** _(int32)_
+Sound index to play when entity hits this marker. Default value is -1 for no sound.
+* **sound_loop** _(bool)_
+
 ## Texture Objects
 
 * **path** _(string)_  
