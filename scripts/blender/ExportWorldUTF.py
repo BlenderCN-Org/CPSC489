@@ -62,6 +62,7 @@ class ModelInstance:
     # model
     # position
     # rotation
+    # halfdims
     pass
 class SoundItem:
     # link_path - string
@@ -126,8 +127,9 @@ class Portal:
     # ib   - uint32[]
     pass
 class PortalCell:
-    # instance - string
     # mesh     - string
+    # room     - string
+    # instance - string[]
     # connect  - string[]
     # portals  - string[]
     pass
@@ -139,12 +141,6 @@ def IsMeshGroup(obj):
     if obj.dupli_type != 'GROUP': return False
     if obj.dupli_group is None: return False
     return True
-def IsMeshGroup(obj, n):
-    if obj.type != 'EMPTY': return False
-    if obj.dupli_type != 'GROUP': return False
-    if obj.dupli_group is None: return False
-    if len(obj.dupli_group.objects) != n: return False
-    return True
 def GetMeshGroupObjects(obj):
     if IsMeshGroup(obj) == False: return None
     return obj.dupli_group.objects
@@ -154,7 +150,7 @@ def GetMeshGroupObjectsFromName(name):
             rv = []
             list = GetMeshGroupObjects(obj)
             for item in list:
-                if list.type == 'MESH': rv.append(item)
+                if item.type == 'MESH': rv.append(item)
             return rv
     return None
 
@@ -514,7 +510,7 @@ class WorldUTFExporter:
         self.WriteString('###')
         self.WriteString('### PORTALS')
         self.WriteString('###')
-        n = len(self.dct_list)
+        n = len(self.portal_list)
         self.WriteString('{} # number of portals'.format(n))
         for portal in self.portal_list:
             self.WriteString(portal.name)
@@ -525,6 +521,21 @@ class WorldUTFExporter:
             if portal.type == 4: self.WriteVector3(portal.vb[3])
             if portal.type == 3: self.WriteVector3(portal.ib)
             if portal.type == 4: self.WriteVector4(portal.ib)
+
+        # save cells
+        self.WriteString('###')
+        self.WriteString('### CELLS')
+        self.WriteString('###')
+        n = len(self.cell_list)
+        self.WriteString('{} # number of cells'.format(n))
+        for cell in self.cell_list:
+            self.WriteString(cell.mesh)
+            self.WriteString(cell.room)
+            self.WriteString('{} # number of connections'.format(len(cell.connect)))
+            for i in range(len(cell.connect)):
+                self.WriteString(cell.instance[i])
+                self.WriteString(cell.connect[i])
+                self.WriteString(cell.portals[i])
 
     ##
     #  @brief
@@ -938,7 +949,7 @@ class WorldUTFExporter:
             # initialize door controller
             dc = DoorController()
             dc.name         = item.name
-            dc.position     = item.matrix_world * meshobj.location
+            dc.position     = item.matrix_world * meshobj.location # is this correct???
             dc.rotation     = item.matrix_world * meshobj.matrix_local
             dc.halfdims     = [(max_v[0] - min_v[0])/2.0, (max_v[1] - min_v[1])/2.0, (max_v[2] - min_v[2])/2.0]
             dc.door         = gmap[door]
@@ -1034,18 +1045,11 @@ class WorldUTFExporter:
     #  @details 
     def ProcessCellList(self, object):
 
-        # class PortalCell:
-        #     # instance - string
-        #     # mesh     - string
-        #     # connect  - string[]
-        #     # portals  - string[]
-        #     pass
-
         # validate object
         if object.type != 'EMPTY': raise Exception('{} must be an EMPTY Blender object.'.format(object.name))
         if len(object.children) == 0: return
 
-        # create a group map to map names to indices (for static models)
+        # create a group map to map static model instance names to indices
         gmap = {}
         for i, item in enumerate(self.smi_list):
             print('name = {}'.format(item.name))
@@ -1066,16 +1070,74 @@ class WorldUTFExporter:
             else:
                 print('Warning: ' + pf + 'is missing the entity_type declaration. Assuming CELL.')
 
-            # instance must exist in STATIC_MODEL_INSTANCES
-            if 'instance' not in item: raise Exception(pf + ' missing \"instance\" declaration.')
-            instance = item['instance']
-            if instance not in gmap:
+            # mesh must exist in STATIC_MODEL_INSTANCES
+            if 'mesh' not in item: raise Exception(pf + 'missing \"mesh\" declaration.')
+            mesh = item['mesh']
+            if mesh not in gmap:
                 raise Exception(pf + 'must reference a model from a static model instance list.'.format(instance))
 
             # get mesh list from 'instance'
-            meshlist = GetMeshGroupObjectsFromName(instance)
+            meshlist = GetMeshGroupObjectsFromName(mesh)
             if (meshlist is None) or (len(meshlist) == 0):
-                Exception(pf + 'must reference a model with at least one or more meshes.')
+                raise Exception(pf + 'references a static model with no meshes.')
+
+            # get room name for item
+            if 'room' not in item: raise Exception(pf + 'missing \"room\" declaration.')
+            roomname = item['room']
+            if (roomname is None) or (len(roomname) == 0):
+                raise Exception(pf + 'invalid \"room\" declaration.')
+
+            # get mesh object and its bounding box
+            mo = None
+            bb = None
+            for room in meshlist:
+                if room.name == roomname:
+                    mo = room
+                    bb = room.bound_box
+                    break
+            if bb is None:
+                raise Exception(pf + 'does not have a \"room\" bounding box.')
+
+            # process bounding box
+            min_v = [ bb[0][0], bb[0][1], bb[0][2] ]
+            max_v = [ bb[0][0], bb[0][1], bb[0][2] ]
+            for pt in bb:
+                v = mathutils.Vector(pt)
+                if v[0] < min_v[0]: min_v[0] = v[0]
+                if v[1] < min_v[1]: min_v[1] = v[1]
+                if v[2] < min_v[2]: min_v[2] = v[2]
+                if max_v[0] < v[0]: max_v[0] = v[0]
+                if max_v[1] < v[1]: max_v[1] = v[1]
+                if max_v[2] < v[2]: max_v[2] = v[2]
+
+            # initialize cell
+            cell = PortalCell()
+            cell.mesh = mesh
+            cell.room     = roomname
+            cell.instance = []
+            cell.connect  = []
+            cell.portals  = []
+
+            # add instances
+            index = 0
+            while ('instance[' + str(index) + ']') in item:
+                cell.instance.append(item['instance[' + str(index) + ']'])
+                index = index + 1
+
+            # add connections
+            index = 0
+            while ('cell[' + str(index) + ']') in item:
+                cell.connect.append(item['cell[' + str(index) + ']'])
+                index = index + 1
+
+            # add portals
+            index = 0
+            while ('portal[' + str(index) + ']') in item:
+                cell.portals.append(item['portal[' + str(index) + ']'])
+                index = index + 1
+
+            # insert cell
+            self.cell_list.append(cell)
 
 ##
 #  @brief   ExportWorldUTF Blender operator.
