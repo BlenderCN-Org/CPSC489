@@ -242,6 +242,7 @@ ErrorCode DebugErrorCode(ErrorCode code, int line, const char* file, LanguageCod
 
 bool Fail(const ErrorCode& code, int line, const char* file)
 {
+ if(code == EC_SUCCESS) return false;
  if(do_debug && debug.is_open()) {
     STDSTRINGW error = FindError(code, GetLanguageCode());
     auto str = ConvertUTF16ToUTF8(error.c_str());
@@ -249,11 +250,12 @@ bool Fail(const ErrorCode& code, int line, const char* file)
     debug << " Line: " << line << std::endl;
     debug << " File: " << file << std::endl;
    }
- return false;
+ return true;
 }
 
 bool Fail(ErrorCode code, int line, const char* file, LanguageCode language)
 {
+ if(code == EC_SUCCESS) return false;
  if(do_debug && debug.is_open()) {
     STDSTRINGW error = FindError(code, language);
     auto str = ConvertUTF16ToUTF8(error.c_str());
@@ -261,7 +263,7 @@ bool Fail(ErrorCode code, int line, const char* file, LanguageCode language)
     debug << " Line: " << line << std::endl;
     debug << " File: " << file << std::endl;
    }
- return false;
+ return true;
 }
 
 LanguageCode GetLanguageCode(void)

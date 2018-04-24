@@ -56,6 +56,9 @@ Game::~Game()
 
 ErrorCode Game::InitGame(void)
 {
+ // always at least one player
+ n_players = 1;
+
  return EC_SUCCESS;
 }
 

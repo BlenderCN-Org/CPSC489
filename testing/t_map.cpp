@@ -11,7 +11,57 @@
 #include "../gfx.h"
 #include "../collision.h"
 #include "../viewport.h"
-#include "../map.h"
+#include "../game.h"
+
+// testing includes
+#include "tests.h"
+#include "t_map.h"
+
+static Game game;
+
+BOOL InitMapTest(void)
+{
+ // initialize game
+ auto code = game.InitGame();
+ if(Fail(code, __LINE__, __FILE__)) return FALSE;
+
+ // insert maps
+ code = game.InsertMap(L"maps//room.txt");
+ if(Fail(code, __LINE__, __FILE__)) return FALSE;
+
+ // start game
+ code = game.StartGame();
+ if(Fail(code, __LINE__, __FILE__)) return FALSE;
+
+ return TRUE;
+}
+
+void FreeMapTest(void)
+{
+ // stop and free game data
+ game.StopGame();
+ game.FreeGame();
+}
+
+void RenderMapTest(real32 dt)
+{
+}
+
+/*
+// non-testing includes
+#include "../stdafx.h"
+#include "../stdgfx.h"
+#include "../errors.h"
+#include "../math.h"
+#include "../vector3.h"
+#include "../matrix4.h"
+#include "../model.h"
+#include "../camera.h"
+#include "../xinput.h"
+#include "../gfx.h"
+#include "../collision.h"
+#include "../viewport.h"
+#include "../game.h"
 
 // testing includes
 #include "tests.h"
@@ -110,3 +160,4 @@ void RenderMapTest(real32 dt)
  // render map
  GetMap()->RenderMap(dt);
 }
+*/
