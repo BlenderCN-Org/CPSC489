@@ -97,10 +97,12 @@ class EntityMarker:
     # anim_loop         - bool   (repeat animation)
     # sound             - uint32 (sound to play)
     # sound_loop        - bool   (repeat sound)
-class EntityAnimation:
+    pass
+class EntityMarkerList:
     # name     - string
     # position - vector3
     # rotation - matrix4
+    # modelref - string
     # markers  - EntityMarker[]
     pass
 class DoorController:
@@ -109,9 +111,9 @@ class DoorController:
     # rotation     - matrix4
     # halfdims     - vector3
     # door         - string
-    # anim_default - string
-    # anim_enter   - string
-    # anim_leave   - string
+    # anim_default - int
+    # anim_enter   - int
+    # anim_leave   - int
     # sound_enter  - int
     # sound_leave  - int
     # close_timer  - real32
@@ -122,6 +124,12 @@ class Portal:
     # type - uint32
     # vb   - vector3[]
     # ib   - uint32[]
+    pass
+class PortalCell:
+    # instance - string
+    # mesh     - string
+    # connect  - string[]
+    # portals  - string[]
     pass
 
 def IsMeshObject(obj):
@@ -140,6 +148,16 @@ def IsMeshGroup(obj, n):
 def GetMeshGroupObjects(obj):
     if IsMeshGroup(obj) == False: return None
     return obj.dupli_group.objects
+def GetMeshGroupObjectsFromName(name):
+    for obj in bpy.data.objects:
+        if obj.name == name:
+            rv = []
+            list = GetMeshGroupObjects(obj)
+            for item in list:
+                if list.type == 'MESH': rv.append(item)
+            return rv
+    return None
+
 
 ##
 #  @brief   Gets rid of annoying small values.
@@ -219,11 +237,13 @@ class WorldUTFExporter:
     dmi_list = []
 
     # entity lists
-    cam_list = []
-    dct_list = []
+    cam_list = [] # CAMERA_ANIMATION_LIST
+    mar_list = [] # ENTITY_MARKER_LIST
+    dct_list = [] # DOOR_CONTROLLER_LIST
 
-    # portal list
+    # portal lists
     portal_list = []
+    cell_list = []
 
     ##
     #  @brief
@@ -345,6 +365,12 @@ class WorldUTFExporter:
             entity_type = object['entity_type']
             if entity_type == 'CAMERA_ANIMATION_LIST': self.ProcessCameraAnimationList(object)
 
+        # process entity marker lists
+        for object in bpy.data.objects:
+            if 'entity_type' not in object: continue
+            entity_type = object['entity_type']
+            if entity_type == 'ENTITY_MARKER_LIST': self.ProcessEntityMarkerList(object)
+
         # process door controllers
         for object in bpy.data.objects:
             if 'entity_type' not in object: continue
@@ -439,6 +465,31 @@ class WorldUTFExporter:
                 self.WriteFloat(marker.fovy)
                 self.WriteInt(marker.interpolate_fovy)
 
+        # save entity marker lists
+        self.WriteString('###')
+        self.WriteString('### ENTITY MARKER LISTS')
+        self.WriteString('###')
+        n = len(self.mar_list)
+        self.WriteString('{} # number of entity marker lists'.format(n))
+        for list in self.mar_list:
+            self.WriteString(list.name)
+            self.WriteVector3(list.position)
+            self.WriteMatrix4(list.rotation)
+            self.WriteString(list.modelref)
+            self.WriteString('{} # of entity markers'.format(len(list.markers)))
+            for marker in list.markers:
+                self.WriteString(marker.name)
+                self.WriteVector3(marker.position)
+                self.WriteMatrix4(marker.rotation)
+                self.WriteVector3(marker.euler_angle)
+                self.WriteInt(marker.index)
+                self.WriteFloat(marker.speed)
+                self.WriteInt(marker.interpolate_speed)
+                self.WriteInt(marker.anim)
+                self.WriteInt(marker.anim_loop)
+                self.WriteInt(marker.sound)
+                self.WriteInt(marker.sound_loop)
+
         # save door controllers
         self.WriteString('###')
         self.WriteString('### DOOR CONTROLLERS')
@@ -451,9 +502,9 @@ class WorldUTFExporter:
             self.WriteMatrix4(dc.rotation)
             self.WriteVector3(dc.halfdims)
             self.WriteInt(dc.door)
-            self.WriteString('-' + dc.anim_default)
-            self.WriteString('-' + dc.anim_enter)
-            self.WriteString('-' + dc.anim_leave)
+            self.WriteInt(dc.anim_default)
+            self.WriteInt(dc.anim_enter)
+            self.WriteInt(dc.anim_leave)
             self.WriteInt(dc.sound_enter)
             self.WriteInt(dc.sound_leave)
             self.WriteFloat(dc.close_timer)
@@ -699,17 +750,11 @@ class WorldUTFExporter:
         index = 0
         for item in object.children:
 
-            # child must be an EMPTY GROUP
+            # child must be an EMPTY
             pf2 = '{}[{}] '.format(object.name, item.name)
             if item.type != 'EMPTY': raise Exception(pf2 + 'must be an EMPTY Blender object.')
-            if item.dupli_type != 'GROUP': raise Exception(pf2 + 'must reference a Blender mesh group object.')
 
-            # child must be a valid GROUP object
-            group = item.dupli_group
-            if group is None: raise Exception(pf2 + 'must reference a valid Blender group object.')
-            if len(group.objects) == 0: raise Exception(pf2 + 'is a Blender mesh group that contains no meshes.')
-
-            # must be a DYNAMIC_MODEL
+            # must be a CAMERA_MARKER
             if 'entity_type' in item:
                 if item['entity_type'] != 'CAMERA_MARKER':
                     raise Exception(pf + 'is not a CAMERA_MARKER.')
@@ -749,6 +794,85 @@ class WorldUTFExporter:
 
         # append camera animation object only if there are markers
         if len(cao.markers): self.cam_list.append(cao)
+
+    ##
+    #  @brief
+    #  @details 
+    def ProcessEntityMarkerList(self, object):
+
+        # must have object
+        if object is None: raise Exception('Invalid argument.')
+        pf1 = '{} '.format(object.name)
+
+        # must be a Plain Axes or Group object
+        self.mar_list = []
+        if object.type != 'EMPTY': raise Exception(pf1 + 'must be an EMPTY Blender object.')
+
+        # nothing to do
+        if len(object.children) == 0: return
+
+        # initialize EntityMarkerList object
+        eml = EntityMarkerList()
+        eml.name = object.name
+        eml.position = object.matrix_world * object.location
+        eml.rotation = object.matrix_world * object.matrix_local
+        eml.modelref = object['model'] if 'model' in object else ''
+        eml.markers = []
+        ClearVector(eml.position)
+        ClearMatrix(eml.rotation)
+
+        # process children
+        index = 0
+        for item in object.children:
+
+            # child must be an EMPTY object
+            pf2 = '{}[{}] '.format(object.name, item.name)
+            if item.type != 'EMPTY': raise Exception(pf2 + 'must be an EMPTY Blender object.')
+
+            # must be an ENTITY_MARKER
+            if 'entity_type' in item:
+                if item['entity_type'] != 'ENTITY_MARKER':
+                    raise Exception(pf + 'is not an ENTITY_MARKER.')
+            else:
+                print('Warning: ' + pf + 'is missing the entity_type declaration. Assuming ENTITY_MARKER.')
+ 
+            # initialize a camera animation object
+            em = EntityMarker()
+            em.name = item.name
+            em.position = item.location
+            em.rotation = item.matrix_world
+            em.euler_angle       = item.rotation_euler
+            em.index             = index
+            em.speed             = 1.0
+            em.interpolate_speed = True
+            em.anim              = -1
+            em.anim_loop         = False
+            em.sound             = -1
+            em.sound_loop        = False
+
+            # read properties (if present)
+            if 'index' in item: em.index = int(item['index'])
+            if 'speed' in item: em.speed = float(item['speed'])
+            if 'interpolate_speed' in item: em.interpolate_speed = bool(item['interpolate_speed'])
+            if 'anim' in item: em.anim = item['anim']
+            if 'anim_loop' in item: em.anim_loop = item['anim_loop']
+            if 'sound' in item: em.sound = item['sound']
+            if 'sound_loop' in item: em.sound_loop = item['sound_loop']
+
+            # validate properties
+            # TODO: finish this
+
+            # small numbers are annoying
+            ClearVector(em.position)
+            ClearMatrix(em.rotation)
+            ClearVector(em.euler_angle)
+
+            # append marker object and increment index
+            eml.markers.append(em)
+            index = index + 1
+
+        # append camera animation object only if there are markers
+        if len(eml.markers): self.mar_list.append(eml)
 
     ##
     #  @brief
@@ -818,9 +942,9 @@ class WorldUTFExporter:
             dc.rotation     = item.matrix_world * meshobj.matrix_local
             dc.halfdims     = [(max_v[0] - min_v[0])/2.0, (max_v[1] - min_v[1])/2.0, (max_v[2] - min_v[2])/2.0]
             dc.door         = gmap[door]
-            dc.anim_default = '' if 'anim_idle' not in item else item['anim_idle']
-            dc.anim_enter   = '' if 'anim_open' not in item else item['anim_open']
-            dc.anim_leave   = '' if 'anim_close' not in item else item['anim_close']
+            dc.anim_default = -1 if 'anim_idle' not in item else item['anim_idle']
+            dc.anim_enter   = -1 if 'anim_open' not in item else item['anim_open']
+            dc.anim_leave   = -1 if 'anim_close' not in item else item['anim_close']
             dc.sound_enter  = sndo
             dc.sound_leave  = sndc
             dc.close_timer  = 5.0 if 'close_timer' not in item else item['close_timer']
@@ -910,16 +1034,48 @@ class WorldUTFExporter:
     #  @details 
     def ProcessCellList(self, object):
 
+        # class PortalCell:
+        #     # instance - string
+        #     # mesh     - string
+        #     # connect  - string[]
+        #     # portals  - string[]
+        #     pass
+
         # validate object
         if object.type != 'EMPTY': raise Exception('{} must be an EMPTY Blender object.'.format(object.name))
         if len(object.children) == 0: return
 
+        # create a group map to map names to indices (for static models)
+        gmap = {}
+        for i, item in enumerate(self.smi_list):
+            print('name = {}'.format(item.name))
+            gmap[item.name] = i
+
         # process children, appending in case there are multiple lists
         for item in object.children:
 
-            # meshobj must be an EMPTY object
+            # item must be an EMPTY object
+            # item can be an AXIS or GROUP object that points to a mesh
             pf = '{}[{}] '.format(object.name, item.name)
             if item.type != 'EMPTY': raise Exception(pf + 'must be an EMPTY Blender object.')
+
+            # must be a CELL
+            if 'entity_type' in item:
+                if item['entity_type'] != 'CELL':
+                    raise Exception(pf + 'is not an CELL.')
+            else:
+                print('Warning: ' + pf + 'is missing the entity_type declaration. Assuming CELL.')
+
+            # instance must exist in STATIC_MODEL_INSTANCES
+            if 'instance' not in item: raise Exception(pf + ' missing \"instance\" declaration.')
+            instance = item['instance']
+            if instance not in gmap:
+                raise Exception(pf + 'must reference a model from a static model instance list.'.format(instance))
+
+            # get mesh list from 'instance'
+            meshlist = GetMeshGroupObjectsFromName(instance)
+            if (meshlist is None) or (len(meshlist) == 0):
+                Exception(pf + 'must reference a model with at least one or more meshes.')
 
 ##
 #  @brief   ExportWorldUTF Blender operator.

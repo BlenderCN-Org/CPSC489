@@ -121,6 +121,8 @@ def IsEntity(obj, type):
     return False
 def IsCameraAnimationList(obj): return IsEntity(obj, 'CAMERA_ANIMATION_LIST')
 def IsCameraMarker(obj): return IsEntity(obj, 'CAMERA_MARKER')
+def IsEntityMarkerList(obj): return IsEntity(obj, 'ENTITY_MARKER_LIST')
+def IsEntityMarker(obj): return IsEntity(obj, 'ENTITY_MARKER')
 def IsDoorControllerList(obj): return IsEntity(obj, 'DOOR_CONTROLLER_LIST')
 def IsDoorController(obj): return IsEntity(obj, 'DOOR_CONTROLLER')
 def IsMusicList(obj): return IsEntity(obj, 'MUSIC_LIST')
@@ -129,7 +131,7 @@ def IsMusicHolder(obj): return IsEntity(obj, 'MUSIC_HOLDER')
 #endregion
 
 #
-# CAMERA OPERATORS
+# CAMERA MARKER OPERATORS
 #
 #region
 
@@ -245,13 +247,13 @@ class UnmarkCameraMarkerOp(bpy.types.Operator):
 #endregion
 
 #
-# ENTITY ANIMATION AND MARKER OPERATORS
+# ENTITY MARKER OPERATORS
 #
 #region
 
-class MarkEntityAnimationListOp(bpy.types.Operator):
+class MarkEntityMarkerListOp(bpy.types.Operator):
     #
-    bl_idname = 'cs489.mark_entity_anim_list_op'
+    bl_idname = 'cs489.mark_entity_marker_list_op'
     bl_label = 'CS489'
     # menuitem is enabled only if objects are selected
     @classmethod
@@ -267,15 +269,16 @@ class MarkEntityAnimationListOp(bpy.types.Operator):
         objlist = GetSelectedObjects()
         for object in objlist:
             if IsEmptyObject(object):
-                InsertProperty(object, 'entity_type', 'ENTITY_MARKER_ANIMATION')
+                InsertProperty(object, 'entity_type', 'ENTITY_MARKER_LIST')
+                InsertProperty(object, 'model', '')
         # redraw properties panel
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
         return {'FINISHED'}
 
-class UnmarkEntityAnimationListOp(bpy.types.Operator):
+class UnmarkEntityMarkerListOp(bpy.types.Operator):
     #
-    bl_idname = 'cs489.unmark_entity_anim_list_op'
+    bl_idname = 'cs489.unmark_entity_marker_list_op'
     bl_label = 'CS489'
     # menuitem is enabled only if objects are selected
     @classmethod
@@ -290,8 +293,9 @@ class UnmarkEntityAnimationListOp(bpy.types.Operator):
         #
         objlist = GetSelectedObjects()
         for object in objlist:
-            if IsCameraAnimationList(object):
+            if IsEntityMarkerList(object):
                 RemoveProperty(object, 'entity_type')
+                RemoveProperty(object, 'model')
         # redraw properties panel
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
@@ -436,9 +440,9 @@ class MarkDoorControllerOp(bpy.types.Operator):
             if IsEmptyObject(object):
                 InsertProperty(object, 'entity_type', 'DOOR_CONTROLLER')
                 InsertProperty(object, 'door', '')
-                InsertProperty(object, 'anim_idle', '')
-                InsertProperty(object, 'anim_open', '')
-                InsertProperty(object, 'anim_close', '')
+                InsertProperty(object, 'anim_idle', -1)
+                InsertProperty(object, 'anim_open', -1)
+                InsertProperty(object, 'anim_close', -1)
                 InsertProperty(object, 'sound_open', '')
                 InsertProperty(object, 'sound_close', '')
                 InsertProperty(object, 'stay_open', False)
@@ -604,8 +608,8 @@ class CS489PopupMenu(bpy.types.Menu):
         self.layout.operator(MarkCameraMarkerOp.bl_idname, text='Mark Camera Marker')
         self.layout.operator(UnmarkCameraMarkerOp.bl_idname, text='Unmark Camera Marker')
         self.layout.separator()
-        self.layout.operator(MarkEntityAnimationListOp.bl_idname, text='Mark Entity Animation List')
-        self.layout.operator(UnmarkEntityAnimationListOp.bl_idname, text='Unmark Entity Animation List')
+        self.layout.operator(MarkEntityMarkerListOp.bl_idname, text='Mark Entity Marker List')
+        self.layout.operator(UnmarkEntityMarkerListOp.bl_idname, text='Unmark Entity Marker List')
         self.layout.operator(MarkEntityMarkerOp.bl_idname, text='Mark Entity Marker')
         self.layout.operator(UnmarkEntityMarkerOp.bl_idname, text='Unmark Entity Marker')
         self.layout.separator()
