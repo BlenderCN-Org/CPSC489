@@ -101,6 +101,7 @@ class Game {
  // Controller Functions
  public :
   void PollForControllers(real32 dt); 
+  void ReleaseControllers(void);
 
   // Map Functions
  public :

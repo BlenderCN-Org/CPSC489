@@ -27,13 +27,16 @@ static LPCWSTR filename = L"map.txt"; // L"levels//map1.txt"
 
 Game::Game()
 {
+ // set player variables
  n_players = 0;
- players.reset(new PlayerEntity[MAX_PLAYERS]);
 
+ // set map variables
  map_index = 0xFFFFFFFFul;
+
+ // set time variables
  delta = 0.0f;
 
- // controller variables
+ // set controller variables
  for(int i = 0; i < 4; i++) controller[i] = 0xFFFFFFFFul;
  ctrlpoller.reset(5.0f);
 }
@@ -56,23 +59,58 @@ Game::~Game()
 
 ErrorCode Game::InitGame(void)
 {
- // always at least one player
+ // set player variables
  n_players = 1;
+ players.reset(new PlayerEntity[MAX_PLAYERS]);
+
+ // set map variables
+ maplist.clear();
+ map_index = 0xFFFFFFFFul;
+
+ // set time variables
+ delta = 0.0f;
+
+ // set controller variables
+ PollForControllers(0);
+ ctrlpoller.reset(5.0f);
 
  return EC_SUCCESS;
 }
 
 void Game::FreeGame(void)
 {
+ // clear controller variables
+ ReleaseControllers();
+ ctrlpoller.stop();
+
+ // clear time variables
+ delta = 0.0f;
+
+ // clear map variables
+ map.FreeMap();
+ maplist.clear();
+ map_index = 0xFFFFFFFFul;
+
+ // clear player variables
+ n_players = 0;
+ players.reset();
 }
 
 ErrorCode Game::StartGame(void)
 {
+ // load first map
+ if(maplist.empty()) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
+ map_index = 0;
+ auto code = map.LoadMap(maplist[map_index].first.c_str());
+
  return EC_SUCCESS;
 }
 
 void Game::StopGame(void)
 {
+ // unload current map
+ if(map_index != 0xFFFFFFFFul) map.FreeMap();
+ map_index = 0xFFFFFFFFul;
 }
 
 void Game::PauseGame(void)
@@ -114,7 +152,18 @@ void Game::PollForControllers(real32 dt)
 
  // reset five second timer
  ctrlpoller.reset();
-} 
+}
+
+void Game::ReleaseControllers(void)
+{
+ for(uint32 i = 0; i < 4; i++) {
+     if(controller[i] != 0xFFFFFFFFul && !IsControllerConnected(controller[i])) {
+        ReleaseController(controller[i]);
+        controller[i] = 0xFFFFFFFFul;
+       }
+    }
+ ctrlpoller.reset();
+}
 
 #pragma endregion CONTROLLER_FUNCTIONS
 

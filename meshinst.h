@@ -18,7 +18,7 @@ class MeshInstance {
   ID3D11Buffer* perframe;
  public :
   ErrorCode InitInstance(MeshData* ptr);
-  ErrorCode InitInstance(MeshData* ptr, const real32* P, const real32* Q);
+  ErrorCode InitInstance(MeshData* ptr, const real32* P, const real32* M);
   void FreeInstance(void);
  public :
   uint32 GetAnimation(void)const { return anim; }
@@ -34,7 +34,7 @@ class MeshInstance {
   ErrorCode RenderModel(void);
  public :
   MeshInstance();
-  MeshInstance(const real32* P, const real32* Q);
+  MeshInstance(const real32* P, const real32* M);
  ~MeshInstance();
  private :
   MeshInstance(const MeshInstance&) = delete;

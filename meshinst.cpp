@@ -23,14 +23,14 @@ MeshInstance::MeshInstance() : mesh(nullptr)
  perframe = nullptr;
 }
 
-MeshInstance::MeshInstance(const real32* P, const real32* Q) : mesh(nullptr)
+MeshInstance::MeshInstance(const real32* P, const real32* M) : mesh(nullptr)
 {
  // initialize animation data
  time = 0.0f;
  anim = 0xFFFFFFFFul;
 
  // initialize position/orientation data
- mv.load_quaternion(Q);
+ mv.load(M);
  mv[0x3] = P[0];
  mv[0x7] = P[1];
  mv[0xB] = P[2];
@@ -77,14 +77,14 @@ ErrorCode MeshInstance::InitInstance(MeshData* ptr)
  return EC_SUCCESS;
 }
 
-ErrorCode MeshInstance::InitInstance(MeshData* ptr, const real32* P, const real32* Q)
+ErrorCode MeshInstance::InitInstance(MeshData* ptr, const real32* P, const real32* M)
 {
  // free previous
  FreeInstance();
  mesh = ptr;
 
  // initialize position/orientation data
- mv.load_quaternion(Q);
+ mv.load(M);
  mv[0x3] = P[0];
  mv[0x7] = P[1];
  mv[0xB] = P[2];

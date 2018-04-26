@@ -120,6 +120,7 @@ enum ErrorCode {
  EC_LOAD_LEVEL,
  EC_HUD_INIT,
  EC_MAP_NAME,
+ EC_MAP_INSTANCE_NAME,
 };
 
 enum LanguageCode {

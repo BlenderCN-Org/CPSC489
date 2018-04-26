@@ -47,6 +47,7 @@ class matrix4D : public c_smatrix4D {
   real32 invert(void);
   void transpose(void);
  public :
+  void load(const real32* m);
   void load_identity(void);
   void load_scaling(real32 x, real32 y, real32 z);
   void load_translation(real32 x, real32 y, real32 z);
@@ -86,22 +87,22 @@ inline matrix4D::matrix4D(real32 fill)
 
 inline matrix4D::matrix4D(const real32* m)
 {
- this->m[ 0] = m[ 0];
- this->m[ 1] = m[ 1];
- this->m[ 2] = m[ 2];
- this->m[ 3] = m[ 3];
- this->m[ 4] = m[ 4];
- this->m[ 5] = m[ 5];
- this->m[ 6] = m[ 6];
- this->m[ 7] = m[ 7];
- this->m[ 8] = m[ 8];
- this->m[ 9] = m[ 9];
- this->m[10] = m[10];
- this->m[11] = m[11];
- this->m[12] = m[12];
- this->m[13] = m[13];
- this->m[14] = m[14];
- this->m[15] = m[15];
+ this->m[0x0] = m[0x0];
+ this->m[0x1] = m[0x1];
+ this->m[0x2] = m[0x2];
+ this->m[0x3] = m[0x3];
+ this->m[0x4] = m[0x4];
+ this->m[0x5] = m[0x5];
+ this->m[0x6] = m[0x6];
+ this->m[0x7] = m[0x7];
+ this->m[0x8] = m[0x8];
+ this->m[0x9] = m[0x9];
+ this->m[0xA] = m[0xA];
+ this->m[0xB] = m[0xB];
+ this->m[0xC] = m[0xC];
+ this->m[0xD] = m[0xD];
+ this->m[0xE] = m[0xE];
+ this->m[0xF] = m[0xF];
 }
 
 inline matrix4D::matrix4D(const matrix4D& other)
@@ -232,6 +233,26 @@ inline void matrix4D::transpose(void)
  temp = this->m[m23]; this->m[m23] = this->m[m32]; this->m[m32] = temp;
  temp = this->m[m24]; this->m[m24] = this->m[m42]; this->m[m42] = temp;
  temp = this->m[m34]; this->m[m34] = this->m[m43]; this->m[m43] = temp;
+}
+
+inline void matrix4D::load(const real32* m)
+{
+ this->m[0x0] = m[0x0];
+ this->m[0x1] = m[0x1];
+ this->m[0x2] = m[0x2];
+ this->m[0x3] = m[0x3];
+ this->m[0x4] = m[0x4];
+ this->m[0x5] = m[0x5];
+ this->m[0x6] = m[0x6];
+ this->m[0x7] = m[0x7];
+ this->m[0x8] = m[0x8];
+ this->m[0x9] = m[0x9];
+ this->m[0xA] = m[0xA];
+ this->m[0xB] = m[0xB];
+ this->m[0xC] = m[0xC];
+ this->m[0xD] = m[0xD];
+ this->m[0xE] = m[0xE];
+ this->m[0xF] = m[0xF];
 }
 
 inline void matrix4D::load_identity(void)

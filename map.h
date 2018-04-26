@@ -35,30 +35,64 @@ struct DoorController {
  uint32 anim_leave;
  uint32 sound_opening;
  uint32 sound_closing;
- bool   inside;
  real32 close_time;
+ bool   stay_open;
+ bool   inside;
 };
 
 struct CameraMarker {
+ STDSTRINGW name;
  real32 location[3];
  matrix4D orientation;
- uint16 index;
+ real32 euler[3];
+ uint32 index;
  real32 speed;
  bool interpolate_speed;
  real32 fovy;
  bool interpolate_fovy;
 };
 
-struct CameraAnimation {
+struct CameraMarkerList {
  STDSTRINGW name;
  real32 location[3];
  matrix4D orientation;
- uint16 start;
+ uint32 start;
  uint32 n_markers;
  std::unique_ptr<CameraMarker[]> markers;
 };
 
+struct EntityMarker {
+ STDSTRINGW name;
+ real32 location[3];
+ matrix4D orientation;
+ real32 euler[3];
+ uint32 index;
+ real32 speed;
+ bool interpolate_speed;
+ uint32 anim;
+ bool anim_loop;
+ uint32 sound;
+ bool sound_loop;
+};
+
+struct EntityMarkerList {
+ STDSTRINGW name;
+ real32 location[3];
+ matrix4D orientation;
+ uint32 instance;
+ uint32 n_markers;
+ std::unique_ptr<EntityMarker[]> markers;
+};
+
+struct EntityMarkerData {
+ uint32 size;
+ std::unique_ptr<EntityMarkerList[]> data;
+};
+
 class Map {
+ // map variables
+ private :
+  STDSTRINGW name;
  // music and sounds
  private :
   uint32 n_sounds;
@@ -73,19 +107,35 @@ class Map {
   uint32 n_moving_instances;
   std::unique_ptr<MeshData[]> static_models;
   std::unique_ptr<MeshData[]> moving_models;
+  std::map<STDSTRINGW, uint32> static_instance_map;
+  std::map<STDSTRINGW, uint32> moving_instance_map;
   std::unique_ptr<MeshInstance[]> static_instances;
   std::unique_ptr<MeshInstance[]> moving_instances;
  // door controllers
  private :
   uint32 n_door_controllers;
   std::unique_ptr<DoorController[]> door_controllers;
+  std::map<STDSTRINGW, uint32> door_controller_map;
  // camera animations
  private :
   uint32 n_cam_anims;
-  std::unique_ptr<CameraAnimation[]> cam_anims;
+  std::unique_ptr<CameraMarkerList[]> cam_anims;
+  EntityMarkerData emd;
  // portal variables
  private :
   std::vector<std::vector<uint32>> cell_graph;
+ // Private Loading Functions
+ private :
+  ErrorCode LoadStaticModels(std::deque<std::string>& linelist);
+  ErrorCode LoadDynamicModels(std::deque<std::string>& linelist);
+  ErrorCode LoadSounds(std::deque<std::string>& linelist);
+  ErrorCode LoadStaticInstances(std::deque<std::string>& linelist);
+  ErrorCode LoadDynamicInstances(std::deque<std::string>& linelist);
+  ErrorCode LoadCameraMarkerLists(std::deque<std::string>& linelist);
+  ErrorCode LoadEntityMarkerLists(std::deque<std::string>& linelist);
+  ErrorCode LoadDoorControllers(std::deque<std::string>& linelist);
+  ErrorCode LoadPortals(std::deque<std::string>& linelist);
+  ErrorCode LoadCells(std::deque<std::string>& linelist);
  public :
   ErrorCode LoadMap(LPCWSTR filename);
   void FreeMap(void);

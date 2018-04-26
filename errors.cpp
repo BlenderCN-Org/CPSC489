@@ -160,6 +160,7 @@ void InitErrorStrings(void)
  InsertErrorString(EC_HUD_INIT, LC_ENGLISH, L"Failed to initialize HUD.");
 
  InsertErrorString(EC_MAP_NAME, LC_ENGLISH, L"Invalid map name.");
+ InsertErrorString(EC_MAP_INSTANCE_NAME, LC_ENGLISH, L"Invalid model instance name.");
 }
 
 void FreeErrorStrings(void)

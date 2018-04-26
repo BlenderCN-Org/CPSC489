@@ -50,95 +50,77 @@ Map::~Map()
  FreeMap();
 }
 
-ErrorCode Map::LoadMap(LPCWSTR filename)
+ErrorCode Map::LoadStaticModels(std::deque<std::string>& linelist)
 {
- // free previous
- FreeMap();
-
- // parse file
- std::deque<std::string> linelist;
- ErrorCode code = ASCIIParseFile(filename, linelist);
- if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
- // temporary data
- uint32 n = 0;
-
- //
- // PHASE 1:
- // READ STATIC MODELS
- //
-
  // read number of static models
- n = 0;
- code = ASCIIReadUint32(linelist, &n);
+ uint32 n = 0;
+ auto code = ASCIIReadUint32(linelist, &n);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
- // read static models
- if(n)
-   {
-    // allocate meshdata
-    std::unique_ptr<MeshData[]> temp(new MeshData[n]);
+ // nothing to do
+ if(!n) return EC_SUCCESS;
 
-    // load models
-    for(uint32 i = 0; i < n; i++)
-       {
-        // load filename
-        STDSTRINGW filename;
-        code = ASCIIReadUTF8String(linelist, filename);
-        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ // allocate meshdata
+ std::unique_ptr<MeshData[]> temp(new MeshData[n]);
 
-        // load model
-        code = temp[i].LoadMeshUTF(filename.c_str());
-        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-       }
+ // load models
+ for(uint32 i = 0; i < n; i++)
+    {
+     // load filename
+     STDSTRINGW filename;
+     code = ASCIIReadUTF8String(linelist, filename);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-    // set models
-    n_static = n;
-    static_models = std::move(temp);
-   }
+     // load model
+     code = temp[i].LoadMeshUTF(filename.c_str());
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+    }
 
- //
- // PHASE 2:
- // READ MOVING MODELS
- //
+ // set models
+ n_static = n;
+ static_models = std::move(temp);
 
- // read number of moving models
- n = 0;
- code = ASCIIReadUint32(linelist, &n);
+ return EC_SUCCESS;
+}
+
+ErrorCode Map::LoadDynamicModels(std::deque<std::string>& linelist)
+{
+ // read number of dynamic models
+ uint32 n = 0;
+ auto code = ASCIIReadUint32(linelist, &n);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
- // read moving models
- if(n)
-   {
-    // allocate meshdata
-    std::unique_ptr<MeshData[]> temp(new MeshData[n]);
+ // nothing to do
+ if(!n) return EC_SUCCESS;
 
-    // load models
-    for(uint32 i = 0; i < n; i++)
-       {
-        // load filename
-        STDSTRINGW filename;
-        code = ASCIIReadUTF8String(linelist, filename);
-        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ // allocate meshdata
+ std::unique_ptr<MeshData[]> temp(new MeshData[n]);
 
-        // load model
-        code = temp[i].LoadMeshUTF(filename.c_str());
-        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-       }
+ // load models
+ for(uint32 i = 0; i < n; i++)
+    {
+     // load filename
+     STDSTRINGW filename;
+     code = ASCIIReadUTF8String(linelist, filename);
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-    // set models
-    n_moving = n;
-    moving_models = std::move(temp);
-   }
+     // load model
+     code = temp[i].LoadMeshUTF(filename.c_str());
+     if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+    }
 
- //
- // PHASE 3:
- // READ SOUNDS
- //
+ // set models
+ n_moving = n;
+ moving_models = std::move(temp);
 
+ return EC_SUCCESS;
+}
+
+ErrorCode Map::LoadSounds(std::deque<std::string>& linelist)
+{
  // read number of sounds
- n = 0;
- code = ASCIIReadUint32(linelist, &n);
+ uint32 n = 0;
+ auto code = ASCIIReadUint32(linelist, &n);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // read sounds
@@ -174,14 +156,14 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
     sounds = std::move(sdlist);
    }
 
- //
- // PHASE 4:
- // READ STATIC INSTANCES
- //
+ return EC_SUCCESS;
+}
 
+ErrorCode Map::LoadStaticInstances(std::deque<std::string>& linelist)
+{
  // read number of static instances
- n = 0;
- code = ASCIIReadUint32(linelist, &n);
+ uint32 n = 0;
+ auto code = ASCIIReadUint32(linelist, &n);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // read static instances
@@ -193,6 +175,15 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
     // load instances
     for(uint32 i = 0; i < n; i++)
        {
+        // load instance name
+        STDSTRINGW iname;
+        code = ASCIIReadUTF8String(linelist, iname);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // map name to index
+        auto iter = static_instance_map.insert(std::make_pair(iname, i));
+        if(!iter.second) return DebugErrorCode(EC_MAP_INSTANCE_NAME, __LINE__, __FILE__);
+
         // load model reference
         uint32 reference = 0;
         code = ASCIIReadUint32(linelist, &reference);
@@ -207,14 +198,14 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         code = ASCIIReadVector3(linelist, &P[0], false);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-        // read quaternion
-        real32 Q[4];
-        code = ASCIIReadVector4(linelist, &Q[0], false);
+        // read orientation
+        real32 M[16];
+        code = ASCIIReadMatrix4(linelist, &M[0], false);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // add instance
         MeshData* ptr = &static_models[reference];
-        code = temp[i].InitInstance(ptr, P, Q);
+        code = temp[i].InitInstance(ptr, P, M);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
        }
 
@@ -223,14 +214,14 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
     static_instances = std::move(temp);
    }
 
- //
- // PHASE 5:
- // READ MOVING INSTANCES
- //
+ return EC_SUCCESS;
+}
 
+ErrorCode Map::LoadDynamicInstances(std::deque<std::string>& linelist)
+{
  // read number of moving instances
- n = 0;
- code = ASCIIReadUint32(linelist, &n);
+ uint32 n = 0;
+ auto code = ASCIIReadUint32(linelist, &n);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // read moving instances
@@ -242,6 +233,15 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
     // load instances
     for(uint32 i = 0; i < n; i++)
        {
+        // load instance name
+        STDSTRINGW iname;
+        code = ASCIIReadUTF8String(linelist, iname);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // map name to index
+        auto iter = moving_instance_map.insert(std::make_pair(iname, i));
+        if(!iter.second) return DebugErrorCode(EC_MAP_INSTANCE_NAME, __LINE__, __FILE__);
+
         // load model reference
         uint32 reference = 0;
         code = ASCIIReadUint32(linelist, &reference);
@@ -256,20 +256,14 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         code = ASCIIReadVector3(linelist, &P[0], false);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-        // read quaternion
-        real32 Q[4];
-        code = ASCIIReadVector4(linelist, &Q[0], false);
+        // read orientation
+        real32 M[16];
+        code = ASCIIReadMatrix4(linelist, &M[0], false);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
-        // normalize Q and protect agains invalid values
-        if(qnormalize(Q) < 1.0e-7f) {
-           Q[0] = 1.0f;
-           Q[1] = Q[2] = Q[3] = 0.0f;
-          } 
 
         // add instance
         MeshData* ptr = &moving_models[reference];
-        code = temp[i].InitInstance(ptr, P, Q);
+        code = temp[i].InitInstance(ptr, P, M);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
        }
 
@@ -278,14 +272,235 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
     moving_instances = std::move(temp);
    }
 
- //
- // PHASE 6:
- // READ DOOR CONTROLLERS
- //
+ return EC_SUCCESS;
+}
 
+ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
+{
+ // read number of lists
+ uint32 n = 0;
+ auto code = ASCIIReadUint32(linelist, &n);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+ // read entities
+ if(n)
+   {
+    // allocate data
+    std::unique_ptr<CameraMarkerList[]> temp;
+    temp.reset(new CameraMarkerList[n]);
+
+    // read data
+    for(uint32 i = 0; i < n; i++)
+       {
+        // read name
+        code = ASCIIReadUTF8String(linelist, temp[i].name);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read position
+        code = ASCIIReadVector3(linelist, &temp[i].location[0], false);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read orientation
+        code = ASCIIReadMatrix4(linelist, &temp[i].orientation[0], false);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read start index
+        temp[i].start = 0;
+        code = ASCIIReadUint32(linelist, &temp[i].start);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read number of markers
+        temp[i].n_markers = 0;
+        code = ASCIIReadUint32(linelist, &temp[i].n_markers);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // TODO: camera animation must have at least one marker
+
+        // allocate markers
+        temp[i].markers.reset(new CameraMarker[temp[i].n_markers]);
+
+        // read markers
+        for(uint32 j = 0; j < temp[i].n_markers; j++)
+           {
+            // read name
+            auto& marker = temp[i].markers[j];
+            code = ASCIIReadUTF8String(linelist, marker.name);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read location
+            code = ASCIIReadVector3(linelist, &marker.location[0], false);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read orientation
+            code = ASCIIReadMatrix4(linelist, &marker.orientation[0], false);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read euler
+            code = ASCIIReadVector3(linelist, &marker.euler[0], false);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read index
+            marker.index = 0;
+            code = ASCIIReadUint32(linelist, &marker.index);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read speed
+            marker.speed = 1.0f;
+            code = ASCIIReadReal32(linelist, &marker.speed);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read interpolate_speed
+            marker.interpolate_speed = 0;
+            code = ASCIIReadBool(linelist, &marker.interpolate_speed);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read fovy
+            marker.fovy = 1.0f;
+            code = ASCIIReadReal32(linelist, &marker.fovy);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read interpolate_fovy
+            marker.interpolate_fovy = 0;
+            code = ASCIIReadBool(linelist, &marker.interpolate_fovy);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+           }
+       }
+
+    // set instance data
+    n_cam_anims = n;
+    cam_anims = std::move(temp);
+   }
+
+ return EC_SUCCESS;
+}
+
+ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
+{
+ // read number of lists
+ uint32 n = 0;
+ auto code = ASCIIReadUint32(linelist, &n);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+ // read lists
+ if(n)
+   {
+    // allocate lists
+    std::unique_ptr<EntityMarkerList[]> temp;
+    temp.reset(new EntityMarkerList[n]);
+
+    // read lists
+    for(uint32 i = 0; i < n; i++)
+       {
+        // read name
+        code = ASCIIReadUTF8String(linelist, temp[i].name);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read location
+        code = ASCIIReadVector3(linelist, &temp[i].location[0], false);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read orientation
+        code = ASCIIReadMatrix4(linelist, &temp[i].orientation[0], false);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read entity name
+        STDSTRINGW ref;
+        code = ASCIIReadUTF8String(linelist, ref);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // instance reference must exist
+        auto refiter = moving_instance_map.find(ref);
+        if(refiter == moving_instance_map.end()) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
+        temp[i].instance = refiter->second;
+
+        // read number of markers
+        temp[i].n_markers = 0;
+        code = ASCIIReadUint32(linelist, &temp[i].n_markers);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // must have at least one marker
+        if(temp[i].n_markers == 0)
+           return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
+
+        // allocate markers
+        temp[i].markers.reset(new EntityMarker[temp[i].n_markers]);
+
+        // read markers
+        std::map<STDSTRINGW, uint32> refmap;
+        for(uint32 j = 0; j < temp[i].n_markers; j++)
+           {
+            // read name
+            auto& marker = temp[i].markers[j];
+            code = ASCIIReadUTF8String(linelist, marker.name);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read location
+            code = ASCIIReadVector3(linelist, &marker.location[0], false);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read orientation
+            code = ASCIIReadMatrix4(linelist, &marker.orientation[0], false);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read euler
+            code = ASCIIReadVector3(linelist, &marker.euler[0], false);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read index
+            marker.index = 0;
+            code = ASCIIReadUint32(linelist, &marker.index);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read speed
+            marker.speed = 1.0f;
+            code = ASCIIReadReal32(linelist, &marker.speed);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read interpolate_speed
+            marker.interpolate_speed = 0;
+            code = ASCIIReadBool(linelist, &marker.interpolate_speed);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read animation index
+            marker.anim = 0xFFFFFFFFul;
+            code = ASCIIReadUint32(linelist, &marker.anim);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read animation state
+            marker.anim_loop = true;
+            code = ASCIIReadBool(linelist, &marker.anim_loop);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read sound index
+            marker.sound = 0xFFFFFFFFul;
+            code = ASCIIReadUint32(linelist, &marker.sound);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // read sound state
+            marker.sound_loop = true;
+            code = ASCIIReadBool(linelist, &marker.sound_loop);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+           }
+       }
+    
+    this->emd.size = n;
+    this->emd.data = std::move(temp);
+   }
+
+ // struct EntityMarkerData {
+ //  uint32 size;
+ //  std::unique_ptr<EntityMarkerList[]> data;
+ //  std::map<STDSTRINGW, uint32> refmap;
+ // };
+
+ return EC_SUCCESS;
+}
+
+ErrorCode Map::LoadDoorControllers(std::deque<std::string>& linelist)
+{
  // read number of door controllers
- n = 0;
- code = ASCIIReadUint32(linelist, &n);
+ uint32 n = 0;
+ auto code = ASCIIReadUint32(linelist, &n);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // read door controllers
@@ -298,25 +513,24 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
     // read data
     for(uint32 i = 0; i < n; i++)
        {
+        // load instance name
+        STDSTRINGW iname;
+        code = ASCIIReadUTF8String(linelist, iname);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // map name to index
+        auto iter = door_controller_map.insert(std::make_pair(iname, i));
+        if(!iter.second) return DebugErrorCode(EC_MAP_INSTANCE_NAME, __LINE__, __FILE__);
+
         // read position
         real32 P[3];
         code = ASCIIReadVector3(linelist, &P[0], false);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-        // read quaternion
-        real32 Q[4];
-        code = ASCIIReadVector4(linelist, &Q[0], false);
+        // read orientation
+        real32 M[16];
+        code = ASCIIReadMatrix4(linelist, &M[0], false);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
-        // normalize Q and protect agains invalid values
-        if(qnormalize(Q) < 1.0e-7f) {
-           Q[0] = 1.0f;
-           Q[1] = Q[2] = Q[3] = 0.0f;
-          }
-
-        // convert quaternion to matrix
-        real32 M[9];
-        quaternion_to_matrix3(M, Q);
 
         // read half-widths
         real32 H[3];
@@ -355,6 +569,16 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         if(!(s1 < n_sounds)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
         if(!(s2 < n_sounds)) return DebugErrorCode(EC_LOAD_LEVEL, __LINE__, __FILE__);
 
+        // read close time
+        real32 close_time = 5.0f;
+        code = ASCIIReadReal32(linelist, &close_time);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+        // read stay open
+        uint32 open_flag = 0;
+        code = ASCIIReadUint32(linelist, &open_flag);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
         // set item
         DoorController& item = dcdata[i];
         item.door_index = reference;
@@ -364,16 +588,17 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
         item.box.widths[0] = H[0];
         item.box.widths[1] = H[1];
         item.box.widths[2] = H[2];
-        item.box.x[0] = M[0]; item.box.x[1] = M[1]; item.box.x[2] = M[2];
-        item.box.y[0] = M[3]; item.box.y[1] = M[4]; item.box.y[2] = M[5];
-        item.box.z[0] = M[6]; item.box.z[1] = M[7]; item.box.z[2] = M[8];
+        item.box.x[0] = M[0x0]; item.box.x[1] = M[0x1]; item.box.x[2] = M[0x2];
+        item.box.y[0] = M[0x4]; item.box.y[1] = M[0x5]; item.box.y[2] = M[0x6];
+        item.box.z[0] = M[0x8]; item.box.z[1] = M[0x9]; item.box.z[2] = M[0xA];
         item.anim_start = (anim1 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim1));
         item.anim_enter = (anim2 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim2));
         item.anim_leave = (anim3 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim3));
         item.sound_opening = s1;
         item.sound_closing = s2;
         item.inside = false;
-        item.close_time = 0.0f;
+        item.close_time = close_time;
+        item.stay_open = (open_flag ? true : false);
        }
 
     // set data
@@ -381,92 +606,72 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
     door_controllers = std::move(dcdata);
    }
 
- //
- // PHASE ?:
- // READ CAMERA ANIMATIONS
- //
+ return EC_SUCCESS;
+}
 
- // read number of entities
- n_cam_anims = 0;
- code = ASCIIReadUint32(linelist, &n_cam_anims);
+ErrorCode Map::LoadPortals(std::deque<std::string>& linelist)
+{
+ return EC_SUCCESS;
+}
+
+ErrorCode Map::LoadCells(std::deque<std::string>& linelist)
+{
+ return EC_SUCCESS;
+}
+
+ErrorCode Map::LoadMap(LPCWSTR filename)
+{
+ // free previous
+ FreeMap();
+
+ // parse file
+ std::deque<std::string> linelist;
+ ErrorCode code = ASCIIParseFile(filename, linelist);
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
- // read entities
- if(n)
-   {
-    // allocate animations
-    cam_anims.reset(new CameraAnimation[n_cam_anims]);
+ // read map title
+ code = ASCIIReadUTF8String(linelist, name);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-    // read animations
-    for(uint32 i = 0; i < n_cam_anims; i++)
-       {
-        // load filename
-        code = ASCIIReadUTF8String(linelist, cam_anims[i].name);
-        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ // read static models
+ code = LoadStaticModels(linelist);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-        // read position
-        code = ASCIIReadVector3(linelist, &cam_anims[i].location[0], false);
-        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ // read dynamic models
+ code = LoadDynamicModels(linelist);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-        // read orientation
-        code = ASCIIReadMatrix4(linelist, &cam_anims[i].orientation[0], false);
-        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ // read sound list
+ code = LoadSounds(linelist);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-        // read start index
-        cam_anims[i].start = 0;
-        code = ASCIIReadUint16(linelist, &cam_anims[i].start);
-        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ // read static instances
+ code = LoadStaticInstances(linelist);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-        // read number of markers
-        cam_anims[i].n_markers = 0;
-        code = ASCIIReadUint32(linelist, &cam_anims[i].n_markers);
-        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ // read dynamic instances
+ code = LoadDynamicInstances(linelist);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-        // TODO: camera animation must have at least one marker
+ // read camera marker lists
+ code = LoadCameraMarkerLists(linelist);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-        // allocate markers
-        cam_anims[i].markers.reset(new CameraMarker[cam_anims[i].n_markers]);
+ // read entity marker lists
+ code = LoadEntityMarkerLists(linelist);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-        // read markers
-        for(uint32 j = 0; j < cam_anims[i].n_markers; j++)
-           {
-            auto& marker = cam_anims[i].markers[j];
+ // read door controllers
+ code = LoadDoorControllers(linelist);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-            // read position
-            code = ASCIIReadVector3(linelist, &marker.location[0], false);
-            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ // read portals
+ code = LoadPortals(linelist);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-            // read orientation
-            code = ASCIIReadMatrix4(linelist, &marker.orientation[0], false);
-            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
-            // read index
-            marker.index = 0;
-            code = ASCIIReadUint16(linelist, &marker.index);
-            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
-            // read speed
-            marker.speed = 1.0f;
-            code = ASCIIReadReal32(linelist, &marker.speed);
-            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
-            // read interpolate_speed
-            marker.interpolate_speed = 0;
-            code = ASCIIReadBool(linelist, &marker.interpolate_speed);
-            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
-            // read fovy
-            marker.fovy = 1.0f;
-            code = ASCIIReadReal32(linelist, &marker.fovy);
-            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
-            // read interpolate_fovy
-            marker.interpolate_fovy = 0;
-            code = ASCIIReadBool(linelist, &marker.interpolate_fovy);
-            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-           }
-       }
-   }
+ // read cells
+ code = LoadCells(linelist);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
 /*
  // read number of portal cells
@@ -525,7 +730,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
  // PHASE FINAL:
  // READ STARTING PROPERTIES
  //
-
+/*
  // read starting sound index
  uint32 u32_temp = 0;
  code = ASCIIReadUint32(linelist, &u32_temp);
@@ -536,7 +741,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
     sound_start = u32_temp;
     PlayVoice(sounds[sound_start], true);
    }
-
+*/
  return EC_SUCCESS;
 }
 
@@ -575,6 +780,9 @@ void Map::FreeMap(void)
  moving_models.reset();
  n_static = 0;
  n_moving = 0;
+
+ // free name
+ name.clear();
 }
 
 void Map::RenderMap(real32 dt)
