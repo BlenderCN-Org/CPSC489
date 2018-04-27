@@ -36,6 +36,7 @@ struct DoorController {
  uint32 sound_opening;
  uint32 sound_closing;
  real32 close_time;
+ real32 delta;
  bool   stay_open;
  bool   inside;
 };
@@ -104,6 +105,11 @@ struct PortalCell {
  std::unique_ptr<PortalConnection[]> conn; // connections
 };
 
+struct DoorControllerData {
+ uint32 size;
+ std::unique_ptr<DoorController[]> data;
+};
+
 struct CameraMarkerData {
  uint32 size;
  std::unique_ptr<CameraMarkerList[]> data;
@@ -146,13 +152,9 @@ class Map {
   std::map<STDSTRINGW, uint32> moving_instance_map;
   std::unique_ptr<MeshInstance[]> static_instances;
   std::unique_ptr<MeshInstance[]> moving_instances;
- // door controllers
+ // file data
  private :
-  uint32 n_door_controllers;
-  std::unique_ptr<DoorController[]> door_controllers;
-  std::map<STDSTRINGW, uint32> door_controller_map;
- // camera animations
- private :
+  DoorControllerData dcd;
   CameraMarkerData cmd;
   EntityMarkerData emd;
  // portal variables
@@ -194,8 +196,5 @@ class Map {
   Map(const Map&) = delete;
   void operator =(const Map&) = delete;
 };
-
-// TODO: Move this to game.h/game.cpp
-Map* GetMap(void);
 
 #endif

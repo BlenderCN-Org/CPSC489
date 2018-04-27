@@ -24,10 +24,6 @@
 #include "portal.h"
 #include "map.h"
 
-// singleton map variable
-static Map map;
-Map* GetMap(void) { return &map; }
-
 Map::Map()
 {
  // sounds
@@ -40,9 +36,12 @@ Map::Map()
  n_static_instances = 0;
  n_moving_instances = 0;
 
- // entities
- n_door_controllers = 0;
- n_cam_anims = 0;
+ // data
+ dcd.size = 0;
+ cmd.size = 0;
+ emd.size = 0;
+ portals.size = 0;
+ cells.size = 0;
 }
 
 Map::~Map()
@@ -502,8 +501,8 @@ ErrorCode Map::LoadDoorControllers(std::deque<std::string>& linelist)
  if(n)
    {
     // allocate data
-    std::unique_ptr<DoorController[]> dcdata;
-    dcdata.reset(new DoorController[n]);
+    std::unique_ptr<DoorController[]> temp;
+    temp.reset(new DoorController[n]);
 
     // read data
     for(uint32 i = 0; i < n; i++)
@@ -512,10 +511,6 @@ ErrorCode Map::LoadDoorControllers(std::deque<std::string>& linelist)
         STDSTRINGW iname;
         code = ASCIIReadUTF8String(linelist, iname);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-
-        // map name to index
-        auto iter = door_controller_map.insert(std::make_pair(iname, i));
-        if(!iter.second) return DebugErrorCode(EC_MAP_INSTANCE_NAME, __LINE__, __FILE__);
 
         // read position
         real32 P[3];
@@ -575,7 +570,7 @@ ErrorCode Map::LoadDoorControllers(std::deque<std::string>& linelist)
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // set item
-        DoorController& item = dcdata[i];
+        DoorController& item = temp[i];
         item.door_index = reference;
         item.box.center[0] = P[0];
         item.box.center[1] = P[1];
@@ -593,12 +588,13 @@ ErrorCode Map::LoadDoorControllers(std::deque<std::string>& linelist)
         item.sound_closing = s2;
         item.inside = false;
         item.close_time = close_time;
+        item.delta = 0.0f;
         item.stay_open = (open_flag ? true : false);
        }
 
     // set data
-    n_door_controllers = n;
-    door_controllers = std::move(dcdata);
+    this->dcd.size = n;
+    this->dcd.data = std::move(temp);
    }
 
  return EC_SUCCESS;
@@ -745,8 +741,8 @@ void Map::FreeEntityMarkerLists(void)
 
 void Map::FreeDoorControllers(void)
 {
- door_controllers.reset();
- n_door_controllers = 0;
+ dcd.data.reset();
+ dcd.size = 0;
 }
 
 void Map::FreePortals(void)
@@ -860,11 +856,11 @@ void Map::RenderMap(real32 dt)
  camera->GetOrbitPoint(orbit);
 
  // INEFFICIENT!!!
- for(uint32 i = 0; i < n_door_controllers; i++)
+ for(uint32 i = 0; i < dcd.size; i++)
     {
      // camera is inside door controller
-     auto& dc = door_controllers[i];
-     if(OBB_intersect(door_controllers[i].box, orbit))
+     auto& dc = dcd.data[i];
+     if(OBB_intersect(dc.box, orbit))
        {
         uint32 door_index = dc.door_index;
         uint32 anim_index = dc.anim_enter;
@@ -876,16 +872,16 @@ void Map::RenderMap(real32 dt)
        }
      // outside, but last frame we were inside
      else if(dc.inside) {
-        dc.close_time = 5.0f;
+        dc.delta = dc.close_time;
         dc.inside = false;
        }
      // outside
-     else if(dc.close_time) {
-        dc.close_time -= dt;
-        if(!(dc.close_time > 0.0f)) {
+     else if(dc.delta) {
+        dc.delta -= dt;
+        if(!(dc.delta > 0.0f)) {
            moving_instances[dc.door_index].SetAnimation(dc.anim_leave, false);
            //if(dc.sound_closing != 0xFFFFFFFFul) PlayVoice(sounds[dc.sound_closing], false);
-           dc.close_time = 0.0f;
+           dc.delta = 0.0f;
           }
        }
     }
