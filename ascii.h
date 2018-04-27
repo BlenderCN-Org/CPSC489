@@ -13,6 +13,7 @@ ErrorCode ASCIIReadUint16(std::deque<std::string>& linelist, uint16* x);
 ErrorCode ASCIIReadUint32(std::deque<std::string>& linelist, uint32* x);
 ErrorCode ASCIIReadReal32(std::deque<std::string>& linelist, real32* x);
 ErrorCode ASCIIReadVector4(std::deque<std::string>& linelist, uint08* v, bool repeat = false);
+ErrorCode ASCIIReadVector3(std::deque<std::string>& linelist, uint16* v, bool repeat = false);
 ErrorCode ASCIIReadVector4(std::deque<std::string>& linelist, uint16* v, bool repeat = false);
 ErrorCode ASCIIReadVector8(std::deque<std::string>& linelist, uint16* v, bool repeat = false);
 ErrorCode ASCIIReadVector2(std::deque<std::string>& linelist, uint32* v, bool repeat = false);

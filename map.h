@@ -84,9 +84,44 @@ struct EntityMarkerList {
  std::unique_ptr<EntityMarker[]> markers;
 };
 
+struct Portal {
+ STDSTRINGW name;
+ uint32 n;
+ std::unique_ptr<vector3D[]> vb;
+ std::unique_ptr<uint16[]> ib;
+};
+
+struct PortalConnection {
+ uint32 instance; // connected to this model instance
+ uint32 mesh;     // mesh index
+ uint32 portal;   // via this portal
+};
+
+struct PortalCell {
+ uint32 instance;
+ uint32 mesh;
+ uint32 n_conn;
+ std::unique_ptr<PortalConnection[]> conn; // connections
+};
+
+struct CameraMarkerData {
+ uint32 size;
+ std::unique_ptr<CameraMarkerList[]> data;
+};
+
 struct EntityMarkerData {
  uint32 size;
  std::unique_ptr<EntityMarkerList[]> data;
+};
+
+struct PortalData {
+ uint32 size;
+ std::unique_ptr<Portal[]> data;
+};
+
+struct PortalCellData {
+ uint32 size;
+ std::unique_ptr<PortalCell[]> data;
 };
 
 class Map {
@@ -118,12 +153,12 @@ class Map {
   std::map<STDSTRINGW, uint32> door_controller_map;
  // camera animations
  private :
-  uint32 n_cam_anims;
-  std::unique_ptr<CameraMarkerList[]> cam_anims;
+  CameraMarkerData cmd;
   EntityMarkerData emd;
  // portal variables
  private :
-  std::vector<std::vector<uint32>> cell_graph;
+  PortalData portals;
+  PortalCellData cells;
  // Private Loading Functions
  private :
   ErrorCode LoadStaticModels(std::deque<std::string>& linelist);
@@ -136,6 +171,18 @@ class Map {
   ErrorCode LoadDoorControllers(std::deque<std::string>& linelist);
   ErrorCode LoadPortals(std::deque<std::string>& linelist);
   ErrorCode LoadCells(std::deque<std::string>& linelist);
+ // Private Unloading Functions
+ private :
+  void FreeStaticModels(void);
+  void FreeDynamicModels(void);
+  void FreeSounds(void);
+  void FreeStaticInstances(void);
+  void FreeDynamicInstances(void);
+  void FreeCameraMarkerLists(void);
+  void FreeEntityMarkerLists(void);
+  void FreeDoorControllers(void);
+  void FreePortals(void);
+  void FreeCells(void);
  public :
   ErrorCode LoadMap(LPCWSTR filename);
   void FreeMap(void);

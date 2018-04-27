@@ -125,6 +125,9 @@ void Game::UpdateGame(real32 dt)
 
  // poll for controllers every five seconds
  PollForControllers(dt);
+
+ // render map
+ map.RenderMap(dt);
 }
 
 #pragma endregion GAME_FUNCTIONS

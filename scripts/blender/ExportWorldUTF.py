@@ -919,10 +919,10 @@ class WorldUTFExporter:
             bb = group.objects[0].bound_box
 
             # compute entity bounding box
-            min_v = [ bb[0][0], bb[0][1], bb[0][2] ]
-            max_v = [ bb[0][0], bb[0][1], bb[0][2] ]
+            min_v = item.matrix_world * mathutils.Vector((bb[0][0], bb[0][1], bb[0][2]))
+            max_v = item.matrix_world * mathutils.Vector((bb[0][0], bb[0][1], bb[0][2]))
             for pt in bb:
-                v = mathutils.Vector(pt)
+                v = item.matrix_world * mathutils.Vector(pt)
                 if v[0] < min_v[0]: min_v[0] = v[0]
                 if v[1] < min_v[1]: min_v[1] = v[1]
                 if v[2] < min_v[2]: min_v[2] = v[2]
@@ -946,11 +946,19 @@ class WorldUTFExporter:
                 name = item['sound_close']
                 if name in self.sounddict: sndc = self.sounddict[name]
 
+            # get orientation
+            M = item.rotation_quaternion.to_matrix()
+            R = [
+                [M[0][0], M[0][1], M[0][2], item.location[0]],
+                [M[1][0], M[1][1], M[1][2], item.location[1]],
+                [M[2][0], M[2][1], M[2][2], item.location[2]],
+                [    0.0,     0.0,     0.0, 1.0]]
+
             # initialize door controller
             dc = DoorController()
             dc.name         = item.name
-            dc.position     = item.matrix_world * meshobj.location # is this correct???
-            dc.rotation     = item.matrix_world * meshobj.matrix_local
+            dc.position     = item.location
+            dc.rotation     = R
             dc.halfdims     = [(max_v[0] - min_v[0])/2.0, (max_v[1] - min_v[1])/2.0, (max_v[2] - min_v[2])/2.0]
             dc.door         = gmap[door]
             dc.anim_default = -1 if 'anim_idle' not in item else item['anim_idle']

@@ -45,6 +45,8 @@ void FreeMapTest(void)
 
 void RenderMapTest(real32 dt)
 {
+ // update and render
+ game.UpdateGame(dt);
 }
 
 /*

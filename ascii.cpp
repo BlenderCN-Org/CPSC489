@@ -144,6 +144,42 @@ ErrorCode ASCIIReadVector4(std::deque<std::string>& linelist, uint08* v, bool re
  return EC_SUCCESS;
 }
 
+ErrorCode ASCIIReadVector3(std::deque<std::string>& linelist, uint16* v, bool repeat)
+{
+ if(linelist.empty()) return EC_FILE_EOF;
+ std::deque<std::string> parameters;
+ boost::split(parameters, linelist.front(), boost::is_any_of(" "));
+ uint32 temp[3];
+ if(parameters.size() == 1) {
+    temp[0] = strtoul(parameters[0].c_str(), nullptr, 10);
+    if(repeat) {
+       temp[1] = temp[0];
+       temp[2] = temp[0];
+      }
+    else {
+       temp[1] = 0;
+       temp[2] = 0;
+      }
+   }
+ else if(parameters.size() == 2) {
+    temp[0] = strtoul(parameters[0].c_str(), nullptr, 10);
+    temp[1] = strtoul(parameters[1].c_str(), nullptr, 10);
+    if(repeat) temp[2] = temp[1];
+    else temp[2] = 0;
+   }
+ else if(parameters.size() == 3) {
+    temp[0] = strtoul(parameters[0].c_str(), nullptr, 10);
+    temp[1] = strtoul(parameters[1].c_str(), nullptr, 10);
+    temp[2] = strtoul(parameters[2].c_str(), nullptr, 10);
+   }
+ else return EC_FILE_PARSE;
+ v[0] = (temp[0] > 0xFFFF ? 0xFFFF : temp[0]);
+ v[1] = (temp[1] > 0xFFFF ? 0xFFFF : temp[1]);
+ v[2] = (temp[2] > 0xFFFF ? 0xFFFF : temp[2]);
+ linelist.pop_front();
+ return EC_SUCCESS;
+}
+
 ErrorCode ASCIIReadVector4(std::deque<std::string>& linelist, uint16* v, bool repeat)
 {
  if(linelist.empty()) return EC_FILE_EOF;
