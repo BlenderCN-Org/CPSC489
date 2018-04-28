@@ -20,10 +20,11 @@
 
 CameraMarkerList::CameraMarkerList()
 {
+ // fixed variables
  start = 0xFFFFFFFFul;
  n_markers = 0;
 
- // current state variables
+ // timed variables
  curr = 0xFFFFFFFFul;
  time = 0.0f;
 }
@@ -57,6 +58,7 @@ ErrorCode CameraMarkerList::SetStartMarker(uint32 index)
 {
  if(!(index < n_markers)) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
  start = index;
+ curr = index;
  return EC_SUCCESS;
 }
 
@@ -77,4 +79,12 @@ const CameraMarker& CameraMarkerList::operator [](size_t index)const
 
 void CameraMarkerList::Update(real32 dt)
 {
+ // time values
+ real32 prev_time = time;
+ real32 curr_time = time + dt;
+
+ 
+
+ // update time
+ time = curr_time;
 }

@@ -355,14 +355,14 @@ ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
             if(!(index < n_markers)) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
 
-            // read speed
-            real32 speed = 1.0f;
-            code = ASCIIReadReal32(linelist, &speed);
+            // read time
+            real32 time = 1.0f;
+            code = ASCIIReadReal32(linelist, &time);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-            // read interpolate_speed
-            bool interpolate_speed = true;
-            code = ASCIIReadBool(linelist, &interpolate_speed);
+            // read interpolate_time
+            bool interpolate_time = true;
+            code = ASCIIReadBool(linelist, &interpolate_time);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read fovy
@@ -381,8 +381,8 @@ ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
             markers[start].SetLocation(P);
             markers[start].SetOrientation(M);
             markers[start].SetEulerAngle(E);
-            markers[start].SetSpeed(speed);
-            markers[start].SetInterpolateSpeedFlag(interpolate_speed);
+            markers[start].SetTime(time);
+            markers[start].SetInterpolateTimeFlag(interpolate_time);
             markers[start].SetFOVY(fovy);
             markers[start].SetInterpolateFOVYFlag(interpolate_fovy);
            }

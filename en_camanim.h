@@ -32,8 +32,10 @@ class CameraMarkerList : public Entity {
   uint32 n_markers;
   std::unique_ptr<CameraMarker[]> markers;
  private :
-  uint32 curr;
-  real32 time;
+  uint32 curr; // current marker index
+  real32 time; // current time
+  real32 P[3]; // current position
+  real32 E[3]; // current euler angle
 
  // Member Functions
  public :

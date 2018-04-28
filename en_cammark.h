@@ -26,8 +26,8 @@ class CameraMarker : public Entity {
  // Variables
  private :
   real32 euler[3];
-  real32 speed;
-  bool interpolate_speed;
+  real32 delta;
+  bool interpolate_time;
   real32 fovy;
   bool interpolate_fovy;
 
@@ -35,10 +35,10 @@ class CameraMarker : public Entity {
  public :
   void SetEulerAngle(const real32* angle);
   const real32* GetEulerAngle(void)const;
-  void SetSpeed(real32 value);
-  real32 GetSpeed(void)const;
-  void SetInterpolateSpeedFlag(bool flag);
-  bool GetInterpolateSpeedFlag(void)const;
+  void SetTime(real32 value);
+  real32 GetTime(void)const;
+  void SetInterpolateTimeFlag(bool flag);
+  bool GetInterpolateTimeFlag(void)const;
   void SetFOVY(real32 value);
   real32 GetFOVY(void)const;
   void SetInterpolateFOVYFlag(bool flag);

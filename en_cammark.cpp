@@ -21,7 +21,7 @@
 CameraMarker::CameraMarker()
 {
  euler[0] = euler[1] = euler[2] = 0.0f;
- speed = 1.0f;
+ delta = 1.0f;
  interpolate_speed = true;
  fovy = 60.0f;
  interpolate_fovy = true;
@@ -43,24 +43,24 @@ const real32* CameraMarker::GetEulerAngle(void)const
  return &euler[0];
 }
 
-void CameraMarker::SetSpeed(real32 value)
+void CameraMarker::SetTime(real32 value)
 {
- speed = value;
+ delta = value;
 }
 
-real32 CameraMarker::GetSpeed(void)const
+real32 CameraMarker::GetTime(void)const
 {
- return speed;
+ return delta;
 }
 
-void CameraMarker::SetInterpolateSpeedFlag(bool flag)
+void CameraMarker::SetInterpolateTimeFlag(bool flag)
 {
- interpolate_speed = flag;
+ interpolate_time = flag;
 }
 
-bool CameraMarker::GetInterpolateSpeedFlag(void)const
+bool CameraMarker::GetInterpolateTimeFlag(void)const
 {
- return interpolate_speed;
+ return interpolate_time;
 }
 
 void CameraMarker::SetFOVY(real32 value)
