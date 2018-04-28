@@ -32,9 +32,9 @@ class Entity {
   static uint32 baseID;
   static std::map<uint32, Entity*> entity_map;
   STDSTRINGW name;
+  Map* map;
   uint32 id;
   bool active;
-  Map* map;
   Entity* targets[16];
 
  // Positioning Properties
@@ -54,9 +54,9 @@ class Entity {
  public :
   void SetName(const STDSTRINGW& str);
   const STDSTRINGW& GetName(void)const { return name; }
+  void SetMap(Map* ptr);
+  Map* GetMap(void)const;
   uint32 GetID(void)const { return id; }
-  void SetMap(Map* ptr); // TODO: make this a static member
-  Map* GetMap(void)const; // TODO: make this a static member
   const real32* GetLocation(void)const { return &location.v[0]; }
   void SetLocation(const real32* v);
   const real32* GetOrientation(void)const { return &orientation.m[0]; }

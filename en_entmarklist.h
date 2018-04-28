@@ -15,39 +15,34 @@
 ** You should have received a copy of the GNU General Public License
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __CS489_ENTITY_CAMANIM_H
-#define __CS489_ENTITY_CAMANIM_H
+#ifndef __CS489_ENTITY_MARKER_LIST_H
+#define __CS489_ENTITY_MARKER_LIST_H
 
 #include "errors.h"
 #include "entity.h"
-#include "en_cammark.h"
+#include "en_entmark.h"
 
-// Camera Marker List
-class CameraMarkerList : public Entity {
+// Entity Marker List
+class EntityMarkerList : public Entity {
 
  // Variables
  private :
-  uint32 player;
-  uint32 start;
+  MeshInstance* instance;
   uint32 n_markers;
-  std::unique_ptr<CameraMarker[]> markers;
- private :
-  uint32 curr;
-  real32 time;
+  std::unique_ptr<EntityMarker[]> markers;
 
  // Member Functions
  public :
-  void SetPlayerFocus(uint32 n);
-  uint32 GetPlayerFocus(void)const;
-  void SetMarkers(uint32 n, std::unique_ptr<CameraMarker[]>& data);
-  const CameraMarker* GetMarkers(void)const;
-  ErrorCode SetStartMarker(uint32 index);
-  uint32 GetStartMarker(void)const;
-  void Update(real32 dt);
+  ErrorCode SetModelInstance(const STDSTRINGW& name);
+  ErrorCode SetModelInstance(uint32 model);
+  const MeshInstance* GetModelInstance(void)const;
+  void SetMarkers(uint32 n, std::unique_ptr<EntityMarker[]>& data);
+  const EntityMarker* GetMarkers(void)const;
+
  // Operators
  public :
-  CameraMarker& operator [](size_t index);
-  const CameraMarker& operator [](size_t index)const;
+  EntityMarker& operator [](size_t index);
+  const EntityMarker& operator [](size_t index)const;
 
  // Events
  public :
@@ -55,10 +50,10 @@ class CameraMarkerList : public Entity {
 
  // Special Member Functions
  public :
-  CameraMarkerList();
-  CameraMarkerList(const CameraMarkerList&) = delete;
-  virtual ~CameraMarkerList();
-  void operator =(const CameraMarkerList&) = delete;
+  EntityMarkerList();
+  EntityMarkerList(const EntityMarkerList&) = delete;
+  virtual ~EntityMarkerList();
+  void operator =(const EntityMarkerList&) = delete;
 };
 
 #endif

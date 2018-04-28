@@ -15,39 +15,41 @@
 ** You should have received a copy of the GNU General Public License
 ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __CS489_ENTITY_CAMANIM_H
-#define __CS489_ENTITY_CAMANIM_H
+#ifndef __CS489_ENTITY_ENTMARK_H
+#define __CS489_ENTITY_ENTMARK_H
 
 #include "errors.h"
 #include "entity.h"
-#include "en_cammark.h"
 
-// Camera Marker List
-class CameraMarkerList : public Entity {
+// Entity Marker
+class EntityMarker : public Entity {
 
  // Variables
  private :
-  uint32 player;
-  uint32 start;
-  uint32 n_markers;
-  std::unique_ptr<CameraMarker[]> markers;
- private :
-  uint32 curr;
-  real32 time;
+  real32 euler[3];
+  real32 speed;
+  bool interpolate_speed;
+  uint32 anim;
+  bool anim_loop;
+  uint32 sound;
+  bool sound_loop;
 
  // Member Functions
  public :
-  void SetPlayerFocus(uint32 n);
-  uint32 GetPlayerFocus(void)const;
-  void SetMarkers(uint32 n, std::unique_ptr<CameraMarker[]>& data);
-  const CameraMarker* GetMarkers(void)const;
-  ErrorCode SetStartMarker(uint32 index);
-  uint32 GetStartMarker(void)const;
-  void Update(real32 dt);
- // Operators
- public :
-  CameraMarker& operator [](size_t index);
-  const CameraMarker& operator [](size_t index)const;
+  void SetEulerAngle(const real32* angle);
+  const real32* GetEulerAngle(void)const;
+  void SetSpeed(real32 value);
+  real32 GetSpeed(void)const;
+  void SetInterpolateSpeedFlag(bool flag);
+  bool GetInterpolateSpeedFlag(void)const;
+  ErrorCode SetAnimation(uint32 index);
+  uint32 GetAnimation(void)const;
+  void SetAnimationLoopFlag(bool flag);
+  bool GetAnimationLoopFlag(void)const;
+  ErrorCode SetSound(uint32 index);
+  uint32 GetSound(void)const;
+  void SetSoundLoopFlag(bool flag);
+  bool GetSoundLoopFlag(void)const;
 
  // Events
  public :
@@ -55,10 +57,10 @@ class CameraMarkerList : public Entity {
 
  // Special Member Functions
  public :
-  CameraMarkerList();
-  CameraMarkerList(const CameraMarkerList&) = delete;
-  virtual ~CameraMarkerList();
-  void operator =(const CameraMarkerList&) = delete;
+  EntityMarker();
+  EntityMarker(const EntityMarker&) = delete;
+  virtual ~EntityMarker();
+  void operator =(const EntityMarker&) = delete;
 };
 
 #endif

@@ -57,6 +57,7 @@ Entity* Entity::GetEntity(uint32 eid)
 
 void Entity::SetName(const STDSTRINGW& str)
 {
+ name = str;
 }
 
 void Entity::SetMap(Map* ptr)

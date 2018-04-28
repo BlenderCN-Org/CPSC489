@@ -29,30 +29,9 @@
 
 // Entity Headers
 #include "en_camanim.h"
+#include "en_entmarklist.h"
+#include "en_entmark.h"
 #include "en_doorctrl.h"
-
-struct EntityMarker {
- STDSTRINGW name;
- real32 location[3];
- matrix4D orientation;
- real32 euler[3];
- uint32 index;
- real32 speed;
- bool interpolate_speed;
- uint32 anim;
- bool anim_loop;
- uint32 sound;
- bool sound_loop;
-};
-
-struct EntityMarkerList {
- STDSTRINGW name;
- real32 location[3];
- matrix4D orientation;
- uint32 instance;
- uint32 n_markers;
- std::unique_ptr<EntityMarker[]> markers;
-};
 
 struct Portal {
  STDSTRINGW name;
@@ -159,11 +138,11 @@ class Map {
   void FreeMap(void);
   void RenderMap(real32 dt);
  public :
-  MeshInstance* GetStaticMeshInstance(const STDSTRINGW& name);
-  MeshInstance* GetStaticMeshInstance(uint32 index);
-  MeshInstance* GetDynamicMeshInstance(const STDSTRINGW& name);
-  MeshInstance* GetDynamicMeshInstance(uint32 index);
-  SoundData* GetSoundData(uint32 index);
+  MeshInstance* GetStaticMeshInstance(const STDSTRINGW& name)const;
+  MeshInstance* GetStaticMeshInstance(uint32 index)const;
+  MeshInstance* GetDynamicMeshInstance(const STDSTRINGW& name)const;
+  MeshInstance* GetDynamicMeshInstance(uint32 index)const;
+  SoundData* GetSoundData(uint32 index)const;
  public :
   Map();
   virtual ~Map();

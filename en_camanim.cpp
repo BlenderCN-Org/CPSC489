@@ -22,6 +22,10 @@ CameraMarkerList::CameraMarkerList()
 {
  start = 0xFFFFFFFFul;
  n_markers = 0;
+
+ // current state variables
+ curr = 0xFFFFFFFFul;
+ time = 0.0f;
 }
 
 CameraMarkerList::~CameraMarkerList()
@@ -69,4 +73,8 @@ CameraMarker& CameraMarkerList::operator [](size_t index)
 const CameraMarker& CameraMarkerList::operator [](size_t index)const
 {
  return markers[index];
+}
+
+void CameraMarkerList::Update(real32 dt)
+{
 }

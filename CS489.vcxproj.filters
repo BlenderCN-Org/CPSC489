@@ -230,6 +230,12 @@
     <ClCompile Include="trigger.cpp">
       <Filter>Source Files\Game\Entities</Filter>
     </ClCompile>
+    <ClCompile Include="en_entmark.cpp">
+      <Filter>Source Files\Game\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="en_entmarklist.cpp">
+      <Filter>Source Files\Game\Entities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -413,6 +419,12 @@
       <Filter>Source Files\Game\Entities</Filter>
     </ClInclude>
     <ClInclude Include="trigger.h">
+      <Filter>Source Files\Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="en_entmark.h">
+      <Filter>Source Files\Game\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="en_entmarklist.h">
       <Filter>Source Files\Game\Entities</Filter>
     </ClInclude>
   </ItemGroup>

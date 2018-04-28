@@ -181,6 +181,8 @@
     <ClCompile Include="en_camanim.cpp" />
     <ClCompile Include="en_cammark.cpp" />
     <ClCompile Include="en_doorctrl.cpp" />
+    <ClCompile Include="en_entmark.cpp" />
+    <ClCompile Include="en_entmarklist.cpp" />
     <ClCompile Include="errors.cpp" />
     <ClCompile Include="fileio.cpp" />
     <ClCompile Include="game.cpp" />
@@ -244,6 +246,8 @@
     <ClInclude Include="en_camanim.h" />
     <ClInclude Include="en_cammark.h" />
     <ClInclude Include="en_doorctrl.h" />
+    <ClInclude Include="en_entmark.h" />
+    <ClInclude Include="en_entmarklist.h" />
     <ClInclude Include="errors.h" />
     <ClInclude Include="fileio.h" />
     <ClInclude Include="game.h" />

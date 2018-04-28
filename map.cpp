@@ -422,15 +422,18 @@ ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
     for(uint32 i = 0; i < n; i++)
        {
         // read name
-        code = ASCIIReadUTF8String(linelist, temp[i].name);
+        STDSTRINGW name;
+        code = ASCIIReadUTF8String(linelist, name);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // read location
-        code = ASCIIReadVector3(linelist, &temp[i].location[0], false);
+        real32 P[3];
+        code = ASCIIReadVector3(linelist, &P[0], false);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // read orientation
-        code = ASCIIReadMatrix4(linelist, &temp[i].orientation[0], false);
+        real32 M[16];
+        code = ASCIIReadMatrix4(linelist, &M[0], false);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // read entity name
@@ -441,76 +444,101 @@ ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
         // instance reference must exist
         auto refiter = moving_instance_map.find(ref);
         if(refiter == moving_instance_map.end()) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
-        temp[i].instance = refiter->second;
+        uint32 instance = refiter->second;
 
         // read number of markers
-        temp[i].n_markers = 0;
-        code = ASCIIReadUint32(linelist, &temp[i].n_markers);
+        uint32 n_markers = 0;
+        code = ASCIIReadUint32(linelist, &n_markers);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // must have at least one marker
-        if(temp[i].n_markers == 0)
+        if(n_markers == 0)
            return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
 
         // allocate markers
-        temp[i].markers.reset(new EntityMarker[temp[i].n_markers]);
+        std::unique_ptr<EntityMarker[]> markers;
+        markers.reset(new EntityMarker[n_markers]);
 
         // read markers
         std::map<STDSTRINGW, uint32> refmap;
-        for(uint32 j = 0; j < temp[i].n_markers; j++)
+        for(uint32 j = 0; j < n_markers; j++)
            {
             // read name
-            auto& marker = temp[i].markers[j];
-            code = ASCIIReadUTF8String(linelist, marker.name);
+            STDSTRINGW name;
+            code = ASCIIReadUTF8String(linelist, name);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read location
-            code = ASCIIReadVector3(linelist, &marker.location[0], false);
+            real32 P[3];
+            code = ASCIIReadVector3(linelist, &P[0], false);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read orientation
-            code = ASCIIReadMatrix4(linelist, &marker.orientation[0], false);
+            real32 M[16];
+            code = ASCIIReadMatrix4(linelist, &M[0], false);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read euler
-            code = ASCIIReadVector3(linelist, &marker.euler[0], false);
+            real32 E[3];
+            code = ASCIIReadVector3(linelist, &E[0], false);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read index
-            marker.index = 0;
-            code = ASCIIReadUint32(linelist, &marker.index);
+            uint32 index = 0;
+            code = ASCIIReadUint32(linelist, &index);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read speed
-            marker.speed = 1.0f;
-            code = ASCIIReadReal32(linelist, &marker.speed);
+            real32 speed = 1.0f;
+            code = ASCIIReadReal32(linelist, &speed);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read interpolate_speed
-            marker.interpolate_speed = 0;
-            code = ASCIIReadBool(linelist, &marker.interpolate_speed);
+            bool interpolate_speed = true;
+            code = ASCIIReadBool(linelist, &interpolate_speed);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read animation index
-            marker.anim = 0xFFFFFFFFul;
-            code = ASCIIReadUint32(linelist, &marker.anim);
+            uint32 anim = 0xFFFFFFFFul;
+            code = ASCIIReadUint32(linelist, &anim);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read animation state
-            marker.anim_loop = true;
-            code = ASCIIReadBool(linelist, &marker.anim_loop);
+            bool anim_loop = true;
+            code = ASCIIReadBool(linelist, &anim_loop);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read sound index
-            marker.sound = 0xFFFFFFFFul;
-            code = ASCIIReadUint32(linelist, &marker.sound);
+            uint32 sound = 0xFFFFFFFFul;
+            code = ASCIIReadUint32(linelist, &sound);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read sound state
-            marker.sound_loop = true;
-            code = ASCIIReadBool(linelist, &marker.sound_loop);
+            bool sound_loop = true;
+            code = ASCIIReadBool(linelist, &sound_loop);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // set data
+            markers[index].SetName(name);
+            markers[index].SetMap(this);
+            markers[index].SetLocation(P);
+            markers[index].SetOrientation(M);
+            markers[index].SetEulerAngle(E);
+            markers[index].SetSpeed(speed);
+            markers[index].SetInterpolateSpeedFlag(interpolate_speed);
+            markers[index].SetAnimation(anim);
+            markers[index].SetAnimationLoopFlag(anim_loop);
+            markers[index].SetSound(sound);
+            markers[index].SetSoundLoopFlag(sound_loop);
            }
+
+        // set data
+        temp[i].SetName(name);
+        temp[i].SetMap(this);
+        temp[i].SetLocation(P);
+        temp[i].SetOrientation(M);
+        temp[i].SetModelInstance(ref);
+        temp[i].SetMarkers(n_markers, markers);
        }
 
     // set data    
@@ -889,6 +917,23 @@ void Map::RenderMap(real32 dt)
  real32 orbit[3];
  camera->GetOrbitPoint(orbit);
 
+ // camera animations
+ for(uint32 i = 0; i < cmd.size; i++)
+    {
+     // update camera animation
+     CameraMarkerList& cml = cmd.data[i];
+     cml.Update(dt);
+
+     // applies to all players
+     uint32 player = cml.GetPlayerFocus();
+     if(player == 0xFFFFFFFul)
+       {
+       }
+     // applies to individual player
+     else {
+       }
+    }
+
  // INEFFICIENT!!! Poll all door controllers with orbit point
  for(uint32 i = 0; i < dcd.size; i++)
      dcd.data[i].Poll(dt, orbit);
@@ -906,7 +951,7 @@ void Map::RenderMap(real32 dt)
     }
 }
 
-MeshInstance* Map::GetStaticMeshInstance(const STDSTRINGW& name)
+MeshInstance* Map::GetStaticMeshInstance(const STDSTRINGW& name)const
 {
  auto iter = static_instance_map.find(name);
  if(iter == static_instance_map.end()) return nullptr;
@@ -914,13 +959,13 @@ MeshInstance* Map::GetStaticMeshInstance(const STDSTRINGW& name)
  return &static_instances[iter->second];
 }
 
-MeshInstance* Map::GetStaticMeshInstance(uint32 index)
+MeshInstance* Map::GetStaticMeshInstance(uint32 index)const
 {
  if(!(index < n_static_instances)) return nullptr;
  return &static_instances[index];
 }
 
-MeshInstance* Map::GetDynamicMeshInstance(const STDSTRINGW& name)
+MeshInstance* Map::GetDynamicMeshInstance(const STDSTRINGW& name)const
 {
  auto iter = moving_instance_map.find(name);
  if(iter == moving_instance_map.end()) return nullptr;
@@ -928,13 +973,13 @@ MeshInstance* Map::GetDynamicMeshInstance(const STDSTRINGW& name)
  return &moving_instances[iter->second];
 }
 
-MeshInstance* Map::GetDynamicMeshInstance(uint32 index)
+MeshInstance* Map::GetDynamicMeshInstance(uint32 index)const
 {
  if(!(index < n_moving_instances)) return nullptr;
  return &moving_instances[index];
 }
 
-SoundData* Map::GetSoundData(uint32 index)
+SoundData* Map::GetSoundData(uint32 index)const
 {
  if(!(index < n_sounds)) return nullptr;
  return sounds[index];
