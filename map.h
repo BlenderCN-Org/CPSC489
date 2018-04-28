@@ -27,19 +27,22 @@
 #include "model_v2.h"
 #include "meshinst.h"
 
-struct DoorController {
- OBB box;
- uint32 door_index;
- uint32 anim_start;
- uint32 anim_enter;
- uint32 anim_leave;
- uint32 sound_opening;
- uint32 sound_closing;
- real32 close_time;
- real32 delta;
- bool   stay_open;
- bool   inside;
-};
+// Entity Headers
+#include "en_doorctrl.h"
+
+// struct DoorController {
+//  OBB box;
+//  uint32 door_index;
+//  uint32 anim_start;
+//  uint32 anim_enter;
+//  uint32 anim_leave;
+//  uint32 sound_opening;
+//  uint32 sound_closing;
+//  real32 close_time;
+//  real32 delta;
+//  bool   stay_open;
+//  bool   inside;
+// };
 
 struct CameraMarker {
  STDSTRINGW name;
@@ -189,6 +192,12 @@ class Map {
   ErrorCode LoadMap(LPCWSTR filename);
   void FreeMap(void);
   void RenderMap(real32 dt);
+ public :
+  MeshInstance* GetStaticMeshInstance(const STDSTRINGW& name);
+  MeshInstance* GetStaticMeshInstance(uint32 index);
+  MeshInstance* GetDynamicMeshInstance(const STDSTRINGW& name);
+  MeshInstance* GetDynamicMeshInstance(uint32 index);
+  SoundData* GetSoundData(uint32 index);
  public :
   Map();
   virtual ~Map();

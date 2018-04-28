@@ -49,6 +49,8 @@ Map::~Map()
  FreeMap();
 }
 
+#pragma region PRIVATE_LOADING_FUNCTIONS
+
 ErrorCode Map::LoadStaticModels(std::deque<std::string>& linelist)
 {
  // read number of static models
@@ -507,6 +509,9 @@ ErrorCode Map::LoadDoorControllers(std::deque<std::string>& linelist)
     // read data
     for(uint32 i = 0; i < n; i++)
        {
+        // set map
+        temp[i].SetMap(this);
+
         // read instance name
         STDSTRINGW iname;
         code = ASCIIReadUTF8String(linelist, iname);
@@ -570,26 +575,21 @@ ErrorCode Map::LoadDoorControllers(std::deque<std::string>& linelist)
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // set item
-        DoorController& item = temp[i];
-        item.door_index = reference;
-        item.box.center[0] = P[0];
-        item.box.center[1] = P[1];
-        item.box.center[2] = P[2];
-        item.box.widths[0] = H[0];
-        item.box.widths[1] = H[1];
-        item.box.widths[2] = H[2];
-        item.box.x[0] = M[0x0]; item.box.x[1] = M[0x1]; item.box.x[2] = M[0x2];
-        item.box.y[0] = M[0x4]; item.box.y[1] = M[0x5]; item.box.y[2] = M[0x6];
-        item.box.z[0] = M[0x8]; item.box.z[1] = M[0x9]; item.box.z[2] = M[0xA];
-        item.anim_start = (anim1 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim1));
-        item.anim_enter = (anim2 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim2));
-        item.anim_leave = (anim3 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim3));
-        item.sound_opening = s1;
-        item.sound_closing = s2;
-        item.inside = false;
-        item.close_time = close_time;
-        item.delta = 0.0f;
-        item.stay_open = (open_flag ? true : false);
+        uint32 anims[3] = {
+         (anim1 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim1)),
+         (anim2 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim2)),
+         (anim3 == -1 ? 0xFFFFFFFFul : static_cast<uint32>(anim3))
+        };
+
+        // set door controller properties
+        temp[i].SetLocation(P);
+        temp[i].SetOrientation(M);
+        temp[i].SetOBB(H);
+        temp[i].SetDoorIndex(reference);
+        temp[i].SetAnimations(anims[0], anims[1], anims[2]);
+        temp[i].SetSounds(0xFFFFFFFFul, s1, s2);
+        temp[i].SetClosingTime(close_time);
+        temp[i].SetActiveFlag(true);
        }
 
     // set data
@@ -685,6 +685,10 @@ ErrorCode Map::LoadCells(std::deque<std::string>& linelist)
  return EC_SUCCESS;
 }
 
+#pragma endregion PRIVATE_LOADING_FUNCTIONS
+
+#pragma region PRIVATE_UNLOADING_FUNCTIONS
+
 void Map::FreeStaticModels(void)
 {
  for(uint32 i = 0; i < n_static; i++) static_models[i].Free();
@@ -756,6 +760,8 @@ void Map::FreeCells(void)
  cells.data.reset();
  cells.size = 0;
 }
+
+#pragma endregion PRIVATE_UNLOADING_FUNCTIONS
 
 ErrorCode Map::LoadMap(LPCWSTR filename)
 {
@@ -855,36 +861,9 @@ void Map::RenderMap(real32 dt)
  real32 orbit[3];
  camera->GetOrbitPoint(orbit);
 
- // INEFFICIENT!!!
+ // INEFFICIENT!!! Poll all door controllers with orbit point
  for(uint32 i = 0; i < dcd.size; i++)
-    {
-     // camera is inside door controller
-     auto& dc = dcd.data[i];
-     if(OBB_intersect(dc.box, orbit))
-       {
-        uint32 door_index = dc.door_index;
-        uint32 anim_index = dc.anim_enter;
-        moving_instances[door_index].SetAnimation(anim_index, false);
-        if(!dc.inside) {
-           //if(dc.sound_opening != 0xFFFFFFFFul) PlayVoice(sounds[dc.sound_opening], false);
-           dc.inside = true;
-          }
-       }
-     // outside, but last frame we were inside
-     else if(dc.inside) {
-        dc.delta = dc.close_time;
-        dc.inside = false;
-       }
-     // outside
-     else if(dc.delta) {
-        dc.delta -= dt;
-        if(!(dc.delta > 0.0f)) {
-           moving_instances[dc.door_index].SetAnimation(dc.anim_leave, false);
-           //if(dc.sound_closing != 0xFFFFFFFFul) PlayVoice(sounds[dc.sound_closing], false);
-           dc.delta = 0.0f;
-          }
-       }
-    }
+     dcd.data[i].Poll(dt, orbit);
 
  // INEFFICIENT!!!
  // RENDER ALL STATIC MODEL INSTANCES
@@ -897,4 +876,38 @@ void Map::RenderMap(real32 dt)
      moving_instances[i].Update(dt);
      moving_instances[i].RenderModel();
     }
+}
+
+MeshInstance* Map::GetStaticMeshInstance(const STDSTRINGW& name)
+{
+ auto iter = static_instance_map.find(name);
+ if(iter == static_instance_map.end()) return nullptr;
+ if(!(iter->second < n_static_instances)) return nullptr;
+ return &static_instances[iter->second];
+}
+
+MeshInstance* Map::GetStaticMeshInstance(uint32 index)
+{
+ if(!(index < n_static_instances)) return nullptr;
+ return &static_instances[index];
+}
+
+MeshInstance* Map::GetDynamicMeshInstance(const STDSTRINGW& name)
+{
+ auto iter = moving_instance_map.find(name);
+ if(iter == moving_instance_map.end()) return nullptr;
+ if(!(iter->second < n_moving_instances)) return nullptr;
+ return &moving_instances[iter->second];
+}
+
+MeshInstance* Map::GetDynamicMeshInstance(uint32 index)
+{
+ if(!(index < n_moving_instances)) return nullptr;
+ return &moving_instances[index];
+}
+
+SoundData* Map::GetSoundData(uint32 index)
+{
+ if(!(index < n_sounds)) return nullptr;
+ return sounds[index];
 }

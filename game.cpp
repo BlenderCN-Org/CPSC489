@@ -60,8 +60,14 @@ Game::~Game()
 ErrorCode Game::InitGame(void)
 {
  // set player variables
- n_players = 1;
+ n_players = 3;
  players.reset(new PlayerEntity[MAX_PLAYERS]);
+
+ // set and enable viewport(s)
+ auto code = SetCanvasViewportNumber(n_players);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ for(uint32 i = 0; i < n_players; i++) EnableViewport(i, true);
+ UpdateCanvas();
 
  // set map variables
  maplist.clear();
@@ -71,8 +77,8 @@ ErrorCode Game::InitGame(void)
  delta = 0.0f;
 
  // set controller variables
- PollForControllers(0);
  ctrlpoller.reset(5.0f);
+ PollForControllers(0);
 
  return EC_SUCCESS;
 }
@@ -125,6 +131,7 @@ void Game::UpdateGame(real32 dt)
 
  // poll for controllers every five seconds
  PollForControllers(dt);
+ UpdateControllers(dt);
 
  // render map
  map.RenderMap(dt);
@@ -136,6 +143,7 @@ void Game::UpdateGame(real32 dt)
 
 void Game::PollForControllers(real32 dt)
 {
+ // update polling timer
  ctrlpoller.update(dt);
  if(!ctrlpoller.triggered()) return;
 
@@ -166,6 +174,51 @@ void Game::ReleaseControllers(void)
        }
     }
  ctrlpoller.reset();
+}
+
+void Game::UpdateControllers(real32 dt)
+{
+ // for each player
+ for(uint32 i = 0; i < n_players; i++)
+    {
+     // no controller
+     if(controller[i] == 0xFFFFFFFFul) continue;
+
+     // update
+     if(IsControllerConnected(controller[i]))
+       {
+        auto lpcs = GetControllerState(controller[i]);
+        if(lpcs)
+          {
+           // move at 5 m/s
+           real32 dL = lpcs->JS_L_NORM*2.0f*dt;
+           real32 dR = lpcs->JS_R_NORM*90.0f*dt;
+           if(dL)
+             {
+              //if(dL > 0.01f) dL = 0.01f;
+              real32 vL[3] = {
+                 lpcs->JS_L[1],
+                -lpcs->JS_L[0],
+                0.0f
+              };
+              GetViewportCamera(i)->Move(vL, dL);
+             }
+           if(dR) {
+              real32 vR[2] = {
+                -lpcs->JS_R[0], // Z-axis rotation
+                -lpcs->JS_R[1], // Y-axis rotation
+              };
+              GetViewportCamera(i)->ThumbstickOrbit(vR, dR);
+             }
+           UpdateViewportCamera(i);
+          }
+       }
+     // disconnected
+     else {
+        ReleaseController(controller[i]);
+        controller[i] = 0xFFFFFFFFul;
+       }
+    }
 }
 
 #pragma endregion CONTROLLER_FUNCTIONS

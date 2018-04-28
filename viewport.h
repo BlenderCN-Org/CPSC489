@@ -17,7 +17,7 @@ ErrorCode InitCanvas(uint32 dx, uint32 dy);
 void FreeCanvas(void);
 ErrorCode SetCanvasDimensions(uint32 dx, uint32 dy);
 const uint32* GetCanvasDimensions(void);
-void SetCanvasViewportNumber(uint32 n);
+ErrorCode SetCanvasViewportNumber(uint32 n);
 uint32 GetCanvasViewportNumber(void);
 void LayoutCanvas(void);
 ErrorCode UpdateCanvas(void);

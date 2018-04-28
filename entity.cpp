@@ -27,10 +27,11 @@ Entity::Entity()
  id = baseID;
  baseID++;
  entity_map.insert(std::make_pair(id, this));
+ active = false;
  for(int i = 0; i < 16; i++) targets[i] = nullptr;
 
  // Positioning Properties
- position.reset(0.0f, 0.0f, 0.0f);
+ location.reset(0.0f, 0.0f, 0.0f);
  orientation.load_identity();
 
  // Mesh Properties
@@ -47,6 +48,28 @@ Entity* Entity::GetEntity(uint32 eid)
  auto iter = entity_map.find(eid);
  if(iter == entity_map.end()) return nullptr;
  return iter->second;
+}
+
+void Entity::SetLocation(const real32* v)
+{
+ location[0] = v[0];
+ location[1] = v[1];
+ location[2] = v[2];
+}
+
+void Entity::SetOrientation(const real32* m)
+{
+ orientation.load(m);
+}
+
+bool Entity::GetActiveFlag(void)const
+{
+ return active;
+}
+
+void Entity::SetActiveFlag(bool state)
+{
+ active = state;
 }
 
 void Entity::Render(void)

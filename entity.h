@@ -31,11 +31,12 @@ class Entity {
   static std::map<uint32, Entity*> entity_map;
   STDSTRINGW name;
   uint32 id;
+  bool active;
   Entity* targets[16];
 
  // Positioning Properties
- private :
-  vector3D position;
+ protected :
+  vector3D location;
   matrix4D orientation;
 
  // Model Properties
@@ -50,6 +51,12 @@ class Entity {
  public :
   const STDSTRINGW& GetName(void)const { return name; }
   uint32 GetID(void)const { return id; }
+  const real32* GetLocation(void)const { return &location.v[0]; }
+  void SetLocation(const real32* v);
+  const real32* GetOrientation(void)const { return &orientation.m[0]; }
+  void SetOrientation(const real32* m);
+  bool GetActiveFlag(void)const;
+  void SetActiveFlag(bool state);
 
  //
  public :

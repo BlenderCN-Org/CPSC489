@@ -38,14 +38,11 @@ ErrorCode InitCanvas(uint32 dx, uint32 dy)
  // free previous
  FreeCanvas();
 
- // start with only one viewport (change it if you want)
- n_viewports = 4;
-
- // initialize viewports
- for(uint32 i = 0; i < n_viewports; i++)
+ // allocate data for all viewports
+ for(uint32 i = 0; i < 4; i++)
     {
-     // enable viewport by default
-     viewport_states[i] = true;
+     // disable viewport by default
+     viewport_states[i] = false;
 
      // viewport camera and orbit box
      cameras[i].Reset();
@@ -65,6 +62,10 @@ ErrorCode InitCanvas(uint32 dx, uint32 dy)
      code = CreateDynamicMatrixConstBuffer(&overlay_buffers[i]);
      if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
     }
+
+ // start with only one viewport and enable it (change it if you want)
+ n_viewports = 1;
+ viewport_states[0] = true;
 
  // set canvas dimensions
  return SetCanvasDimensions(dx, dy);
@@ -152,11 +153,14 @@ const uint32* GetCanvasDimensions(void)
  return &canvas_dim[0];
 }
 
-void SetCanvasViewportNumber(uint32 n)
+ErrorCode SetCanvasViewportNumber(uint32 n)
 {
- if(n == 0 || n > 4) return;
+ if(n == 0 || n > 4) return EC_SUCCESS;
  n_viewports = n;
  LayoutCanvas();
+ auto code = UpdateCanvas();
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ return code;
 }
 
 uint32 GetCanvasViewportNumber(void)
@@ -245,6 +249,11 @@ ErrorCode UpdateCanvas(void)
  return EC_SUCCESS;
 }
 
+/**
+ *  \details Enables a currently existing viewport. A viewport that is enabled is rendered to. A
+ *  viewport that is disabled is not rendered to -- showing a black screen. For example, in three-
+ *  player split-screen, there are four viewports, but only the first three of them are enabled.
+ */
 void EnableViewport(uint32 index, bool state)
 {
  if(!(index < n_viewports) || (state == viewport_states[index])) return;
