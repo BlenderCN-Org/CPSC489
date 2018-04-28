@@ -18,6 +18,10 @@
 #include "stdafx.h"
 #include "entity.h"
 
+#include "model_v2.h"
+#include "meshinst.h"
+#include "map.h"
+
 uint32 Entity::baseID = 0;
 std::map<uint32, Entity*> Entity::entity_map = std::map<uint32, Entity*>();
 
@@ -28,6 +32,7 @@ Entity::Entity()
  baseID++;
  entity_map.insert(std::make_pair(id, this));
  active = false;
+ map = nullptr;
  for(int i = 0; i < 16; i++) targets[i] = nullptr;
 
  // Positioning Properties
@@ -48,6 +53,20 @@ Entity* Entity::GetEntity(uint32 eid)
  auto iter = entity_map.find(eid);
  if(iter == entity_map.end()) return nullptr;
  return iter->second;
+}
+
+void Entity::SetName(const STDSTRINGW& str)
+{
+}
+
+void Entity::SetMap(Map* ptr)
+{
+ map = ptr;
+}
+
+Map* Entity::GetMap(void)const
+{
+ return map;
 }
 
 void Entity::SetLocation(const real32* v)

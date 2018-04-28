@@ -294,77 +294,106 @@ ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
     for(uint32 i = 0; i < n; i++)
        {
         // read name
-        code = ASCIIReadUTF8String(linelist, temp[i].name);
+        STDSTRINGW name;
+        code = ASCIIReadUTF8String(linelist, name);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // read position
-        code = ASCIIReadVector3(linelist, &temp[i].location[0], false);
+        real32 P[3];
+        code = ASCIIReadVector3(linelist, &P[0], false);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // read orientation
-        code = ASCIIReadMatrix4(linelist, &temp[i].orientation[0], false);
+        real32 M[16];
+        code = ASCIIReadMatrix4(linelist, &M[0], false);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // read start index
-        temp[i].start = 0;
-        code = ASCIIReadUint32(linelist, &temp[i].start);
+        uint32 start = 0;
+        code = ASCIIReadUint32(linelist, &start);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // read number of markers
-        temp[i].n_markers = 0;
-        code = ASCIIReadUint32(linelist, &temp[i].n_markers);
+        uint32 n_markers = 0;
+        code = ASCIIReadUint32(linelist, &n_markers);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
-        // TODO: camera animation must have at least one marker
+        // camera animations must have at least one marker
+        if(n_markers < 1) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
+        if(!(start < n_markers)) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
 
         // allocate markers
-        temp[i].markers.reset(new CameraMarker[temp[i].n_markers]);
+        std::unique_ptr<CameraMarker[]> markers;
+        markers.reset(new CameraMarker[n_markers]);
 
         // read markers
-        for(uint32 j = 0; j < temp[i].n_markers; j++)
+        for(uint32 j = 0; j < n_markers; j++)
            {
             // read name
-            auto& marker = temp[i].markers[j];
-            code = ASCIIReadUTF8String(linelist, marker.name);
+            STDSTRINGW name;
+            code = ASCIIReadUTF8String(linelist, name);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read location
-            code = ASCIIReadVector3(linelist, &marker.location[0], false);
+            real32 P[3];
+            code = ASCIIReadVector3(linelist, &P[0], false);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read orientation
-            code = ASCIIReadMatrix4(linelist, &marker.orientation[0], false);
+            real32 M[16];
+            code = ASCIIReadMatrix4(linelist, &M[0], false);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read euler
-            code = ASCIIReadVector3(linelist, &marker.euler[0], false);
+            real32 E[3];
+            code = ASCIIReadVector3(linelist, &E[0], false);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read index
-            marker.index = 0;
-            code = ASCIIReadUint32(linelist, &marker.index);
+            uint32 index;
+            code = ASCIIReadUint32(linelist, &index);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+            if(!(index < n_markers)) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
 
             // read speed
-            marker.speed = 1.0f;
-            code = ASCIIReadReal32(linelist, &marker.speed);
+            real32 speed = 1.0f;
+            code = ASCIIReadReal32(linelist, &speed);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read interpolate_speed
-            marker.interpolate_speed = 0;
-            code = ASCIIReadBool(linelist, &marker.interpolate_speed);
+            bool interpolate_speed = true;
+            code = ASCIIReadBool(linelist, &interpolate_speed);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read fovy
-            marker.fovy = 1.0f;
-            code = ASCIIReadReal32(linelist, &marker.fovy);
+            real32 fovy = 1.0f;
+            code = ASCIIReadReal32(linelist, &fovy);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read interpolate_fovy
-            marker.interpolate_fovy = 0;
-            code = ASCIIReadBool(linelist, &marker.interpolate_fovy);
+            bool interpolate_fovy = true;
+            code = ASCIIReadBool(linelist, &interpolate_fovy);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+            // set data
+            markers[start].SetMap(this);
+            markers[start].SetName(name);
+            markers[start].SetLocation(P);
+            markers[start].SetOrientation(M);
+            markers[start].SetEulerAngle(E);
+            markers[start].SetSpeed(speed);
+            markers[start].SetInterpolateSpeedFlag(interpolate_speed);
+            markers[start].SetFOVY(fovy);
+            markers[start].SetInterpolateFOVYFlag(interpolate_fovy);
            }
+
+        // set data
+        temp[i].SetMap(this);
+        temp[i].SetName(name);
+        temp[i].SetLocation(P);
+        temp[i].SetOrientation(M);
+        temp[i].SetStartMarker(start);
+        temp[i].SetMarkers(n_markers, markers);
        }
 
     // set instance data
@@ -509,12 +538,9 @@ ErrorCode Map::LoadDoorControllers(std::deque<std::string>& linelist)
     // read data
     for(uint32 i = 0; i < n; i++)
        {
-        // set map
-        temp[i].SetMap(this);
-
         // read instance name
-        STDSTRINGW iname;
-        code = ASCIIReadUTF8String(linelist, iname);
+        STDSTRINGW name;
+        code = ASCIIReadUTF8String(linelist, name);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
         // read position
@@ -582,6 +608,8 @@ ErrorCode Map::LoadDoorControllers(std::deque<std::string>& linelist)
         };
 
         // set door controller properties
+        temp[i].SetMap(this);
+        temp[i].SetName(name);
         temp[i].SetLocation(P);
         temp[i].SetOrientation(M);
         temp[i].SetOBB(H);

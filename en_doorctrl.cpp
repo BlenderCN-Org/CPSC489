@@ -6,7 +6,6 @@
 
 DoorController::DoorController()
 {
- map = nullptr;
  door_index = 0xFFFFFFFFul;
  anims[0] = anims[1] = anims[2] = 0xFFFFFFFFul;
  sound[0] = sound[1] = sound[2] = 0xFFFFFFFFul;
@@ -17,16 +16,6 @@ DoorController::DoorController()
 
 DoorController::~DoorController()
 {
-}
-
-void DoorController::SetMap(Map* ptr)
-{
- map = ptr;
-}
-
-const Map* DoorController::GetMap(void)const
-{
- return map;
 }
 
 void DoorController::SetOBB(const real32* halfdims)
@@ -119,13 +108,18 @@ void DoorController::Poll(real32 dt, const real32* pt)
  // nothing to do, door is disabled
  if(!GetActiveFlag()) return;
 
+ // TODO:
+ // If there is no closing animation, assume that the door can't be closed once
+ // it is open. Once open, we can deactivate the door to stop future OBB inter-
+ // section testing.
+
  // was outside, now inside
  if(!inside && OBB_intersect(this->box, pt))
    {
-    auto instance = map->GetDynamicMeshInstance(door_index);
+    auto instance = GetMap()->GetDynamicMeshInstance(door_index);
     instance->SetAnimation(anims[1], false);
     if(!inside) {
-       if(sound[1] != 0xFFFFFFFFul) PlayVoice(map->GetSoundData(sound[1]), false);
+       if(sound[1] != 0xFFFFFFFFul) PlayVoice(GetMap()->GetSoundData(sound[1]), false);
        inside = true;
       }
    }
@@ -138,9 +132,9 @@ void DoorController::Poll(real32 dt, const real32* pt)
  else if(delta) {
     delta -= dt;
     if(!(delta > 0.0f)) {
-       auto instance = map->GetDynamicMeshInstance(door_index);
+       auto instance = GetMap()->GetDynamicMeshInstance(door_index);
        instance->SetAnimation(anims[2], false);
-       if(sound[2] != 0xFFFFFFFFul) PlayVoice(map->GetSoundData(sound[2]), false);
+       if(sound[2] != 0xFFFFFFFFul) PlayVoice(GetMap()->GetSoundData(sound[2]), false);
        delta = 0.0f;
       }
    }

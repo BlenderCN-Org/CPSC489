@@ -20,4 +20,40 @@
 
 #include "entity.h"
 
+// Camera Marker
+class CameraMarker : public Entity {
+
+ // Variables
+ private :
+  real32 euler[3];
+  real32 speed;
+  bool interpolate_speed;
+  real32 fovy;
+  bool interpolate_fovy;
+
+ // Member Functions
+ public :
+  void SetEulerAngle(const real32* angle);
+  const real32* GetEulerAngle(void)const;
+  void SetSpeed(real32 value);
+  real32 GetSpeed(void)const;
+  void SetInterpolateSpeedFlag(bool flag);
+  bool GetInterpolateSpeedFlag(void)const;
+  void SetFOVY(real32 value);
+  real32 GetFOVY(void)const;
+  void SetInterpolateFOVYFlag(bool flag);
+  bool GetInterpolateFOVYFlag(void)const;
+
+ // Events
+ public :
+  virtual void EvTrigger(Entity* source) {}
+
+ // Special Member Functions
+ public :
+  CameraMarker();
+  CameraMarker(const CameraMarker&) = delete;
+  virtual ~CameraMarker();
+  void operator =(const CameraMarker&) = delete;
+};
+
 #endif

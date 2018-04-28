@@ -18,6 +18,45 @@
 #ifndef __CS489_ENTITY_CAMANIM_H
 #define __CS489_ENTITY_CAMANIM_H
 
+#include "errors.h"
 #include "entity.h"
+#include "en_cammark.h"
+
+class CameraMarker;
+
+// Camera Marker List
+class CameraMarkerList : public Entity {
+
+ // Variables
+ private :
+  uint32 player;
+  uint32 start;
+  uint32 n_markers;
+  std::unique_ptr<CameraMarker[]> markers;
+
+ // Member Functions
+ public :
+  void SetPlayerFocus(uint32 n);
+  uint32 GetPlayerFocus(void)const;
+  void SetMarkers(uint32 n, std::unique_ptr<CameraMarker[]>& data);
+  const CameraMarker* GetMarkers(void)const;
+  ErrorCode SetStartMarker(uint32 index);
+  uint32 GetStartMarker(void)const;
+ // Operators
+ public :
+  CameraMarker& operator [](size_t index);
+  const CameraMarker& operator [](size_t index)const;
+
+ // Events
+ public :
+  virtual void EvTrigger(Entity* source) {}
+
+ // Special Member Functions
+ public :
+  CameraMarkerList();
+  CameraMarkerList(const CameraMarkerList&) = delete;
+  virtual ~CameraMarkerList();
+  void operator =(const CameraMarkerList&) = delete;
+};
 
 #endif

@@ -4,14 +4,11 @@
 #include "collision.h" // for OBB, move this later
 #include "entity.h"
 
-class Map;
-
 // Door Controller
 class DoorController : public Entity {
 
  // Variables
  private :
-  Map* map;
   OBB box;
   uint32 door_index;
   uint32 anims[3];
@@ -21,8 +18,6 @@ class DoorController : public Entity {
   bool   inside;
   
  public :
-  void SetMap(Map* ptr);
-  const Map* GetMap(void)const;
   void SetOBB(const real32* halfdims);
   void SetOBB(const real32* P, const real32* M, const real32* halfdims);
   const OBB& GetOBB(void)const;

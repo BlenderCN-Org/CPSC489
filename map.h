@@ -28,42 +28,8 @@
 #include "meshinst.h"
 
 // Entity Headers
+#include "en_camanim.h"
 #include "en_doorctrl.h"
-
-// struct DoorController {
-//  OBB box;
-//  uint32 door_index;
-//  uint32 anim_start;
-//  uint32 anim_enter;
-//  uint32 anim_leave;
-//  uint32 sound_opening;
-//  uint32 sound_closing;
-//  real32 close_time;
-//  real32 delta;
-//  bool   stay_open;
-//  bool   inside;
-// };
-
-struct CameraMarker {
- STDSTRINGW name;
- real32 location[3];
- matrix4D orientation;
- real32 euler[3];
- uint32 index;
- real32 speed;
- bool interpolate_speed;
- real32 fovy;
- bool interpolate_fovy;
-};
-
-struct CameraMarkerList {
- STDSTRINGW name;
- real32 location[3];
- matrix4D orientation;
- uint32 start;
- uint32 n_markers;
- std::unique_ptr<CameraMarker[]> markers;
-};
 
 struct EntityMarker {
  STDSTRINGW name;

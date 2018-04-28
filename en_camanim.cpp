@@ -17,3 +17,56 @@
 */
 #include "stdafx.h"
 #include "en_camanim.h"
+
+CameraMarkerList::CameraMarkerList()
+{
+ start = 0xFFFFFFFFul;
+ n_markers = 0;
+}
+
+CameraMarkerList::~CameraMarkerList()
+{
+}
+
+void CameraMarkerList::SetPlayerFocus(uint32 n)
+{
+ player = n;
+}
+
+uint32 CameraMarkerList::GetPlayerFocus(void)const
+{
+ return player;
+}
+
+void CameraMarkerList::SetMarkers(uint32 n, std::unique_ptr<CameraMarker[]>& data)
+{
+ n_markers = n;
+ markers = std::move(data);
+}
+
+const CameraMarker* CameraMarkerList::GetMarkers(void)const
+{
+ return markers.get();
+}
+
+ErrorCode CameraMarkerList::SetStartMarker(uint32 index)
+{
+ if(!(index < n_markers)) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
+ start = index;
+ return EC_SUCCESS;
+}
+
+uint32 CameraMarkerList::GetStartMarker(void)const
+{
+ return start;
+}
+
+CameraMarker& CameraMarkerList::operator [](size_t index)
+{
+ return markers[index];
+}
+
+const CameraMarker& CameraMarkerList::operator [](size_t index)const
+{
+ return markers[index];
+}
