@@ -21,7 +21,8 @@
 #include "viewport.h"
 #include "xinput.h"
 
-static LPCWSTR filename = L"map.txt"; // L"levels//map1.txt"
+static Game game;
+Game* GetGame(void) { return &game; }
 
 #pragma region SPECIAL_MEMBER_FUNCTIONS
 

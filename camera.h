@@ -70,6 +70,11 @@ class OrbitCamera {
   const real32* GetCameraXAxis(void)const { return &cam_X[0]; }
   const real32* GetCameraYAxis(void)const { return &cam_Y[0]; }
   const real32* GetCameraZAxis(void)const { return &cam_Z[0]; }
+ // Camera Repositioning Functions (Public)
+ public :
+  void RepositionEulerXYZ(const real32* P, const real32* E);
+  void RepositionMatrix(const real32* P, const real32* M);
+  void RepositionQuaternion(const real32* P, const real32* Q);
  // Camera Functions (Private)
  private :
   void SetCameraOrigin(real32 x, real32 y, real32 z);

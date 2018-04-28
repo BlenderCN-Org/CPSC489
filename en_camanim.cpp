@@ -21,6 +21,7 @@
 CameraMarkerList::CameraMarkerList()
 {
  // fixed variables
+ player = 0xFFFFFFFFul;
  start = 0xFFFFFFFFul;
  n_markers = 0;
 
@@ -81,6 +82,7 @@ ErrorCode CameraMarkerList::SetStartMarker(uint32 index)
 
  // set base time
  base = markers[start].GetTime();
+ time = base;
 
  return EC_SUCCESS;
 }
@@ -102,16 +104,6 @@ const CameraMarker& CameraMarkerList::operator [](size_t index)const
 
 void CameraMarkerList::Update(real32 dt)
 {
- // START: 1
- // BASE:  5
- // TIME:  2 RANGE is [0, 4] -> [5, 9]
- // -------------------------
- // MARK: 0     1     2     3
- // TIME: 0     5     8     9
- // CURR:       x
- // NEXT:             x
- // 
-
  // nothing to do, SetStartMarker not called
  if(!n_markers) return;
  if(start == 0xFFFFFFFFul) return;
@@ -120,31 +112,63 @@ void CameraMarkerList::Update(real32 dt)
  // time values
  real32 curr_time = time + dt;
  real32 last_time = markers[n_markers - 1].GetTime();
+ if(curr_time > last_time) curr_time = last_time;
 
  // interval times
- real32 AT = markers[curr].GetTime(); // AT = 5.0, curr = 1
- real32 BT = markers[next].GetTime(); // BT = 8.0, next = 2
- real32 MT = base + curr_time;        // MT = 5.0 + 2.0 = 7.0
+ real32 AT = markers[curr].GetTime();
+ real32 BT = markers[next].GetTime();
+ real32 MT = curr_time;
 
- // on L-side of interval
- if(MT == AT)
+ // shift intervals (if necessary)
+ while(!(MT >= AT && MT < BT)) {
+       if(next == n_markers - 1) break;
+       curr++;
+       next++;
+       AT = markers[curr].GetTime();
+       BT = markers[next].GetTime();
+      }
+
+ // on L-side of interval or not interpolating
+ if(MT == AT || !markers[curr].GetInterpolateTimeFlag())
    {
+    auto P = markers[curr].GetLocation();
+    this->P.reset(P);
+    auto E = markers[curr].GetEulerAngle();
+    this->E[0] = radians(E[0]);
+    this->E[1] = radians(E[1]);
+    this->E[2] = radians(E[2]);
    }
  // on R-side of interval
  else if(MT == BT)
    {
+    const real32* P = markers[next].GetLocation();
+    this->P.reset(P);
+    const real32* E = markers[next].GetEulerAngle();
+    this->E[0] = radians(E[0]);
+    this->E[1] = radians(E[1]);
+    this->E[2] = radians(E[2]);
    }
  // inside of interval
- else if(MT > AT && MT < BT)
-   {
-   }
- // outside of interval
  else
    {
-    while(!(MT >= AT && MT < BT)) {
+    // compute ratio between AT and BT
+    real32 ratio = (MT - AT)/(BT - AT);
 
-         }
+    // interpolate location
+    const real32* P1 = markers[curr].GetLocation();
+    const real32* P2 = markers[next].GetLocation();
+    lerp3D(&this->P[0], &P1[0], &P2[0], ratio);
+
+    // interpolate euler angle
+    const real32* E1 = markers[curr].GetEulerAngle();
+    const real32* E2 = markers[next].GetEulerAngle();
+    lerp3D(&this->E[0], &E1[0], &E2[0], ratio);
+    this->E[0] = radians(this->E[0]);
+    this->E[1] = radians(this->E[1]);
+    this->E[2] = radians(this->E[2]);
    }
+
+ // reset camera
 
  // update time
  time = curr_time;

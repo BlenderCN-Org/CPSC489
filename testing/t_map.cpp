@@ -17,20 +17,19 @@
 #include "tests.h"
 #include "t_map.h"
 
-static Game game;
-
 BOOL InitMapTest(void)
 {
  // initialize game
- auto code = game.InitGame();
+ Game* game = GetGame();
+ auto code = game->InitGame();
  if(Fail(code, __LINE__, __FILE__)) return FALSE;
 
  // insert maps
- code = game.InsertMap(L"maps//room.txt");
+ code = game->InsertMap(L"maps//room.txt");
  if(Fail(code, __LINE__, __FILE__)) return FALSE;
 
  // start game
- code = game.StartGame();
+ code = game->StartGame();
  if(Fail(code, __LINE__, __FILE__)) return FALSE;
 
  return TRUE;
@@ -39,14 +38,16 @@ BOOL InitMapTest(void)
 void FreeMapTest(void)
 {
  // stop and free game data
- game.StopGame();
- game.FreeGame();
+ Game* game = GetGame();
+ game->StopGame();
+ game->FreeGame();
 }
 
 void RenderMapTest(real32 dt)
 {
  // update and render
- game.UpdateGame(dt);
+ Game* game = GetGame();
+ game->UpdateGame(dt);
 }
 
 /*

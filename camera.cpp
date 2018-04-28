@@ -165,6 +165,80 @@ bool OrbitCamera::SetFOVY(real32 value)
 
 #pragma endregion FOVY_FUNCTIONS
 
+#pragma region CAMERA_REPOSITIONING
+
+void OrbitCamera::RepositionEulerXYZ(const real32* P, const real32* E)
+{
+ // set position
+ cam_E[0] = P[0];
+ cam_E[1] = P[1];
+ cam_E[2] = P[2];
+
+ // convert euler angles to matrix
+ real32 M[16];
+ eulerXYZ_to_matrix4(M, E);
+
+ // set camera matrix
+ cam_X[0] = M[0x0]; cam_X[1] = M[0x1]; cam_X[2] = M[0x2];
+ cam_Y[0] = M[0x4]; cam_Y[1] = M[0x5]; cam_Y[2] = M[0x6];
+ cam_Z[0] = M[0x8]; cam_Z[1] = M[0x9]; cam_Z[2] = M[0xA];
+
+ // reset orbit angles
+ horz_angle = 0.0f;
+ vert_angle = 0.0f;
+ ref_X[0] = cam_X[0]; ref_X[1] = cam_X[1]; ref_X[2] = cam_X[2];
+ ref_Y[0] = cam_Y[0]; ref_Y[1] = cam_Y[1]; ref_Y[2] = cam_Y[2];
+ ref_Z[0] = cam_Z[0]; ref_Z[1] = cam_Z[1]; ref_Z[2] = cam_Z[2];
+}
+
+void OrbitCamera::RepositionMatrix(const real32* P, const real32* M)
+{
+ // set position
+ cam_E[0] = P[0];
+ cam_E[1] = P[1];
+ cam_E[2] = P[2];
+
+ // set camera matrix
+ cam_X[0] = M[0x0]; cam_X[1] = M[0x1]; cam_X[2] = M[0x2];
+ cam_Y[0] = M[0x4]; cam_Y[1] = M[0x5]; cam_Y[2] = M[0x6];
+ cam_Z[0] = M[0x8]; cam_Z[1] = M[0x9]; cam_Z[2] = M[0xA];
+
+ // reset orbit angles
+ horz_angle = 0.0f;
+ vert_angle = 0.0f;
+ ref_X[0] = cam_X[0]; ref_X[1] = cam_X[1]; ref_X[2] = cam_X[2];
+ ref_Y[0] = cam_Y[0]; ref_Y[1] = cam_Y[1]; ref_Y[2] = cam_Y[2];
+ ref_Z[0] = cam_Z[0]; ref_Z[1] = cam_Z[1]; ref_Z[2] = cam_Z[2];
+}
+
+void OrbitCamera::RepositionQuaternion(const real32* P, const real32* Q)
+{
+ // set position
+ cam_E[0] = P[0];
+ cam_E[1] = P[1];
+ cam_E[2] = P[2];
+
+ // normalize quaternion to be safe
+ real32 q[4] = { Q[0], Q[1], Q[2], Q[3] };
+ qnormalize(q);
+
+ // set camera matrix
+ real32 M[16];
+ quaternion_to_matrix4(M, q);
+ cam_X[0] = M[0x0]; cam_X[1] = M[0x1]; cam_X[2] = M[0x2];
+ cam_Y[0] = M[0x4]; cam_Y[1] = M[0x5]; cam_Y[2] = M[0x6];
+ cam_Z[0] = M[0x8]; cam_Z[1] = M[0x9]; cam_Z[2] = M[0xA];
+
+ // reset orbit angles
+ horz_angle = 0.0f;
+ vert_angle = 0.0f;
+ ref_X[0] = cam_X[0]; ref_X[1] = cam_X[1]; ref_X[2] = cam_X[2];
+ ref_Y[0] = cam_Y[0]; ref_Y[1] = cam_Y[1]; ref_Y[2] = cam_Y[2];
+ ref_Z[0] = cam_Z[0]; ref_Z[1] = cam_Z[1]; ref_Z[2] = cam_Z[2];
+}
+
+#pragma endregion CAMERA_REPOSITIONING
+
 #pragma region CAMERA_FUNCTIONS_PRIVATE
 
 void OrbitCamera::SetCameraOrigin(real32 x, real32 y, real32 z)

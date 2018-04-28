@@ -128,4 +128,7 @@ class Game {
   virtual ~Game();
 };
 
+// Singleton
+Game* GetGame(void);
+
 #endif

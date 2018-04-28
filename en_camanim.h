@@ -21,6 +21,8 @@
 #include "errors.h"
 #include "entity.h"
 #include "en_cammark.h"
+#include "vector3.h"
+#include "matrix4.h"
 
 // Camera Marker List
 class CameraMarkerList : public Entity {
@@ -36,8 +38,9 @@ class CameraMarkerList : public Entity {
   uint32 next; // marker index
   real32 base; // time
   real32 time; // time
-  real32 P[3]; // position
-  real32 E[3]; // euler angle
+  vector3D P;  // position
+  vector3D E;  // euler angle
+  matrix4D C;  // camera matrix
 
  // Member Functions
  public :
