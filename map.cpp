@@ -356,7 +356,7 @@ ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
             if(!(index < n_markers)) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
 
             // read time
-            real32 time = 1.0f;
+            real32 time;
             code = ASCIIReadReal32(linelist, &time);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
@@ -392,8 +392,8 @@ ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
         temp[i].SetName(name);
         temp[i].SetLocation(P);
         temp[i].SetOrientation(M);
+        temp[i].SetMarkers(n_markers, markers); // set markers first before setting start marker
         temp[i].SetStartMarker(start);
-        temp[i].SetMarkers(n_markers, markers);
        }
 
     // set instance data

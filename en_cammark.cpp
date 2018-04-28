@@ -22,7 +22,7 @@ CameraMarker::CameraMarker()
 {
  euler[0] = euler[1] = euler[2] = 0.0f;
  delta = 1.0f;
- interpolate_speed = true;
+ interpolate_time = true;
  fovy = 60.0f;
  interpolate_fovy = true;
 }

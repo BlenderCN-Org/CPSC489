@@ -26,6 +26,8 @@ CameraMarkerList::CameraMarkerList()
 
  // timed variables
  curr = 0xFFFFFFFFul;
+ next = 0xFFFFFFFFul;
+ base = 0.0f;
  time = 0.0f;
 }
 
@@ -45,8 +47,20 @@ uint32 CameraMarkerList::GetPlayerFocus(void)const
 
 void CameraMarkerList::SetMarkers(uint32 n, std::unique_ptr<CameraMarker[]>& data)
 {
+ // set markers
  n_markers = n;
  markers = std::move(data);
+
+ // TODO: think about whether or not this should return an error
+ // make sure time doesn't go backwards
+ real32 prev_time = markers[0].GetTime();
+ for(uint32 i = 1; i < n_markers; i++) {
+     real32 curr_time = markers[i].GetTime();
+     if(!(prev_time < curr_time)) {
+        markers[i].SetTime(prev_time);
+        prev_time = curr_time;
+       }
+    }
 }
 
 const CameraMarker* CameraMarkerList::GetMarkers(void)const
@@ -56,9 +70,18 @@ const CameraMarker* CameraMarkerList::GetMarkers(void)const
 
 ErrorCode CameraMarkerList::SetStartMarker(uint32 index)
 {
+ // set starting index
  if(!(index < n_markers)) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
  start = index;
+
+ // set intervals
  curr = index;
+ if(!(next < n_markers)) next = index;
+ else next = curr + 1;
+
+ // set base time
+ base = markers[start].GetTime();
+
  return EC_SUCCESS;
 }
 
@@ -79,11 +102,49 @@ const CameraMarker& CameraMarkerList::operator [](size_t index)const
 
 void CameraMarkerList::Update(real32 dt)
 {
- // time values
- real32 prev_time = time;
- real32 curr_time = time + dt;
+ // START: 1
+ // BASE:  5
+ // TIME:  2 RANGE is [0, 4] -> [5, 9]
+ // -------------------------
+ // MARK: 0     1     2     3
+ // TIME: 0     5     8     9
+ // CURR:       x
+ // NEXT:             x
+ // 
 
- 
+ // nothing to do, SetStartMarker not called
+ if(!n_markers) return;
+ if(start == 0xFFFFFFFFul) return;
+ if(curr == 0xFFFFFFFFul || next == 0xFFFFFFFFul) return;
+
+ // time values
+ real32 curr_time = time + dt;
+ real32 last_time = markers[n_markers - 1].GetTime();
+
+ // interval times
+ real32 AT = markers[curr].GetTime(); // AT = 5.0, curr = 1
+ real32 BT = markers[next].GetTime(); // BT = 8.0, next = 2
+ real32 MT = base + curr_time;        // MT = 5.0 + 2.0 = 7.0
+
+ // on L-side of interval
+ if(MT == AT)
+   {
+   }
+ // on R-side of interval
+ else if(MT == BT)
+   {
+   }
+ // inside of interval
+ else if(MT > AT && MT < BT)
+   {
+   }
+ // outside of interval
+ else
+   {
+    while(!(MT >= AT && MT < BT)) {
+
+         }
+   }
 
  // update time
  time = curr_time;

@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bonechar", "bonechar\bonech
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "skeleton", "skeleton\skeleton.vcxproj", "{A68F191C-7BF1-4A21-8A91-A691172B4B26}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cammark", "cammark\cammark.vcxproj", "{F43D1783-B3A6-4083-9B2F-C933D80FDF2F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -43,6 +45,10 @@ Global
 		{A68F191C-7BF1-4A21-8A91-A691172B4B26}.Debug|Win32.Build.0 = Debug|Win32
 		{A68F191C-7BF1-4A21-8A91-A691172B4B26}.Release|Win32.ActiveCfg = Release|Win32
 		{A68F191C-7BF1-4A21-8A91-A691172B4B26}.Release|Win32.Build.0 = Release|Win32
+		{F43D1783-B3A6-4083-9B2F-C933D80FDF2F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F43D1783-B3A6-4083-9B2F-C933D80FDF2F}.Debug|Win32.Build.0 = Debug|Win32
+		{F43D1783-B3A6-4083-9B2F-C933D80FDF2F}.Release|Win32.ActiveCfg = Release|Win32
+		{F43D1783-B3A6-4083-9B2F-C933D80FDF2F}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
