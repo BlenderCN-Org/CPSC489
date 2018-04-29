@@ -43,11 +43,18 @@ void FreeMapTest(void)
  game->FreeGame();
 }
 
-void RenderMapTest(real32 dt)
+void UpdateMapTest(real32 dt)
 {
  // update and render
  Game* game = GetGame();
- game->UpdateGame(dt);
+ game->Update(dt);
+}
+
+void RenderMapTest(void)
+{
+ // update and render
+ Game* game = GetGame();
+ game->Render();
 }
 
 /*

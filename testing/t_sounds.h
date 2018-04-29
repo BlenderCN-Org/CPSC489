@@ -3,6 +3,7 @@
 
 BOOL InitSoundTest(void);
 void FreeSoundTest(void);
-void RenderSoundTest(real32 dt);
+void UpdateSoundTest(real32 dt);
+void RenderSoundTest(void);
 
 #endif

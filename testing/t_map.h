@@ -3,6 +3,7 @@
 
 BOOL InitMapTest(void);
 void FreeMapTest(void);
-void RenderMapTest(real32 dt);
+void UpdateMapTest(real32 dt);
+void RenderMapTest(void);
 
 #endif

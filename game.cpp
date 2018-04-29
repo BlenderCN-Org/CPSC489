@@ -170,7 +170,7 @@ void Game::PauseGame(void)
 {
 }
 
-void Game::UpdateGame(real32 dt)
+void Game::Update(real32 dt)
 {
  // update time
  real32 prev_delta = delta;
@@ -224,8 +224,12 @@ void Game::UpdateGame(real32 dt)
      //eml.GetEntityEulerXYZ();
     }
 
- // render map
- map.RenderMap(dt);
+ map.Update(dt);
+}
+
+void Game::Render(void)
+{
+ map.Render();
 }
 
 #pragma endregion GAME_FUNCTIONS

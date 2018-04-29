@@ -30,6 +30,10 @@ void FreeSoundTest(void)
  FreeVoice(L"sounds\\sample.wav");
 }
 
-void RenderSoundTest(real32 dt)
+void UpdateSoundTest(real32 dt)
+{
+}
+
+void RenderSoundTest(void)
 {
 }

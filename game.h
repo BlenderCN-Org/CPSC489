@@ -106,7 +106,8 @@ class Game {
   ErrorCode StartGame(void);
   void StopGame(void);
   void PauseGame(void);
-  void UpdateGame(real32 dt);
+  void Update(real32 dt);
+  void Render(void);
 
  // Controller Functions
  public :

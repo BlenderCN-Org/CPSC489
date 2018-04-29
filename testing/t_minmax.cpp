@@ -58,7 +58,11 @@ void FreeAABBMinMaxTest(void)
  instance_buffer = nullptr;
 }
 
-void RenderAABBMinMaxTest(real32 dt)
+void UpdateAABBMinMaxTest(real32 dt)
+{
+}
+
+void RenderAABBMinMaxTest(void)
 {
  // set per-model buffers and render
  SetVertexShaderPerModelBuffer(GetIdentityMatrix());

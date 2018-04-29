@@ -3,6 +3,7 @@
 
 BOOL InitAABBTest(void);
 void FreeAABBTest(void);
-void RenderAABBTest(real32 dt);
+void UpdateAABBTest(real32 dt);
+void RenderAABBTest(void);
 
 #endif

@@ -36,7 +36,11 @@ void FreeMeshTest(void)
  mesh.Free();
 }
 
-void RenderMeshTest(real32 dt)
+void UpdateMeshTest(real32 dt)
+{
+}
+
+void RenderMeshTest(void)
 {
  instance.RenderModel();
 }

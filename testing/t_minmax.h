@@ -3,6 +3,7 @@
 
 BOOL InitAABBMinMaxTest(void);
 void FreeAABBMinMaxTest(void);
-void RenderAABBMinMaxTest(real32 dt);
+void UpdateAABBMinMaxTest(real32 dt);
+void RenderAABBMinMaxTest(void);
 
 #endif

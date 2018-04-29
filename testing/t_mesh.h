@@ -3,6 +3,7 @@
 
 BOOL InitMeshTest(void);
 void FreeMeshTest(void);
-void RenderMeshTest(real32 dt);
+void UpdateMeshTest(real32 dt);
+void RenderMeshTest(void);
 
 #endif

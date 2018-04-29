@@ -3,6 +3,7 @@
 
 BOOL InitPortalTest(void);
 void FreePortalTest(void);
-void RenderPortalTest(real32 dt);
+void UpdatePortalTest(real32 dt);
+void RenderPortalTest(void);
 
 #endif

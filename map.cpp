@@ -24,6 +24,8 @@
 #include "portal.h"
 #include "map.h"
 
+#include "viewport.h"
+
 #pragma region SPECIAL_MEMBER_FUNCTIONS
 
 Map::Map()
@@ -935,17 +937,32 @@ void Map::FreeMap(void)
  name.clear();
 }
 
-void Map::RenderMap(real32 dt)
+void Map::Update(real32 dt)
 {
- // get camera object and orbit point
- auto camera = GetRenderCamera();
- real32 orbit[3];
- camera->GetOrbitPoint(orbit);
+ // for each potential viewport
+ for(uint32 i = 0; i < GetCanvasViewportNumber(); i++)
+    {
+     if(IsViewportEnabled(i))
+       {
+        // get viewport camera and its orbit point
+        auto camera = GetViewportCamera(i);
+        real32 orbit[3];
+        camera->GetOrbitPoint(orbit);
 
- // INEFFICIENT!!! Poll all door controllers with orbit point
- for(uint32 i = 0; i < dcd.size; i++)
-     dcd.data[i].Poll(dt, orbit);
+        // INEFFICIENT!!! Poll all door controllers with orbit point
+        for(uint32 j = 0; j < dcd.size; j++)
+            dcd.data[j].Poll(dt, orbit);
+       }
+    }
 
+ // INEFFICIENT!!!
+ // RENDER ALL MOVING MODEL INSTANCES
+ for(uint32 i = 0; i < n_moving_instances; i++)
+     moving_instances[i].Update(dt);
+}
+
+void Map::Render(void)
+{
  // INEFFICIENT!!!
  // RENDER ALL STATIC MODEL INSTANCES
  for(uint32 i = 0; i < n_static_instances; i++)
@@ -953,10 +970,8 @@ void Map::RenderMap(real32 dt)
 
  // INEFFICIENT!!!
  // RENDER ALL MOVING MODEL INSTANCES
- for(uint32 i = 0; i < n_moving_instances; i++) {
-     moving_instances[i].Update(dt);
+ for(uint32 i = 0; i < n_moving_instances; i++)
      moving_instances[i].RenderModel();
-    }
 }
 
 MeshInstance* Map::GetStaticMeshInstance(const STDSTRINGW& name)const

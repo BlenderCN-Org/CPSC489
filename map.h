@@ -138,7 +138,8 @@ class Map {
  public :
   ErrorCode LoadMap(LPCWSTR filename);
   void FreeMap(void);
-  void RenderMap(real32 dt);
+  void Update(real32 dt);
+  void Render(void);
  public :
   MeshInstance* GetStaticMeshInstance(const STDSTRINGW& name)const;
   MeshInstance* GetStaticMeshInstance(uint32 index)const;

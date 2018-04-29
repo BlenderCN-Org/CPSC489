@@ -63,7 +63,11 @@ void FreeAABBTest(void)
  instance_buffer = nullptr;
 }
 
-void RenderAABBTest(real32 dt)
+void UpdateAABBTest(real32 dt)
+{
+}
+
+void RenderAABBTest(void)
 {
  // set per-model buffers and render
  SetVertexShaderPerModelBuffer(GetIdentityMatrix());
