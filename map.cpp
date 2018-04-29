@@ -24,6 +24,8 @@
 #include "portal.h"
 #include "map.h"
 
+#pragma region SPECIAL_MEMBER_FUNCTIONS
+
 Map::Map()
 {
  // sounds
@@ -48,6 +50,8 @@ Map::~Map()
 {
  FreeMap();
 }
+
+#pragma endregion SPECIAL_MEMBER_FUNCTIONS
 
 #pragma region PRIVATE_LOADING_FUNCTIONS
 
@@ -378,6 +382,11 @@ ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
             code = ASCIIReadBool(linelist, &interpolate_fovy);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
+            // read wait time
+            real32 wait = 0.0f;
+            code = ASCIIReadReal32(linelist, &wait);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
             // set data
             markers[index].SetMap(this);
             markers[index].SetName(name);
@@ -388,6 +397,7 @@ ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
             markers[index].SetInterpolateTimeFlag(interpolate_time);
             markers[index].SetFOVY(fovy);
             markers[index].SetInterpolateFOVYFlag(interpolate_fovy);
+            markers[index].SetWaitTime(wait);
            }
 
         // set data
@@ -526,6 +536,11 @@ ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
             code = ASCIIReadBool(linelist, &sound_loop);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
+            // read wait time
+            real32 wait = 0.0f;
+            code = ASCIIReadReal32(linelist, &wait);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
             // set data
             markers[index].SetName(name);
             markers[index].SetMap(this);
@@ -538,6 +553,7 @@ ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
             markers[index].SetAnimationLoopFlag(anim_loop);
             markers[index].SetSound(sound);
             markers[index].SetSoundLoopFlag(sound_loop);
+            markers[index].SetWaitTime(wait);
            }
 
         // set data

@@ -30,6 +30,7 @@ class CameraMarker : public Entity {
   bool interpolate_time;
   real32 fovy;
   bool interpolate_fovy;
+  real32 wait;
 
  // Member Functions
  public :
@@ -43,6 +44,8 @@ class CameraMarker : public Entity {
   real32 GetFOVY(void)const;
   void SetInterpolateFOVYFlag(bool flag);
   bool GetInterpolateFOVYFlag(void)const;
+  void SetWaitTime(real32 value);
+  real32 GetWaitTime(void)const;
 
  // Events
  public :

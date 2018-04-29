@@ -74,10 +74,11 @@ class CameraMarker:
     # rotation          - matrix4
     # euler_angle       - vector3
     # index             - uint16
-    # speed             - real32
-    # interpolate_speed - bool
+    # time              - real32
+    # interpolate_time  - bool
     # fovy              - real32
     # interpolate_fovy  - bool
+    # wait              - real32
     pass
 class CameraAnimation:
     # name     - string
@@ -98,6 +99,7 @@ class EntityMarker:
     # anim_loop         - bool   (repeat animation)
     # sound             - uint32 (sound to play)
     # sound_loop        - bool   (repeat sound)
+    # wait              - real32
     pass
 class EntityMarkerList:
     # name     - string
@@ -456,10 +458,11 @@ class WorldUTFExporter:
                 self.WriteMatrix4(marker.rotation)
                 self.WriteVector3(marker.euler_angle)
                 self.WriteInt(marker.index)
-                self.WriteFloat(marker.speed)
-                self.WriteInt(marker.interpolate_speed)
+                self.WriteFloat(marker.time)
+                self.WriteInt(marker.interpolate_time)
                 self.WriteFloat(marker.fovy)
                 self.WriteInt(marker.interpolate_fovy)
+                self.WriteFloat(marker.wait)
 
         # save entity marker lists
         self.WriteString('###')
@@ -485,6 +488,7 @@ class WorldUTFExporter:
                 self.WriteInt(marker.anim_loop)
                 self.WriteInt(marker.sound)
                 self.WriteInt(marker.sound_loop)
+                self.WriteFloat(marker.wait)
 
         # save door controllers
         self.WriteString('###')
@@ -783,6 +787,7 @@ class WorldUTFExporter:
             cmo.interpolate_speed = True
             cmo.fovy              = 60.0
             cmo.interpolate_fovy  = True
+            cmo.wait              = 0.0
 
             # Blender Euler angles are reverse
             cmo.euler_angle[0] = -cmo.euler_angle[0]
@@ -795,6 +800,7 @@ class WorldUTFExporter:
             if 'interpolate_speed' in item: cmo.interpolate_speed = bool(item['interpolate_speed'])
             if 'fovy' in item: cmo.fovy = item['fovy']
             if 'interpolate_fovy' in item: cmo.interpolate_fovy = item['interpolate_fovy']
+            if 'wait' in item: cmo.wait = item['wait']
 
             # validate properties
             # TODO: finish this
@@ -865,6 +871,7 @@ class WorldUTFExporter:
             em.anim_loop         = False
             em.sound             = -1
             em.sound_loop        = False
+            em.wait              = 0.0
 
             # Blender Euler angles are reverse
             em.euler_angle[0] = -em.euler_angle[0]
@@ -879,6 +886,7 @@ class WorldUTFExporter:
             if 'anim_loop' in item: em.anim_loop = item['anim_loop']
             if 'sound' in item: em.sound = item['sound']
             if 'sound_loop' in item: em.sound_loop = item['sound_loop']
+            if 'wait' in item: em.sound_loop = item['wait']
 
             # validate properties
             # TODO: finish this

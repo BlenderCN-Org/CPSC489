@@ -26,6 +26,7 @@ CameraMarkerList::CameraMarkerList()
  n_markers = 0;
 
  // timed variables
+ wait = 0.0f;
  curr = 0xFFFFFFFFul;
  next = 0xFFFFFFFFul;
  base = 0.0f;
@@ -107,6 +108,13 @@ void CameraMarkerList::Update(real32 dt)
  if(!n_markers) return;
  if(start == 0xFFFFFFFFul) return;
  if(curr == 0xFFFFFFFFul || next == 0xFFFFFFFFul) return;
+
+ // need to wait
+ real32 wait_time = markers[curr].GetWaitTime();
+ if(wait_time && (wait < wait_time)) {
+    wait += dt;
+    return;
+   }
 
  // time values
  real32 curr_time = time + dt;

@@ -377,6 +377,10 @@ BOOL RenderFrame(real32 dt)
  lpDeviceContext->ClearRenderTargetView(lpRenderTargetView, color);
  lpDeviceContext->ClearDepthStencilView(lpDepthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+ // update test
+ if(GetActiveTest() != -1)
+    UpdateTest(dt);
+
  // for each potential viewport
  for(uint32 vp_index = 0; vp_index < GetCanvasViewportNumber(); vp_index++)
     {
@@ -402,7 +406,7 @@ BOOL RenderFrame(real32 dt)
 
         // render test
         if(GetActiveTest() != -1)
-           RenderTest(dt);
+           RenderTest();
        }
     }
 

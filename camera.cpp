@@ -81,7 +81,7 @@ void OrbitCamera::Reset(void)
  POSITIVE_Z_AXIS(cam_Z);
 
  // orbit variables
- orbit_distance = 1.0f;
+ orbit_distance = 2.0f;
  horz_angle = 0.0f;
  vert_angle = 0.0f;
  POSITIVE_X_AXIS(ref_X);

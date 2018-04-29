@@ -33,6 +33,7 @@ class EntityMarker : public Entity {
   bool anim_loop;
   uint32 sound;
   bool sound_loop;
+  real32 wait;
 
  // Member Functions
  public :
@@ -50,6 +51,8 @@ class EntityMarker : public Entity {
   uint32 GetSound(void)const;
   void SetSoundLoopFlag(bool flag);
   bool GetSoundLoopFlag(void)const;
+  void SetWaitTime(real32 value);
+  real32 GetWaitTime(void)const;
 
  // Events
  public :

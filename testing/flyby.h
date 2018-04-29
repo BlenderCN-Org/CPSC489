@@ -3,6 +3,7 @@
 
 BOOL InitFlybyTest(void);
 void FreeFlybyTest(void);
-void RenderFlybyTest(real32 dt);
+void UpdateFlybyTest(real32 dt);
+void RenderFlybyTest(void);
 
 #endif

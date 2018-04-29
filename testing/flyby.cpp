@@ -49,7 +49,7 @@ void FreeFlybyTest(void)
  model.FreeModel();
 }
 
-void RenderFlybyTest(real32 dt)
+void UpdateFlybyTest(real32 dt)
 {
  // TODO: periodically check for controller instead
  if(controllerIndex == 0xFFFFFFFFul) {
@@ -110,10 +110,15 @@ void RenderFlybyTest(real32 dt)
       }
    }
 
- // render model instance
- model.RenderModel();
- if(instance.get()) {
+ // update model instance
+ if(instance.get())
     instance->Update(dt);
+}
+
+void RenderFlybyTest(void)
+{
+ // render model instance
+ if(instance.get()) {
     ErrorCode code = instance->RenderModel();
     if(Fail(code)) {
        EndTest();

@@ -58,7 +58,7 @@ int MessagePump(BOOL (*function)(real32))
        }
      else {
         // render frame
-        real32 last_frame_time = static_cast<real32>(hpc.microseconds(last_frame_ticks))/1000000.0f;
+        real32 last_frame_time = static_cast<real32>(hpc.seconds(last_frame_ticks));
         hpc.begin();
         BOOL result = function(last_frame_time);
         hpc.end();
