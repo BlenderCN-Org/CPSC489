@@ -79,6 +79,9 @@ class Game {
   CameraMarkerList* p2cam;
   CameraMarkerList* p3cam;
   CameraMarkerList* p4cam;
+ // Currently Active Entity Marker Lists
+ private :
+  std::vector<uint32> active_EML;
 
  // Map Variables
  private :

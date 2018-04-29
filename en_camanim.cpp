@@ -91,16 +91,6 @@ uint32 CameraMarkerList::GetStartMarker(void)const
  return start;
 }
 
-CameraMarker& CameraMarkerList::operator [](size_t index)
-{
- return markers[index];
-}
-
-const CameraMarker& CameraMarkerList::operator [](size_t index)const
-{
- return markers[index];
-}
-
 const real32* CameraMarkerList::GetCameraPosition(void)const
 {
  return &P[0];
@@ -177,4 +167,14 @@ void CameraMarkerList::Update(real32 dt)
 
  // update time
  time = curr_time;
+}
+
+CameraMarker& CameraMarkerList::operator [](size_t index)
+{
+ return markers[index];
+}
+
+const CameraMarker& CameraMarkerList::operator [](size_t index)const
+{
+ return markers[index];
 }

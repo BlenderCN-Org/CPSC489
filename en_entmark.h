@@ -27,8 +27,8 @@ class EntityMarker : public Entity {
  // Variables
  private :
   real32 euler[3];
-  real32 speed;
-  bool interpolate_speed;
+  real32 time;
+  bool interpolate_time;
   uint32 anim;
   bool anim_loop;
   uint32 sound;
@@ -38,10 +38,10 @@ class EntityMarker : public Entity {
  public :
   void SetEulerAngle(const real32* angle);
   const real32* GetEulerAngle(void)const;
-  void SetSpeed(real32 value);
-  real32 GetSpeed(void)const;
-  void SetInterpolateSpeedFlag(bool flag);
-  bool GetInterpolateSpeedFlag(void)const;
+  void SetTime(real32 value);
+  real32 GetTime(void)const;
+  void SetInterpolateTimeFlag(bool flag);
+  bool GetInterpolateTimeFlag(void)const;
   ErrorCode SetAnimation(uint32 index);
   uint32 GetAnimation(void)const;
   void SetAnimationLoopFlag(bool flag);

@@ -449,6 +449,11 @@ ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
         if(refiter == moving_instance_map.end()) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
         uint32 instance = refiter->second;
 
+        // read start index
+        uint32 start = 0;
+        code = ASCIIReadUint32(linelist, &start);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
         // read number of markers
         uint32 n_markers = 0;
         code = ASCIIReadUint32(linelist, &n_markers);
@@ -492,13 +497,13 @@ ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read speed
-            real32 speed = 1.0f;
-            code = ASCIIReadReal32(linelist, &speed);
+            real32 time;
+            code = ASCIIReadReal32(linelist, &time);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read interpolate_speed
-            bool interpolate_speed = true;
-            code = ASCIIReadBool(linelist, &interpolate_speed);
+            bool interpolate_time = true;
+            code = ASCIIReadBool(linelist, &interpolate_time);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // read animation index
@@ -527,8 +532,8 @@ ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
             markers[index].SetLocation(P);
             markers[index].SetOrientation(M);
             markers[index].SetEulerAngle(E);
-            markers[index].SetSpeed(speed);
-            markers[index].SetInterpolateSpeedFlag(interpolate_speed);
+            markers[index].SetTime(time);
+            markers[index].SetInterpolateTimeFlag(interpolate_time);
             markers[index].SetAnimation(anim);
             markers[index].SetAnimationLoopFlag(anim_loop);
             markers[index].SetSound(sound);
@@ -541,7 +546,8 @@ ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
         temp[i].SetLocation(P);
         temp[i].SetOrientation(M);
         temp[i].SetModelInstance(ref);
-        temp[i].SetMarkers(n_markers, markers);
+        temp[i].SetMarkers(n_markers, markers); // set markers first before setting start marker
+        temp[i].SetStartMarker(start);
        }
 
     // set data    

@@ -103,6 +103,9 @@ void Game::FreeGame(void)
  maplist.clear();
  map_index = 0xFFFFFFFFul;
 
+ // clear active entity marker lists
+ active_EML.clear();
+
  // clear player variables
  p1cam = nullptr;
  p2cam = nullptr;
@@ -121,6 +124,7 @@ ErrorCode Game::StartGame(void)
  auto code = map.LoadMap(maplist[map_index].first.c_str());
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
+ // assign camera rails
  // look through camera animation lists for rail cameras
  share_rails = false;
  for(uint32 i = 0; i < map.cmd.size; i++)
@@ -148,6 +152,9 @@ ErrorCode Game::StartGame(void)
      else if(!p4cam && cml.GetPlayerFocus() == 3)
         p4cam = &cml;
     }
+
+ // TEST: activate entity marker list
+ if(map.emd.size) active_EML.push_back(0);
 
  return EC_SUCCESS;
 }
@@ -206,6 +213,16 @@ void Game::UpdateGame(real32 dt)
        UpdateViewportCamera(3);
       }
    }
+
+ // update active entity marker lists
+ for(size_t i = 0; i < active_EML.size(); i++)
+    {
+     // update entity marker list
+     auto& eml = map.emd.data[active_EML[i]];
+     eml.Update(dt);
+     //eml.GetEntityPosition();
+     //eml.GetEntityEulerXYZ();
+    }
 
  // render map
  map.RenderMap(dt);

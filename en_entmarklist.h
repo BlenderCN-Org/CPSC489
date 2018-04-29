@@ -28,8 +28,16 @@ class EntityMarkerList : public Entity {
  // Variables
  private :
   MeshInstance* instance;
+  uint32 start;
   uint32 n_markers;
   std::unique_ptr<EntityMarker[]> markers;
+ private :
+  uint32 curr; // marker index
+  uint32 next; // marker index
+  real32 base; // time
+  real32 time; // time
+  vector3D P;  // position
+  vector3D E;  // euler angle
 
  // Member Functions
  public :
@@ -38,6 +46,12 @@ class EntityMarkerList : public Entity {
   const MeshInstance* GetModelInstance(void)const;
   void SetMarkers(uint32 n, std::unique_ptr<EntityMarker[]>& data);
   const EntityMarker* GetMarkers(void)const;
+  ErrorCode SetStartMarker(uint32 index);
+  uint32 GetStartMarker(void)const;
+ public :
+  const real32* GetEntityPosition(void)const;
+  const real32* GetEntityEulerXYZ(void)const;
+  void Update(real32 dt);
 
  // Operators
  public :

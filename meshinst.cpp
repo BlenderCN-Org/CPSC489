@@ -135,6 +135,40 @@ void MeshInstance::FreeInstance(void)
  perframe = nullptr;
 }
 
+ErrorCode MeshInstance::SetMatrix(const real32* P, const real32* M)
+{
+ // set matrix
+ mv.load(M);
+ mv[0x3] = P[0];
+ mv[0x7] = P[1];
+ mv[0xB] = P[2];
+
+ // update matrix
+ DirectX::XMMATRIX m(&mv[0]);
+ DirectX::XMMatrixTranspose(m);
+ ErrorCode code = UpdateDynamicMatrixConstBuffer(permodel, m);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ return EC_SUCCESS;
+}
+
+ErrorCode MeshInstance::SetMatrix(const real32* M)
+{
+ // set matrix
+ mv.load(M);
+
+ // update matrix
+ DirectX::XMMATRIX m(&mv[0]);
+ DirectX::XMMatrixTranspose(m);
+ ErrorCode code = UpdateDynamicMatrixConstBuffer(permodel, m);
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+ return EC_SUCCESS;
+}
+
+const real32* MeshInstance::GetMatrix(void)const
+{
+ return &mv[0];
+}
+
 ErrorCode MeshInstance::SetAnimation(uint32 index, bool repeat)
 {
  // stop animating, render in bind pose

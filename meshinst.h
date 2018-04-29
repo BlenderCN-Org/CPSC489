@@ -21,6 +21,10 @@ class MeshInstance {
   ErrorCode InitInstance(MeshData* ptr, const real32* P, const real32* M);
   void FreeInstance(void);
  public :
+  ErrorCode SetMatrix(const real32* P, const real32* M);
+  ErrorCode SetMatrix(const real32* M);
+  const real32* GetMatrix(void)const;
+ public :
   uint32 GetAnimation(void)const { return anim; }
   real32 GetTime(void)const { return time; }
  public :

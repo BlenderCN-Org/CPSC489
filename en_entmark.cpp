@@ -22,8 +22,8 @@
 EntityMarker::EntityMarker()
 {
  euler[0] = euler[1] = euler[2] = 0.0f;
- speed = 1.0f;
- interpolate_speed = true;
+ time = 0.0f;
+ interpolate_time = true;
  anim = 0xFFFFFFFFul;
  anim_loop = false;
  sound = 0xFFFFFFFFul;
@@ -46,24 +46,24 @@ const real32* EntityMarker::GetEulerAngle(void)const
  return &euler[0];
 }
 
-void EntityMarker::SetSpeed(real32 value)
+void EntityMarker::SetTime(real32 value)
 {
- speed = value;
+ time = value;
 }
 
-real32 EntityMarker::GetSpeed(void)const
+real32 EntityMarker::GetTime(void)const
 {
- return speed;
+ return time;
 }
 
-void EntityMarker::SetInterpolateSpeedFlag(bool flag)
+void EntityMarker::SetInterpolateTimeFlag(bool flag)
 {
- interpolate_speed = flag;
+ interpolate_time = flag;
 }
 
-bool EntityMarker::GetInterpolateSpeedFlag(void)const
+bool EntityMarker::GetInterpolateTimeFlag(void)const
 {
- return interpolate_speed;
+ return interpolate_time;
 }
 
 ErrorCode EntityMarker::SetAnimation(uint32 index)
