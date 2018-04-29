@@ -74,6 +74,7 @@ class Game {
   std::unique_ptr<PlayerEntity[]> players;
  // Rail Shooter Cameras
  private :
+  bool share_rails;
   CameraMarkerList* p1cam;
   CameraMarkerList* p2cam;
   CameraMarkerList* p3cam;

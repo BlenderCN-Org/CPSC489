@@ -299,6 +299,11 @@ ErrorCode PlayVoice(SoundData* snd, bool loop)
  if(!snd) return EC_SUCCESS;
  if(!snd->voice || !snd->wavdata || !snd->wavsize) return EC_SUCCESS;
 
+ // prevent building up too many sounds
+ // XAUDIO2_VOICE_STATE xavs;
+ // snd->voice->GetState(&xavs, 0);
+ // if(xavs.BuffersQueued > 1) return EC_SUCCESS;
+
  // create buffer descriptor
  XAUDIO2_BUFFER buffer;
  buffer.Flags = XAUDIO2_END_OF_STREAM;

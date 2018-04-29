@@ -89,9 +89,14 @@ bool EntityMarker::GetAnimationLoopFlag(void)const
 
 ErrorCode EntityMarker::SetSound(uint32 index)
 {
- Map* map = GetMap();
- if(!map->GetSoundData(index)) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
- sound = index;
+ // no sound to play at this marker
+ if(index == 0xFFFFFFFFul) sound = index;
+ // set sound
+ else {
+    Map* map = GetMap();
+    if(!map->GetSoundData(index)) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
+    sound = index;
+   }
  return EC_SUCCESS;
 }
 

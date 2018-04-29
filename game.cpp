@@ -30,6 +30,7 @@ Game::Game()
 {
  // set player variables
  n_players = 0;
+ share_rails = false;
  p1cam = nullptr;
  p2cam = nullptr;
  p3cam = nullptr;
@@ -65,7 +66,7 @@ Game::~Game()
 ErrorCode Game::InitGame(void)
 {
  // set player variables
- n_players = 3;
+ n_players = 4;
  players.reset(new PlayerEntity[MAX_PLAYERS]);
 
  // set and enable viewport(s)
@@ -103,6 +104,11 @@ void Game::FreeGame(void)
  map_index = 0xFFFFFFFFul;
 
  // clear player variables
+ p1cam = nullptr;
+ p2cam = nullptr;
+ p3cam = nullptr;
+ p4cam = nullptr;
+ share_rails = false;
  n_players = 0;
  players.reset();
 }
@@ -116,6 +122,7 @@ ErrorCode Game::StartGame(void)
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
  // look through camera animation lists for rail cameras
+ share_rails = false;
  for(uint32 i = 0; i < map.cmd.size; i++)
     {
      // all players use same camera viewpoint
@@ -125,6 +132,7 @@ ErrorCode Game::StartGame(void)
         p2cam = &cml;
         p3cam = &cml;
         p4cam = &cml;
+        share_rails = true;
         break;
        }
      // player 1 unique camera
@@ -169,26 +177,34 @@ void Game::UpdateGame(real32 dt)
  if(p1cam) {
     p1cam->Update(dt);
     OrbitCamera* camera = GetViewportCamera(0);
-    camera->RepositionEulerXYZ(p1cam->GetCameraPosition(), p1cam->GetCameraEulerXYZ());
-    UpdateViewportCamera(0);
+    if(camera) {
+       camera->RepositionEulerXYZ(p1cam->GetCameraPosition(), p1cam->GetCameraEulerXYZ());
+       UpdateViewportCamera(0);
+      }
    }
  if(p2cam) {
-    p2cam->Update(dt);
+    if(!share_rails) p2cam->Update(dt);
     OrbitCamera* camera = GetViewportCamera(1);
-    camera->RepositionEulerXYZ(p2cam->GetCameraPosition(), p2cam->GetCameraEulerXYZ());
-    UpdateViewportCamera(1);
+    if(camera) {
+       camera->RepositionEulerXYZ(p2cam->GetCameraPosition(), p2cam->GetCameraEulerXYZ());
+       UpdateViewportCamera(1);
+      }
    }
  if(p3cam) {
-    p3cam->Update(dt);
+    if(!share_rails) p3cam->Update(dt);
     OrbitCamera* camera = GetViewportCamera(2);
-    camera->RepositionEulerXYZ(p3cam->GetCameraPosition(), p3cam->GetCameraEulerXYZ());
-    UpdateViewportCamera(2);
+    if(camera) {
+       camera->RepositionEulerXYZ(p3cam->GetCameraPosition(), p3cam->GetCameraEulerXYZ());
+       UpdateViewportCamera(2);
+      }
    }
  if(p4cam) {
-    p4cam->Update(dt);
-    //OrbitCamera* camera = GetViewportCamera(3);
-    //camera->RepositionEulerXYZ(p4cam->GetCameraPosition(), p4cam->GetCameraEulerXYZ());
-    //UpdateViewportCamera(3);
+    if(!share_rails) p4cam->Update(dt);
+    OrbitCamera* camera = GetViewportCamera(3);
+    if(camera) {
+       camera->RepositionEulerXYZ(p4cam->GetCameraPosition(), p4cam->GetCameraEulerXYZ());
+       UpdateViewportCamera(3);
+      }
    }
 
  // render map

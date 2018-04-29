@@ -103,6 +103,8 @@ real32 DoorController::GetClosingTime(void)const
  return close_time;
 }
 
+static std::ofstream ofile("debug.txt");
+
 void DoorController::Poll(real32 dt, const real32* pt)
 {
  // nothing to do, door is disabled
@@ -113,29 +115,42 @@ void DoorController::Poll(real32 dt, const real32* pt)
  // it is open. Once open, we can deactivate the door to stop future OBB inter-
  // section testing.
 
- // was outside, now inside
- if(!inside && OBB_intersect(this->box, pt))
+ // now inside
+ if(OBB_intersect(this->box, pt))
    {
-    auto instance = GetMap()->GetDynamicMeshInstance(door_index);
-    instance->SetAnimation(anims[1], false);
+    // was outside
     if(!inside) {
-       if(sound[1] != 0xFFFFFFFFul) PlayVoice(GetMap()->GetSoundData(sound[1]), false);
-       inside = true;
+       auto instance = GetMap()->GetDynamicMeshInstance(door_index);
+       instance->SetAnimation(anims[1], false);
+       if(!inside) {
+          if(sound[1] != 0xFFFFFFFFul) {
+             PlayVoice(GetMap()->GetSoundData(sound[1]), false);
+             ofile << "playing door open" << std::endl;
+            }
+          inside = true;
+         }
       }
    }
- // was inside, now outside
- else if(inside) {
-    delta = close_time;
-    inside = false;
-   }
- // outside
- else if(delta) {
-    delta -= dt;
-    if(!(delta > 0.0f)) {
-       auto instance = GetMap()->GetDynamicMeshInstance(door_index);
-       instance->SetAnimation(anims[2], false);
-       if(sound[2] != 0xFFFFFFFFul) PlayVoice(GetMap()->GetSoundData(sound[2]), false);
-       delta = 0.0f;
+ // now outside
+ else
+   {
+    // was inside
+    if(inside) {
+       delta = close_time;
+       inside = false;
+      }
+    // was outside
+    else if(delta) {
+       delta -= dt;
+       if(!(delta > 0.0f)) {
+          auto instance = GetMap()->GetDynamicMeshInstance(door_index);
+          instance->SetAnimation(anims[2], false);
+          if(sound[2] != 0xFFFFFFFFul) {
+             PlayVoice(GetMap()->GetSoundData(sound[2]), false);
+             ofile << "playing door close" << std::endl;
+            }
+          delta = 0.0f;
+         }
       }
    }
 }
