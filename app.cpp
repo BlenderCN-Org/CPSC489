@@ -43,7 +43,6 @@ int MessageLoop(void)
 
 int MessagePump(BOOL (*function)(real32))
 {
- PerformanceCounter hpc;
  MSG msg;
  for(;;) {
      if(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
@@ -58,12 +57,12 @@ int MessagePump(BOOL (*function)(real32))
        }
      else {
         // render frame
+        PerformanceCounter hpc;
+        real32 last_frame_time = static_cast<real32>(hpc.microseconds(last_frame_ticks))/1000000.0f;
         hpc.begin();
-        real32 last_frame_time = static_cast<real32>(hpc.seconds(last_frame_ticks));
-        UpdateControllers(last_frame_time);
         BOOL result = function(last_frame_time);
-        n_frames++;
         hpc.end();
+        n_frames++;
         last_frame_ticks = hpc.ticks();
         dt += last_frame_ticks;
         if(result == FALSE) break;

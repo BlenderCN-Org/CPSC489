@@ -79,6 +79,8 @@ struct PortalCellData {
 };
 
 class Map {
+ // friends
+ friend class Game;
  // map variables
  private :
   STDSTRINGW name;

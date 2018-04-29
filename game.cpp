@@ -30,6 +30,10 @@ Game::Game()
 {
  // set player variables
  n_players = 0;
+ p1cam = nullptr;
+ p2cam = nullptr;
+ p3cam = nullptr;
+ p4cam = nullptr;
 
  // set map variables
  map_index = 0xFFFFFFFFul;
@@ -109,6 +113,33 @@ ErrorCode Game::StartGame(void)
  if(maplist.empty()) return DebugErrorCode(EC_UNKNOWN, __LINE__, __FILE__);
  map_index = 0;
  auto code = map.LoadMap(maplist[map_index].first.c_str());
+ if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
+ // look through camera animation lists for rail cameras
+ for(uint32 i = 0; i < map.cmd.size; i++)
+    {
+     // all players use same camera viewpoint
+     CameraMarkerList& cml = map.cmd.data[i];
+     if(cml.GetPlayerFocus() == 0xFFFFFFFFul) {
+        p1cam = &cml;
+        p2cam = &cml;
+        p3cam = &cml;
+        p4cam = &cml;
+        break;
+       }
+     // player 1 unique camera
+     else if(!p1cam && cml.GetPlayerFocus() == 0)
+        p1cam = &cml;
+     // player 2 unique camera
+     else if(!p2cam && cml.GetPlayerFocus() == 1)
+        p2cam = &cml;
+     // player 3 unique camera
+     else if(!p3cam && cml.GetPlayerFocus() == 2)
+        p3cam = &cml;
+     // player 4 unique camera
+     else if(!p4cam && cml.GetPlayerFocus() == 3)
+        p4cam = &cml;
+    }
 
  return EC_SUCCESS;
 }
@@ -133,6 +164,32 @@ void Game::UpdateGame(real32 dt)
  // poll for controllers every five seconds
  PollForControllers(dt);
  UpdateControllers(dt);
+
+ // update rail cameras
+ if(p1cam) {
+    p1cam->Update(dt);
+    OrbitCamera* camera = GetViewportCamera(0);
+    camera->RepositionEulerXYZ(p1cam->GetCameraPosition(), p1cam->GetCameraEulerXYZ());
+    UpdateViewportCamera(0);
+   }
+ if(p2cam) {
+    p2cam->Update(dt);
+    OrbitCamera* camera = GetViewportCamera(1);
+    camera->RepositionEulerXYZ(p2cam->GetCameraPosition(), p2cam->GetCameraEulerXYZ());
+    UpdateViewportCamera(1);
+   }
+ if(p3cam) {
+    p3cam->Update(dt);
+    OrbitCamera* camera = GetViewportCamera(2);
+    camera->RepositionEulerXYZ(p3cam->GetCameraPosition(), p3cam->GetCameraEulerXYZ());
+    UpdateViewportCamera(2);
+   }
+ if(p4cam) {
+    p4cam->Update(dt);
+    //OrbitCamera* camera = GetViewportCamera(3);
+    //camera->RepositionEulerXYZ(p4cam->GetCameraPosition(), p4cam->GetCameraEulerXYZ());
+    //UpdateViewportCamera(3);
+   }
 
  // render map
  map.RenderMap(dt);

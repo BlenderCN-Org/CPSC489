@@ -177,6 +177,7 @@ void OrbitCamera::RepositionEulerXYZ(const real32* P, const real32* E)
  // convert euler angles to matrix
  real32 M[16];
  eulerXYZ_to_matrix4(M, E);
+ //eulerZYX_to_matrix4(M, E);
 
  // set camera matrix
  cam_X[0] = M[0x0]; cam_X[1] = M[0x1]; cam_X[2] = M[0x2];

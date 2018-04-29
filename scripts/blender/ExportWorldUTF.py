@@ -784,6 +784,11 @@ class WorldUTFExporter:
             cmo.fovy              = 60.0
             cmo.interpolate_fovy  = True
 
+            # Blender Euler angles are reverse
+            cmo.euler_angle[0] = -cmo.euler_angle[0]
+            cmo.euler_angle[1] = -cmo.euler_angle[1]
+            cmo.euler_angle[2] = -cmo.euler_angle[2]
+
             # read properties (if present)
             if 'index' in item: cmo.index = int(item['index'])
             if 'speed' in item: cmo.speed = float(item['speed'])
@@ -860,6 +865,11 @@ class WorldUTFExporter:
             em.anim_loop         = False
             em.sound             = -1
             em.sound_loop        = False
+
+            # Blender Euler angles are reverse
+            em.euler_angle[0] = -em.euler_angle[0]
+            em.euler_angle[1] = -em.euler_angle[1]
+            em.euler_angle[2] = -em.euler_angle[2]
 
             # read properties (if present)
             if 'index' in item: em.index = int(item['index'])

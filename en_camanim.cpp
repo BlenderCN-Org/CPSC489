@@ -77,8 +77,7 @@ ErrorCode CameraMarkerList::SetStartMarker(uint32 index)
 
  // set intervals
  curr = index;
- if(!(next < n_markers)) next = index;
- else next = curr + 1;
+ next = index + 1;
 
  // set base time
  base = markers[start].GetTime();
@@ -100,6 +99,16 @@ CameraMarker& CameraMarkerList::operator [](size_t index)
 const CameraMarker& CameraMarkerList::operator [](size_t index)const
 {
  return markers[index];
+}
+
+const real32* CameraMarkerList::GetCameraPosition(void)const
+{
+ return &P[0];
+}
+
+const real32* CameraMarkerList::GetCameraEulerXYZ(void)const
+{
+ return &E[0];
 }
 
 void CameraMarkerList::Update(real32 dt)
@@ -134,9 +143,9 @@ void CameraMarkerList::Update(real32 dt)
     auto P = markers[curr].GetLocation();
     this->P.reset(P);
     auto E = markers[curr].GetEulerAngle();
-    this->E[0] = radians(E[0]);
-    this->E[1] = radians(E[1]);
-    this->E[2] = radians(E[2]);
+    this->E[0] = E[0];
+    this->E[1] = E[1];
+    this->E[2] = E[2];
    }
  // on R-side of interval
  else if(MT == BT)
@@ -144,31 +153,27 @@ void CameraMarkerList::Update(real32 dt)
     const real32* P = markers[next].GetLocation();
     this->P.reset(P);
     const real32* E = markers[next].GetEulerAngle();
-    this->E[0] = radians(E[0]);
-    this->E[1] = radians(E[1]);
-    this->E[2] = radians(E[2]);
+    this->E[0] = E[0];
+    this->E[1] = E[1];
+    this->E[2] = E[2];
    }
  // inside of interval
  else
    {
     // compute ratio between AT and BT
-    real32 ratio = (MT - AT)/(BT - AT);
+    real32 denom = (BT - AT);
+    real32 ratio = (denom ? (MT - AT)/denom : 0.0f);
 
     // interpolate location
     const real32* P1 = markers[curr].GetLocation();
     const real32* P2 = markers[next].GetLocation();
-    lerp3D(&this->P[0], &P1[0], &P2[0], ratio);
+    lerp3D(&this->P[0], P1, P2, ratio);
 
     // interpolate euler angle
     const real32* E1 = markers[curr].GetEulerAngle();
     const real32* E2 = markers[next].GetEulerAngle();
-    lerp3D(&this->E[0], &E1[0], &E2[0], ratio);
-    this->E[0] = radians(this->E[0]);
-    this->E[1] = radians(this->E[1]);
-    this->E[2] = radians(this->E[2]);
+    lerp3D(&this->E[0], E1, E2, ratio);
    }
-
- // reset camera
 
  // update time
  time = curr_time;

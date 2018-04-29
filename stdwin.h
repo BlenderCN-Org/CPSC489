@@ -11,7 +11,7 @@
 #pragma region PERFORMANCE_COUNTER
 
 class PerformanceCounter {
- private :
+ public :
   __int64 t0;
   __int64 t1;
   __int64 hz;
@@ -20,17 +20,18 @@ class PerformanceCounter {
   void end(void) { QueryPerformanceCounter((LARGE_INTEGER*)(&t1)); }
   __int64 ticks(void)const { return (t1 - t0); }
  public :
-  double milliseconds(__int64 dt)const { return ((double)(dt/1000))/((double)hz); }
-  double seconds(__int64 dt)const { return (double)dt/(double)hz; }
-  double minutes(__int64 dt)const { return (double)dt/(double)(hz*60ll); }
-  double hours(__int64 dt)const { return (double)dt/(double)(hz*3600ll); }
-  double days(__int64 dt)const { return (double)dt/(double)(hz*86400ll); }
+  double microseconds(__int64 dt)const { return ((double)((1000000ll*dt)/hz)); }
+  double milliseconds(__int64 dt)const { return ((double)((1000ll*dt)/hz)); }
+  double seconds(__int64 dt)const { return (double)(dt)/(double)hz; }
+  //double minutes(__int64 dt)const { return (double)dt/(double)(hz*60.0); }
+  //double hours(__int64 dt)const { return (double)dt/(double)(hz*3600.0); }
+  //double days(__int64 dt)const { return (double)dt/(double)(hz*86400.0); }
  public :
   double milliseconds(void)const { return milliseconds(ticks()); }
   double seconds(void)const { return seconds(ticks()); }
-  double minutes(void)const { return minutes(ticks()); }
-  double hours(void)const { return hours(ticks()); }
-  double days(void)const { return days(ticks()); }
+  //double minutes(void)const { return minutes(ticks()); }
+  //double hours(void)const { return hours(ticks()); }
+  //double days(void)const { return days(ticks()); }
  public :
   void reset(void) {
    QueryPerformanceFrequency((LARGE_INTEGER*)(&hz));
@@ -38,7 +39,11 @@ class PerformanceCounter {
    t1 = 0ull;
   }
  public :
-  PerformanceCounter() { QueryPerformanceFrequency((LARGE_INTEGER*)(&hz)); }
+  PerformanceCounter() {
+   QueryPerformanceFrequency((LARGE_INTEGER*)(&hz));
+   t0 = 0ull;
+   t1 = 0ull;
+  }
  ~PerformanceCounter() {}
 };
 

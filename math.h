@@ -129,6 +129,41 @@ inline void eulerXYZ_to_matrix4(real32* m, const real32* r)
  m[0xF] =  1.0f;
 }
 
+inline void eulerZYX_to_matrix4(real32* m, const real32* r)
+{
+ // cached cosines
+ real32 c1 = std::cos(r[0]);
+ real32 c2 = std::cos(r[1]);
+ real32 c3 = std::cos(r[2]);
+
+ // cached sines
+ real32 s1 = sin(r[0]);
+ real32 s2 = sin(r[1]);
+ real32 s3 = sin(r[2]);
+
+ // composite values
+ real32 c3_s2 = c3 * s2;
+ real32 s2_s3 = s2 * s3;
+
+ // set matrix
+ m[0x0] =  (c1 * c2);
+ m[0x1] = -(c3 * s1) + (c1 * s2_s3);
+ m[0x2] =  (s1 * s3) + (c1 * c3_s2);
+ m[0x3] =  0.0f;
+ m[0x4] =  (c2 * s1);
+ m[0x5] =  (c1 * c3) + (s1 * s2_s3);
+ m[0x6] = -(c1 * s3) + (s1 * c3_s2);
+ m[0x7] =  0.0f;
+ m[0x8] = -s2;
+ m[0x9] =  (c2 * s3);
+ m[0xA] =  (c2 * c3);
+ m[0xB] =  0.0f;
+ m[0xC] =  0.0f;
+ m[0xD] =  0.0f;
+ m[0xE] =  0.0f;
+ m[0xF] =  1.0f;
+}
+
 #pragma endregion EULER_ANGLES
 
 // QUATERNIONS

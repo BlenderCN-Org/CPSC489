@@ -348,6 +348,9 @@ ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
             real32 E[3];
             code = ASCIIReadVector3(linelist, &E[0], false);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+            E[0] = -E[0]; // blender is negative
+            E[1] = -E[1];
+            E[2] = -E[2];
 
             // read index
             uint32 index;
@@ -376,15 +379,15 @@ ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
             // set data
-            markers[start].SetMap(this);
-            markers[start].SetName(name);
-            markers[start].SetLocation(P);
-            markers[start].SetOrientation(M);
-            markers[start].SetEulerAngle(E);
-            markers[start].SetTime(time);
-            markers[start].SetInterpolateTimeFlag(interpolate_time);
-            markers[start].SetFOVY(fovy);
-            markers[start].SetInterpolateFOVYFlag(interpolate_fovy);
+            markers[index].SetMap(this);
+            markers[index].SetName(name);
+            markers[index].SetLocation(P);
+            markers[index].SetOrientation(M);
+            markers[index].SetEulerAngle(E);
+            markers[index].SetTime(time);
+            markers[index].SetInterpolateTimeFlag(interpolate_time);
+            markers[index].SetFOVY(fovy);
+            markers[index].SetInterpolateFOVYFlag(interpolate_fovy);
            }
 
         // set data
@@ -916,23 +919,6 @@ void Map::RenderMap(real32 dt)
  auto camera = GetRenderCamera();
  real32 orbit[3];
  camera->GetOrbitPoint(orbit);
-
- // camera animations
- for(uint32 i = 0; i < cmd.size; i++)
-    {
-     // update camera animation
-     CameraMarkerList& cml = cmd.data[i];
-     cml.Update(dt);
-
-     // applies to all players
-     uint32 player = cml.GetPlayerFocus();
-     if(player == 0xFFFFFFFul)
-       {
-       }
-     // applies to individual player
-     else {
-       }
-    }
 
  // INEFFICIENT!!! Poll all door controllers with orbit point
  for(uint32 i = 0; i < dcd.size; i++)

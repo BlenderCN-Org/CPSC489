@@ -40,7 +40,6 @@ class CameraMarkerList : public Entity {
   real32 time; // time
   vector3D P;  // position
   vector3D E;  // euler angle
-  matrix4D C;  // camera matrix
 
  // Member Functions
  public :
@@ -50,6 +49,9 @@ class CameraMarkerList : public Entity {
   const CameraMarker* GetMarkers(void)const;
   ErrorCode SetStartMarker(uint32 index);
   uint32 GetStartMarker(void)const;
+ public :
+  const real32* GetCameraPosition(void)const;
+  const real32* GetCameraEulerXYZ(void)const;
   void Update(real32 dt);
  // Operators
  public :

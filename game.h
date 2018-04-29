@@ -72,6 +72,12 @@ class Game {
   static const uint32 MAX_PLAYERS = 4;
   uint32 n_players;
   std::unique_ptr<PlayerEntity[]> players;
+ // Rail Shooter Cameras
+ private :
+  CameraMarkerList* p1cam;
+  CameraMarkerList* p2cam;
+  CameraMarkerList* p3cam;
+  CameraMarkerList* p4cam;
 
  // Map Variables
  private :
