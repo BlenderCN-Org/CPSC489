@@ -20,10 +20,11 @@ static std::map<uint32, uint32> vpmap;
 
 // controller variables
 static uint32 controllerIndex = 0xFFFFFFFFul;
+static real32 delta = 0.0f;
 
 BOOL InitSkeletonAxesTest(void)
 {
- auto code = model.LoadMeshUTF(L"models\\door.txt");
+ auto code = model.LoadMeshUTF(L"models\\boss.txt");
  if(Fail(code)) {
     DebugErrorCode(code, __LINE__, __FILE__);
     Error(code);
@@ -31,7 +32,7 @@ BOOL InitSkeletonAxesTest(void)
    }
  instance = std::make_unique<MeshInstance>();
  instance->InitInstance(&model);
- instance->SetAnimation(1ul);
+ instance->SetAnimation(0xFFFFFFFFul, true);
  return TRUE;
 }
 
@@ -109,6 +110,16 @@ void UpdateSkeletonAxesTest(real32 dt)
           UpdateViewportCamera(vpindex);
          }
       }
+   }
+
+ // update timer
+ delta += dt;
+ if(delta > 5.0f) {
+    if(instance->GetAnimation() == 0xFFFFFFFFul) instance->SetAnimation(0, true);
+    else if(instance->GetAnimation() == 0ul) instance->SetAnimation(1, true);
+    else instance->SetAnimation(0xFFFFFFFFul);
+    delta = 0.0f; // reset timer
+    instance->ResetAnimation();
    }
 
  // update model instance

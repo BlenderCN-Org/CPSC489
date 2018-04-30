@@ -173,8 +173,15 @@ ErrorCode MeshInstance::SetAnimation(uint32 index, bool repeat)
 {
  // stop animating, render in bind pose
  if(index == 0xFFFFFFFFul) {
+    // reset animation
     anim = 0xFFFFFFFFul;
     loop = false;
+    // restore bone matrices
+    for(size_t bi = 0; bi < mesh->bones.size(); bi++) jm[bi].load_identity();
+    // copy matrices to Direct3D
+    UINT size = (UINT)(mesh->bones.size()*sizeof(matrix4D));
+    ErrorCode code = UpdateDynamicConstBuffer(perframe, size, (const void*)jm.get());
+    if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
     return ResetAnimation();
    }
 
