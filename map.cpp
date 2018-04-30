@@ -354,9 +354,6 @@ ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
             real32 E[3];
             code = ASCIIReadVector3(linelist, &E[0], false);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
-            E[0] = -E[0]; // blender is negative
-            E[1] = -E[1];
-            E[2] = -E[2];
 
             // read index
             uint32 index;
@@ -953,21 +950,9 @@ void Map::FreeMap(void)
 
 void Map::Update(real32 dt)
 {
- // for each potential viewport
- for(uint32 i = 0; i < GetCanvasViewportNumber(); i++)
-    {
-     if(IsViewportEnabled(i))
-       {
-        // get viewport camera and its orbit point
-        auto camera = GetViewportCamera(i);
-        real32 orbit[3];
-        camera->GetOrbitPoint(orbit);
-
-        // INEFFICIENT!!! Poll all door controllers with orbit point
-        for(uint32 j = 0; j < dcd.size; j++)
-            dcd.data[j].Poll(dt, orbit);
-       }
-    }
+ // INEFFICIENT!!! Poll all door controllers with orbit point
+ for(uint32 i = 0; i < dcd.size; i++)
+     dcd.data[i].Poll(dt);
 
  // INEFFICIENT!!!
  // RENDER ALL MOVING MODEL INSTANCES

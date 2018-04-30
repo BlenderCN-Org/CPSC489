@@ -102,13 +102,25 @@ real32 DoorController::GetClosingTime(void)const
 {
  return close_time;
 }
-
-static std::ofstream ofile("debug.txt");
-
-void DoorController::Poll(real32 dt, const real32* pt)
+#include "viewport.h"
+void DoorController::Poll(real32 dt)
 {
  // nothing to do, door is disabled
  if(!GetActiveFlag()) return;
+
+ // are any viewport cameras inside?
+ bool intersect = false;
+ for(uint32 i = 0; i < GetCanvasViewportNumber(); i++) {
+     if(IsViewportEnabled(i)) {
+        auto camera = GetViewportCamera(i);
+        real32 orbit[3];
+        camera->GetOrbitPoint(orbit);
+        if(OBB_intersect(this->box, orbit)) {
+           intersect = true;
+           break;
+          }
+       }
+    }
 
  // TODO:
  // If there is no closing animation, assume that the door can't be closed once
@@ -116,17 +128,14 @@ void DoorController::Poll(real32 dt, const real32* pt)
  // section testing.
 
  // now inside
- if(OBB_intersect(this->box, pt))
+ if(intersect)
    {
     // was outside
     if(!inside) {
        auto instance = GetMap()->GetDynamicMeshInstance(door_index);
        instance->SetAnimation(anims[1], false);
        if(!inside) {
-          if(sound[1] != 0xFFFFFFFFul) {
-             PlayVoice(GetMap()->GetSoundData(sound[1]), false);
-             ofile << "playing door open" << std::endl;
-            }
+          if(sound[1] != 0xFFFFFFFFul) PlayVoice(GetMap()->GetSoundData(sound[1]), false);
           inside = true;
          }
       }
@@ -145,10 +154,7 @@ void DoorController::Poll(real32 dt, const real32* pt)
        if(!(delta > 0.0f)) {
           auto instance = GetMap()->GetDynamicMeshInstance(door_index);
           instance->SetAnimation(anims[2], false);
-          if(sound[2] != 0xFFFFFFFFul) {
-             PlayVoice(GetMap()->GetSoundData(sound[2]), false);
-             ofile << "playing door close" << std::endl;
-            }
+          if(sound[2] != 0xFFFFFFFFul) PlayVoice(GetMap()->GetSoundData(sound[2]), false);
           delta = 0.0f;
          }
       }

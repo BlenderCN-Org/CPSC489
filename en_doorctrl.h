@@ -29,7 +29,7 @@ class DoorController : public Entity {
   const uint32* GetSounds(void)const;
   void SetClosingTime(real32 dt);
   real32 GetClosingTime(void)const;
-  void Poll(real32 dt, const real32* pt);
+  void Poll(real32 dt);
 
  // Events
  public :

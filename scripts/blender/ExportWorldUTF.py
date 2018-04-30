@@ -547,6 +547,12 @@ class WorldUTFExporter:
                 self.WriteString(cell.connect[i])
                 self.WriteString(cell.portals[i])
 
+        # save starting sound
+        self.WriteString('###')
+        self.WriteString('### STARTING SOUND')
+        self.WriteString('###')
+        self.WriteString('1') # temporary
+
     ##
     #  @brief
     #  @details 
@@ -751,7 +757,6 @@ class WorldUTFExporter:
         pf1 = '{} '.format(object.name)
 
         # must be a Plain Axes or Group object
-        self.cam_list = []
         if object.type != 'EMPTY': raise Exception(pf1 + 'must be an EMPTY Blender object.')
 
         # nothing to do
@@ -787,7 +792,7 @@ class WorldUTFExporter:
             cmo.name = item.name
             cmo.position = item.location
             cmo.rotation = item.matrix_world
-            cmo.euler_angle       = item.rotation_euler
+            cmo.euler_angle       = [0.0, 0.0, 0.0]
             cmo.index             = index
             cmo.time              = 1.0
             cmo.interpolate_time  = True
@@ -797,9 +802,9 @@ class WorldUTFExporter:
             cmo.wait              = 0.0
 
             # Blender Euler angles are reverse
-            cmo.euler_angle[0] = -cmo.euler_angle[0]
-            cmo.euler_angle[1] = -cmo.euler_angle[1]
-            cmo.euler_angle[2] = -cmo.euler_angle[2]
+            cmo.euler_angle[0] = -item.rotation_euler[0]
+            cmo.euler_angle[1] = -item.rotation_euler[1]
+            cmo.euler_angle[2] = -item.rotation_euler[2]
 
             # read properties (if present)
             if 'index' in item: cmo.index = int(item['index'])
@@ -872,7 +877,7 @@ class WorldUTFExporter:
             em.name = item.name
             em.position = item.location
             em.rotation = item.matrix_world
-            em.euler_angle       = item.rotation_euler
+            em.euler_angle       = [0.0, 0.0, 0.0]
             em.index             = index
             em.time              = 1.0
             em.interpolate_time  = True
@@ -884,9 +889,9 @@ class WorldUTFExporter:
             em.wait              = 0.0
 
             # Blender Euler angles are reverse
-            em.euler_angle[0] = -em.euler_angle[0]
-            em.euler_angle[1] = -em.euler_angle[1]
-            em.euler_angle[2] = -em.euler_angle[2]
+            em.euler_angle[0] = item.rotation_euler[0]
+            em.euler_angle[1] = item.rotation_euler[1]
+            em.euler_angle[2] = item.rotation_euler[2]
 
             # read properties (if present)
             if 'index' in item: em.index = int(item['index'])
@@ -995,7 +1000,7 @@ class WorldUTFExporter:
             dc.anim_leave   = -1 if 'anim_close' not in item else item['anim_close']
             dc.sound_enter  = sndo
             dc.sound_leave  = sndc
-            dc.close_timer  = 5.0 if 'close_timer' not in item else item['close_timer']
+            dc.close_timer  = 2.5 if 'close_timer' not in item else item['close_timer']
             if 'stay_open' in item:
                 dc.stay_open = False if item['stay_open'] == 0 else True
             else:

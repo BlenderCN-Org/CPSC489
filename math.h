@@ -102,9 +102,9 @@ inline void eulerXYZ_to_matrix4(real32* m, const real32* r)
  real32 c3 = std::cos(r[2]);
 
  // cached sines
- real32 s1 = sin(r[0]);
- real32 s2 = sin(r[1]);
- real32 s3 = sin(r[2]);
+ real32 s1 = std::sin(r[0]);
+ real32 s2 = std::sin(r[1]);
+ real32 s3 = std::sin(r[2]);
 
  // composite values
  real32 c3_s2 = c3 * s2;
@@ -115,14 +115,17 @@ inline void eulerXYZ_to_matrix4(real32* m, const real32* r)
  m[0x1] = -(c2 * s3);
  m[0x2] =  s2;
  m[0x3] =  0.0f;
+
  m[0x4] =  (c1 * s3) + (s1 * c3_s2);
  m[0x5] =  (c1 * c3) - (s1 * s2_s3);
  m[0x6] = -(c2 * s1);
  m[0x7] =  0.0f;
+
  m[0x8] =  (s1 * s3) - (c1 * c3_s2);
  m[0x9] =  (c3 * s1) + (c1 * s2_s3);
  m[0xA] =  (c1 * c2);
  m[0xB] =  0.0f;
+
  m[0xC] =  0.0f;
  m[0xD] =  0.0f;
  m[0xE] =  0.0f;
@@ -137,9 +140,9 @@ inline void eulerZYX_to_matrix4(real32* m, const real32* r)
  real32 c3 = std::cos(r[2]);
 
  // cached sines
- real32 s1 = sin(r[0]);
- real32 s2 = sin(r[1]);
- real32 s3 = sin(r[2]);
+ real32 s1 = std::sin(r[0]);
+ real32 s2 = std::sin(r[1]);
+ real32 s3 = std::sin(r[2]);
 
  // composite values
  real32 c3_s2 = c3 * s2;

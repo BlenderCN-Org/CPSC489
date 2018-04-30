@@ -124,34 +124,43 @@ ErrorCode Game::StartGame(void)
  auto code = map.LoadMap(maplist[map_index].first.c_str());
  if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
- // assign camera rails
- // look through camera animation lists for rail cameras
- share_rails = false;
- for(uint32 i = 0; i < map.cmd.size; i++)
-    {
-     // all players use same camera viewpoint
-     CameraMarkerList& cml = map.cmd.data[i];
-     if(cml.GetPlayerFocus() == 0xFFFFFFFFul) {
-        p1cam = &cml;
-        p2cam = &cml;
-        p3cam = &cml;
-        p4cam = &cml;
-        share_rails = true;
-        break;
-       }
-     // player 1 unique camera
-     else if(!p1cam && cml.GetPlayerFocus() == 0)
-        p1cam = &cml;
-     // player 2 unique camera
-     else if(!p2cam && cml.GetPlayerFocus() == 1)
-        p2cam = &cml;
-     // player 3 unique camera
-     else if(!p3cam && cml.GetPlayerFocus() == 2)
-        p3cam = &cml;
-     // player 4 unique camera
-     else if(!p4cam && cml.GetPlayerFocus() == 3)
-        p4cam = &cml;
-    }
+ // all players use same camera viewpoint
+ share_rails = true;
+ uint32 cam_index = 0;
+ CameraMarkerList& cml = map.cmd.data[cam_index];
+ if(cml.GetPlayerFocus() == 0xFFFFFFFFul) {
+    p1cam = &cml;
+    p2cam = &cml;
+    p3cam = &cml;
+    p4cam = &cml;
+    share_rails = true;
+   }
+
+ // for(uint32 i = 0; i < map.cmd.size; i++)
+ //    {
+ //     // all players use same camera viewpoint
+ //     CameraMarkerList& cml = map.cmd.data[i];
+ //     if(cml.GetPlayerFocus() == 0xFFFFFFFFul) {
+ //        p1cam = &cml;
+ //        p2cam = &cml;
+ //        p3cam = &cml;
+ //        p4cam = &cml;
+ //        share_rails = true;
+ //        break;
+ //       }
+ //     // player 1 unique camera
+ //     else if(!p1cam && cml.GetPlayerFocus() == 0)
+ //        p1cam = &cml;
+ //     // player 2 unique camera
+ //     else if(!p2cam && cml.GetPlayerFocus() == 1)
+ //        p2cam = &cml;
+ //     // player 3 unique camera
+ //     else if(!p3cam && cml.GetPlayerFocus() == 2)
+ //        p3cam = &cml;
+ //     // player 4 unique camera
+ //     else if(!p4cam && cml.GetPlayerFocus() == 3)
+ //        p4cam = &cml;
+ //    }
 
  // TEST: activate entity marker list
  if(map.emd.size) active_EML.push_back(0);

@@ -101,7 +101,7 @@ const real32* CameraMarkerList::GetCameraEulerXYZ(void)const
 {
  return &E[0];
 }
-
+std::ofstream debug("debug.txt");
 void CameraMarkerList::Update(real32 dt)
 {
  // nothing to do, SetStartMarker not called
@@ -142,6 +142,7 @@ void CameraMarkerList::Update(real32 dt)
        BT = markers[next].GetTime();
        // required to wait or stop
        if(markers[curr].GetWaitTime() || markers[curr].GetStopFlag()) {
+          wait = 0.0f; // reset how much time we've waited so far
           MT = AT;
           break;
          }
