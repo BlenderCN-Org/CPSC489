@@ -32,6 +32,7 @@ class EntityMarkerList : public Entity {
   uint32 n_markers;
   std::unique_ptr<EntityMarker[]> markers;
  private :
+  real32 wait; // wait counter
   uint32 curr; // marker index
   uint32 next; // marker index
   real32 base; // time

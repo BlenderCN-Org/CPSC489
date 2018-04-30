@@ -384,6 +384,11 @@ ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
             code = ASCIIReadBool(linelist, &interpolate_fovy);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
+            // read stop flag
+            bool stop = true;
+            code = ASCIIReadBool(linelist, &stop);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
             // read wait time
             real32 wait = 0.0f;
             code = ASCIIReadReal32(linelist, &wait);
@@ -399,6 +404,7 @@ ErrorCode Map::LoadCameraMarkerLists(std::deque<std::string>& linelist)
             markers[index].SetInterpolateTimeFlag(interpolate_time);
             markers[index].SetFOVY(fovy);
             markers[index].SetInterpolateFOVYFlag(interpolate_fovy);
+            markers[index].SetStopFlag(stop);
             markers[index].SetWaitTime(wait);
            }
 
@@ -538,6 +544,11 @@ ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
             code = ASCIIReadBool(linelist, &sound_loop);
             if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
+            // read stop flag
+            bool stop = true;
+            code = ASCIIReadBool(linelist, &stop);
+            if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
             // read wait time
             real32 wait = 0.0f;
             code = ASCIIReadReal32(linelist, &wait);
@@ -555,6 +566,7 @@ ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
             markers[index].SetAnimationLoopFlag(anim_loop);
             markers[index].SetSound(sound);
             markers[index].SetSoundLoopFlag(sound_loop);
+            markers[index].SetStopFlag(stop);
             markers[index].SetWaitTime(wait);
            }
 

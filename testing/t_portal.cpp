@@ -41,7 +41,7 @@ void UpdatePortalTest(real32 dt)
  if(instance.get()) instance->Update(dt);
 }
 
-void RenderPortalTest(real32 dt)
+void RenderPortalTest(void)
 {
  if(instance.get()) {
     ErrorCode code = instance->RenderModel();

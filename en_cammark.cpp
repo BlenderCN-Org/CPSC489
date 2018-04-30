@@ -25,6 +25,7 @@ CameraMarker::CameraMarker()
  interpolate_time = true;
  fovy = 60.0f;
  interpolate_fovy = true;
+ stop = false;
  wait = 0.0f;
 }
 
@@ -83,6 +84,16 @@ void CameraMarker::SetInterpolateFOVYFlag(bool flag)
 bool CameraMarker::GetInterpolateFOVYFlag(void)const
 {
  return interpolate_fovy;
+}
+
+void CameraMarker::SetStopFlag(bool flag)
+{
+ stop = flag;
+}
+
+bool CameraMarker::GetStopFlag(void)const
+{
+ return stop;
 }
 
 void CameraMarker::SetWaitTime(real32 value)

@@ -27,6 +27,7 @@ EntityMarkerList::EntityMarkerList()
  n_markers = 0;
 
  // animation variables
+ wait = 0.0f;
  curr = 0xFFFFFFFFul;
  next = 0xFFFFFFFFul;
  base = 0.0f;
@@ -122,6 +123,13 @@ void EntityMarkerList::Update(real32 dt)
  if(!n_markers) return;
  if(curr == 0xFFFFFFFFul || next == 0xFFFFFFFFul) return;
 
+ // need to wait
+ real32 wait_time = markers[curr].GetWaitTime();
+ if(wait_time && (wait < wait_time)) {
+    wait += dt;
+    return;
+   }
+
  // time values
  real32 curr_time = time + dt;
  real32 last_time = markers[n_markers - 1].GetTime();
@@ -134,11 +142,17 @@ void EntityMarkerList::Update(real32 dt)
 
  // shift intervals (if necessary)
  while(!(MT >= AT && MT < BT)) {
+       // shift over
        if(next == n_markers - 1) break;
        curr++;
        next++;
        AT = markers[curr].GetTime();
        BT = markers[next].GetTime();
+       // required to wait or stop
+       if(markers[curr].GetWaitTime()) {
+          MT = AT;
+          break;
+         }
       }
 
  // on L-side of interval or not interpolating
@@ -188,7 +202,7 @@ void EntityMarkerList::Update(real32 dt)
  // instance->SetAnimation();
 
  // update time
- time = curr_time;
+ time = MT;
 }
 
 EntityMarker& EntityMarkerList::operator [](size_t index)

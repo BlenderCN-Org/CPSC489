@@ -28,6 +28,7 @@ EntityMarker::EntityMarker()
  anim_loop = false;
  sound = 0xFFFFFFFFul;
  sound_loop = false;
+ stop = false;
  wait = 0.0f;
 }
 
@@ -114,6 +115,16 @@ void EntityMarker::SetSoundLoopFlag(bool flag)
 bool EntityMarker::GetSoundLoopFlag(void)const
 {
  return sound_loop;
+}
+
+void EntityMarker::SetStopFlag(bool flag)
+{
+ stop = flag;
+}
+
+bool EntityMarker::GetStopFlag(void)const
+{
+ return stop;
 }
 
 void EntityMarker::SetWaitTime(real32 value)

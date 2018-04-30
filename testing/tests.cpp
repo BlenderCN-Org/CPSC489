@@ -188,7 +188,7 @@ void UpdateTest(real32 dt)
  if(IsTestActive() && update_func) (*update_func)(dt);
 }
 
-void RenderTest(real32 dt)
+void RenderTest(void)
 {
  if(IsTestActive() && render_func) (*render_func)();
 }

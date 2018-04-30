@@ -78,6 +78,7 @@ class CameraMarker:
     # interpolate_time  - bool
     # fovy              - real32
     # interpolate_fovy  - bool
+    # stop              - bool
     # wait              - real32
     pass
 class CameraAnimation:
@@ -99,6 +100,7 @@ class EntityMarker:
     # anim_loop         - bool   (repeat animation)
     # sound             - uint32 (sound to play)
     # sound_loop        - bool   (repeat sound)
+    # stop              - bool
     # wait              - real32
     pass
 class EntityMarkerList:
@@ -462,6 +464,7 @@ class WorldUTFExporter:
                 self.WriteInt(marker.interpolate_time)
                 self.WriteFloat(marker.fovy)
                 self.WriteInt(marker.interpolate_fovy)
+                self.WriteInt(marker.stop)
                 self.WriteFloat(marker.wait)
 
         # save entity marker lists
@@ -488,6 +491,7 @@ class WorldUTFExporter:
                 self.WriteInt(marker.anim_loop)
                 self.WriteInt(marker.sound)
                 self.WriteInt(marker.sound_loop)
+                self.WriteInt(marker.stop)
                 self.WriteFloat(marker.wait)
 
         # save door controllers
@@ -787,6 +791,7 @@ class WorldUTFExporter:
             cmo.interpolate_speed = True
             cmo.fovy              = 60.0
             cmo.interpolate_fovy  = True
+            cmo.stop              = False
             cmo.wait              = 0.0
 
             # Blender Euler angles are reverse
@@ -800,6 +805,7 @@ class WorldUTFExporter:
             if 'interpolate_speed' in item: cmo.interpolate_speed = bool(item['interpolate_speed'])
             if 'fovy' in item: cmo.fovy = item['fovy']
             if 'interpolate_fovy' in item: cmo.interpolate_fovy = item['interpolate_fovy']
+            if 'stop' in item: cmo.stop = item['stop']
             if 'wait' in item: cmo.wait = item['wait']
 
             # validate properties
@@ -871,6 +877,7 @@ class WorldUTFExporter:
             em.anim_loop         = False
             em.sound             = -1
             em.sound_loop        = False
+            em.stop              = False
             em.wait              = 0.0
 
             # Blender Euler angles are reverse
@@ -886,7 +893,8 @@ class WorldUTFExporter:
             if 'anim_loop' in item: em.anim_loop = item['anim_loop']
             if 'sound' in item: em.sound = item['sound']
             if 'sound_loop' in item: em.sound_loop = item['sound_loop']
-            if 'wait' in item: em.sound_loop = item['wait']
+            if 'stop' in item: em.stop = item['stop']
+            if 'wait' in item: em.wait = item['wait']
 
             # validate properties
             # TODO: finish this

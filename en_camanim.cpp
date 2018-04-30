@@ -109,6 +109,12 @@ void CameraMarkerList::Update(real32 dt)
  if(start == 0xFFFFFFFFul) return;
  if(curr == 0xFFFFFFFFul || next == 0xFFFFFFFFul) return;
 
+ // stop flag is set
+ // we must test if we have been triggered to move
+ if(markers[curr].GetStopFlag()) {
+    return;
+   }
+
  // need to wait
  real32 wait_time = markers[curr].GetWaitTime();
  if(wait_time && (wait < wait_time)) {
@@ -128,11 +134,17 @@ void CameraMarkerList::Update(real32 dt)
 
  // shift intervals (if necessary)
  while(!(MT >= AT && MT < BT)) {
+       // shift over
        if(next == n_markers - 1) break;
        curr++;
        next++;
        AT = markers[curr].GetTime();
        BT = markers[next].GetTime();
+       // required to wait or stop
+       if(markers[curr].GetWaitTime() || markers[curr].GetStopFlag()) {
+          MT = AT;
+          break;
+         }
       }
 
  // on L-side of interval or not interpolating
@@ -174,7 +186,7 @@ void CameraMarkerList::Update(real32 dt)
    }
 
  // update time
- time = curr_time;
+ time = MT;
 }
 
 CameraMarker& CameraMarkerList::operator [](size_t index)
