@@ -154,6 +154,7 @@ class MarkCameraAnimationListOp(bpy.types.Operator):
         for object in objlist:
             if IsEmptyObject(object):
                 InsertProperty(object, 'entity_type', 'CAMERA_ANIMATION_LIST')
+                InsertProperty(object, 'start', 0)
         # redraw properties panel
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
@@ -200,16 +201,19 @@ class MarkCameraMarkerOp(bpy.types.Operator):
         #
         objlist = GetSelectedObjects()
         index = 0
+        time = 0.0
         for object in objlist:
             if IsEmptyObject(object):
                 InsertProperty(object, 'entity_type', 'CAMERA_MARKER')
                 InsertProperty(object, 'index', index)
-                InsertProperty(object, 'speed', 1.0)
-                InsertProperty(object, 'iterpolate_speed', True)
+                InsertProperty(object, 'time', time)
+                InsertProperty(object, 'iterpolate_time', True)
                 InsertProperty(object, 'fovy', 60.0)
                 InsertProperty(object, 'iterpolate_fovy', True)
                 InsertProperty(object, 'stop', False)
+                InsertProperty(object, 'wait', 0.0)
                 index = index + 1
+                time = time + 1
         # redraw properties panel
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
@@ -234,10 +238,11 @@ class UnmarkCameraMarkerOp(bpy.types.Operator):
             if IsCameraMarker(object):
                 RemoveProperty(object, 'entity_type')
                 RemoveProperty(object, 'index')
-                RemoveProperty(object, 'speed')
-                RemoveProperty(object, 'iterpolate_speed')
+                RemoveProperty(object, 'time')
+                RemoveProperty(object, 'iterpolate_time')
                 RemoveProperty(object, 'fovy')
                 RemoveProperty(object, 'iterpolate_fovy')
+                RemoveProperty(object, 'wait')
                 RemoveProperty(object, 'stop')
         # redraw properties panel
         for area in bpy.context.screen.areas:
@@ -271,6 +276,7 @@ class MarkEntityMarkerListOp(bpy.types.Operator):
             if IsEmptyObject(object):
                 InsertProperty(object, 'entity_type', 'ENTITY_MARKER_LIST')
                 InsertProperty(object, 'model', '')
+                InsertProperty(object, 'start', 0)
         # redraw properties panel
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
@@ -296,6 +302,7 @@ class UnmarkEntityMarkerListOp(bpy.types.Operator):
             if IsEntityMarkerList(object):
                 RemoveProperty(object, 'entity_type')
                 RemoveProperty(object, 'model')
+                RemoveProperty(object, 'start')
         # redraw properties panel
         for area in bpy.context.screen.areas:
             if area.type in ['PROPERTIES']: area.tag_redraw()
@@ -323,12 +330,13 @@ class MarkEntityMarkerOp(bpy.types.Operator):
             if IsEmptyObject(object):
                 InsertProperty(object, 'entity_type', 'ENTITY_MARKER')
                 InsertProperty(object, 'index', index)
-                InsertProperty(object, 'speed', time)
-                InsertProperty(object, 'iterpolate_speed', True)
+                InsertProperty(object, 'time', time)
+                InsertProperty(object, 'iterpolate_time', True)
                 InsertProperty(object, 'anim', -1)
                 InsertProperty(object, 'anim_loop', False)
                 InsertProperty(object, 'sound', -1)
                 InsertProperty(object, 'sound_loop', False)
+                InsertProperty(object, 'wait', 0.0)
                 InsertProperty(object, 'stop', False)
                 index = index + 1
                 time = time + 1.0
@@ -356,12 +364,13 @@ class UnmarkEntityMarkerOp(bpy.types.Operator):
             if IsEntityMarker(object):
                 RemoveProperty(object, 'entity_type')
                 RemoveProperty(object, 'index')
-                RemoveProperty(object, 'speed')
-                RemoveProperty(object, 'iterpolate_speed')
+                RemoveProperty(object, 'time')
+                RemoveProperty(object, 'iterpolate_time')
                 RemoveProperty(object, 'anim')
                 RemoveProperty(object, 'anim_loop')
                 RemoveProperty(object, 'sound')
                 RemoveProperty(object, 'sound_loop')
+                RemoveProperty(object, 'wait')
                 RemoveProperty(object, 'stop')
         # redraw properties panel
         for area in bpy.context.screen.areas:

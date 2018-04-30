@@ -85,7 +85,7 @@ class CameraAnimation:
     # name     - string
     # position - vector3
     # rotation - matrix4
-    # start    - uint16
+    # start    - uint32
     # markers  - CameraMarker[]
     pass
 class EntityMarker:
@@ -108,6 +108,7 @@ class EntityMarkerList:
     # position - vector3
     # rotation - matrix4
     # modelref - string
+    # start    - uint32
     # markers  - EntityMarker[]
     pass
 class DoorController:
@@ -478,6 +479,7 @@ class WorldUTFExporter:
             self.WriteVector3(list.position)
             self.WriteMatrix4(list.rotation)
             self.WriteString(list.modelref)
+            self.WriteInt(list.start)
             self.WriteString('{} # of entity markers'.format(len(list.markers)))
             for marker in list.markers:
                 self.WriteString(marker.name)
@@ -485,8 +487,8 @@ class WorldUTFExporter:
                 self.WriteMatrix4(marker.rotation)
                 self.WriteVector3(marker.euler_angle)
                 self.WriteInt(marker.index)
-                self.WriteFloat(marker.speed)
-                self.WriteInt(marker.interpolate_speed)
+                self.WriteFloat(marker.time)
+                self.WriteInt(marker.interpolate_time)
                 self.WriteInt(marker.anim)
                 self.WriteInt(marker.anim_loop)
                 self.WriteInt(marker.sound)
@@ -787,8 +789,8 @@ class WorldUTFExporter:
             cmo.rotation = item.matrix_world
             cmo.euler_angle       = item.rotation_euler
             cmo.index             = index
-            cmo.speed             = 1.0
-            cmo.interpolate_speed = True
+            cmo.time              = 1.0
+            cmo.interpolate_time  = True
             cmo.fovy              = 60.0
             cmo.interpolate_fovy  = True
             cmo.stop              = False
@@ -801,8 +803,8 @@ class WorldUTFExporter:
 
             # read properties (if present)
             if 'index' in item: cmo.index = int(item['index'])
-            if 'speed' in item: cmo.speed = float(item['speed'])
-            if 'interpolate_speed' in item: cmo.interpolate_speed = bool(item['interpolate_speed'])
+            if 'time' in item: cmo.time = float(item['time'])
+            if 'interpolate_time' in item: cmo.interpolate_time = bool(item['interpolate_time'])
             if 'fovy' in item: cmo.fovy = item['fovy']
             if 'interpolate_fovy' in item: cmo.interpolate_fovy = item['interpolate_fovy']
             if 'stop' in item: cmo.stop = item['stop']
@@ -845,6 +847,7 @@ class WorldUTFExporter:
         eml.position = object.matrix_world * object.location
         eml.rotation = object.matrix_world * object.matrix_local
         eml.modelref = object['model'] if 'model' in object else ''
+        eml.start = 0
         eml.markers = []
         ClearVector(eml.position)
         ClearMatrix(eml.rotation)
@@ -871,8 +874,8 @@ class WorldUTFExporter:
             em.rotation = item.matrix_world
             em.euler_angle       = item.rotation_euler
             em.index             = index
-            em.speed             = 1.0
-            em.interpolate_speed = True
+            em.time              = 1.0
+            em.interpolate_time  = True
             em.anim              = -1
             em.anim_loop         = False
             em.sound             = -1
@@ -887,8 +890,8 @@ class WorldUTFExporter:
 
             # read properties (if present)
             if 'index' in item: em.index = int(item['index'])
-            if 'speed' in item: em.speed = float(item['speed'])
-            if 'interpolate_speed' in item: em.interpolate_speed = bool(item['interpolate_speed'])
+            if 'time' in item: em.time = float(item['time'])
+            if 'interpolate_time' in item: em.interpolate_time = bool(item['interpolate_time'])
             if 'anim' in item: em.anim = item['anim']
             if 'anim_loop' in item: em.anim_loop = item['anim_loop']
             if 'sound' in item: em.sound = item['sound']

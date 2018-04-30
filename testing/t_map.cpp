@@ -25,7 +25,7 @@ BOOL InitMapTest(void)
  if(Fail(code, __LINE__, __FILE__)) return FALSE;
 
  // insert maps
- code = game->InsertMap(L"maps//room.txt");
+ code = game->InsertMap(L"maps//room_test.txt");
  if(Fail(code, __LINE__, __FILE__)) return FALSE;
 
  // start game
