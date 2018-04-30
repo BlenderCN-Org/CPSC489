@@ -163,7 +163,8 @@ ErrorCode Game::StartGame(void)
  //    }
 
  // TEST: activate entity marker list
- if(map.emd.size) active_EML.push_back(0);
+ for(uint32 i = 0; i < map.emd.size; i++)
+     active_EML.push_back(i);
 
  return EC_SUCCESS;
 }

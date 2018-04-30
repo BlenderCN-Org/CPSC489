@@ -24,6 +24,7 @@ EntityMarkerList::EntityMarkerList()
  // list variables
  instance = nullptr;
  start = 0xFFFFFFFFul;
+ anim_idle = 0xFFFFFFFFul;
  n_markers = 0;
 
  // animation variables
@@ -107,6 +108,18 @@ uint32 EntityMarkerList::GetStartMarker(void)const
  return start;
 }
 
+ErrorCode EntityMarkerList::SetIdleAnimation(uint32 index)
+{
+ anim_idle = index;
+ if(instance) instance->SetAnimation(anim_idle, false);
+ return EC_SUCCESS;
+}
+
+uint32 EntityMarkerList::GetIdleAnimation(void)const
+{
+ return anim_idle;
+}
+
 const real32* EntityMarkerList::GetEntityPosition(void)const
 {
  return &P[0];
@@ -122,6 +135,9 @@ void EntityMarkerList::Update(real32 dt)
  // nothing to do
  if(!n_markers) return;
  if(curr == 0xFFFFFFFFul || next == 0xFFFFFFFFul) return;
+
+ //// marker list must be active
+ //if(!GetActiveFlag()) return;
 
  // need to wait
  real32 wait_time = markers[curr].GetWaitTime();
@@ -150,6 +166,7 @@ void EntityMarkerList::Update(real32 dt)
        BT = markers[next].GetTime();
        // required to wait or stop
        if(markers[curr].GetWaitTime()) {
+          wait = 0.0f; // reset how much time we've waited so far
           MT = AT;
           break;
          }
@@ -199,7 +216,8 @@ void EntityMarkerList::Update(real32 dt)
 
  // set instance state
  instance->SetMatrix(&this->P[0], &M[0]);
- // instance->SetAnimation();
+ if(MT == BT) instance->SetAnimation(markers[next].GetAnimation(), markers[next].GetAnimationLoopFlag());
+ else instance->SetAnimation(markers[curr].GetAnimation(), markers[curr].GetAnimationLoopFlag());
 
  // update time
  time = MT;

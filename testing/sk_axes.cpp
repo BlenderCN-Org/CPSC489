@@ -117,6 +117,7 @@ void UpdateSkeletonAxesTest(real32 dt)
  if(delta > 5.0f) {
     if(instance->GetAnimation() == 0xFFFFFFFFul) instance->SetAnimation(0, true);
     else if(instance->GetAnimation() == 0ul) instance->SetAnimation(1, true);
+    else if(instance->GetAnimation() == 1ul) instance->SetAnimation(2, true);
     else instance->SetAnimation(0xFFFFFFFFul);
     delta = 0.0f; // reset timer
     instance->ResetAnimation();

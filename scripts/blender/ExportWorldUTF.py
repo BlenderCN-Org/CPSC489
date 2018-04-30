@@ -480,6 +480,7 @@ class WorldUTFExporter:
             self.WriteMatrix4(list.rotation)
             self.WriteString(list.modelref)
             self.WriteInt(list.start)
+            self.WriteInt(list.anim_idle)
             self.WriteString('{} # of entity markers'.format(len(list.markers)))
             for marker in list.markers:
                 self.WriteString(marker.name)
@@ -840,7 +841,7 @@ class WorldUTFExporter:
         pf1 = '{} '.format(object.name)
 
         # must be a Plain Axes or Group object
-        self.mar_list = []
+        #self.mar_list = []
         if object.type != 'EMPTY': raise Exception(pf1 + 'must be an EMPTY Blender object.')
 
         # nothing to do
@@ -853,6 +854,7 @@ class WorldUTFExporter:
         eml.rotation = object.matrix_world * object.matrix_local
         eml.modelref = object['model'] if 'model' in object else ''
         eml.start = 0
+        eml.anim_idle = object['anim_idle'] if 'anim_idle' in object else -1
         eml.markers = []
         ClearVector(eml.position)
         ClearMatrix(eml.rotation)

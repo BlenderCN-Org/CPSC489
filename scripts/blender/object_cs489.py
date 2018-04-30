@@ -275,6 +275,7 @@ class MarkEntityMarkerListOp(bpy.types.Operator):
         for object in objlist:
             if IsEmptyObject(object):
                 InsertProperty(object, 'entity_type', 'ENTITY_MARKER_LIST')
+                InsertProperty(object, 'anim_idle', -1)
                 InsertProperty(object, 'model', '')
                 InsertProperty(object, 'start', 0)
         # redraw properties panel
@@ -301,6 +302,7 @@ class UnmarkEntityMarkerListOp(bpy.types.Operator):
         for object in objlist:
             if IsEntityMarkerList(object):
                 RemoveProperty(object, 'entity_type')
+                RemoveProperty(object, 'anim_idle')
                 RemoveProperty(object, 'model')
                 RemoveProperty(object, 'start')
         # redraw properties panel

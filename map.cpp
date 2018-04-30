@@ -469,6 +469,11 @@ ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
         code = ASCIIReadUint32(linelist, &start);
         if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
 
+        // read idle animation
+        uint32 anim_idle = 0;
+        code = ASCIIReadUint32(linelist, &anim_idle);
+        if(Fail(code)) return DebugErrorCode(code, __LINE__, __FILE__);
+
         // read number of markers
         uint32 n_markers = 0;
         code = ASCIIReadUint32(linelist, &n_markers);
@@ -573,6 +578,7 @@ ErrorCode Map::LoadEntityMarkerLists(std::deque<std::string>& linelist)
         temp[i].SetLocation(P);
         temp[i].SetOrientation(M);
         temp[i].SetModelInstance(ref);
+        temp[i].SetIdleAnimation(anim_idle);
         temp[i].SetMarkers(n_markers, markers); // set markers first before setting start marker
         temp[i].SetStartMarker(start);
        }

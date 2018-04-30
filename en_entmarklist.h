@@ -29,6 +29,7 @@ class EntityMarkerList : public Entity {
  private :
   MeshInstance* instance;
   uint32 start;
+  uint32 anim_idle;
   uint32 n_markers;
   std::unique_ptr<EntityMarker[]> markers;
  private :
@@ -49,6 +50,8 @@ class EntityMarkerList : public Entity {
   const EntityMarker* GetMarkers(void)const;
   ErrorCode SetStartMarker(uint32 index);
   uint32 GetStartMarker(void)const;
+  ErrorCode SetIdleAnimation(uint32 index);
+  uint32 GetIdleAnimation(void)const;
  public :
   const real32* GetEntityPosition(void)const;
   const real32* GetEntityEulerXYZ(void)const;
