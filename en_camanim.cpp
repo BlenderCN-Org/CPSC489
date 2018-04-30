@@ -101,7 +101,7 @@ const real32* CameraMarkerList::GetCameraEulerXYZ(void)const
 {
  return &E[0];
 }
-std::ofstream debug("debug.txt");
+
 void CameraMarkerList::Update(real32 dt)
 {
  // nothing to do, SetStartMarker not called
