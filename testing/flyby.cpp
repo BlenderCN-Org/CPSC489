@@ -4,7 +4,8 @@
 #include "../math.h"
 #include "../vector3.h"
 #include "../matrix4.h"
-#include "../model.h"
+#include "../model_v2.h"
+#include "../meshinst.h"
 #include "../camera.h"
 #include "../xinput.h"
 #include "../gfx.h"
@@ -12,8 +13,8 @@
 #include "tests.h"
 #include "flyby.h"
 
-static MeshUTF model;
-static std::unique_ptr<MeshUTFInstance> instance;
+static MeshData model;
+static std::unique_ptr<MeshInstance> instance;
 static uint32 vpindex = 0xFFFFFFFFul;
 static std::map<uint32, uint32> vpmap;
 
@@ -22,14 +23,14 @@ static uint32 controllerIndex = 0xFFFFFFFFul;
 
 BOOL InitFlybyTest(void)
 {
- auto code = model.LoadModel(L"room.txt");
+ auto code = model.LoadMeshUTF(L"models\\map.txt");
  if(Fail(code)) {
     DebugErrorCode(code, __LINE__, __FILE__);
     Error(code);
     return TRUE;
    }
- instance = std::make_unique<MeshUTFInstance>(model);
- instance->InitInstance();
+ instance = std::make_unique<MeshInstance>();
+ instance->InitInstance(&model);
  instance->SetAnimation(0xFFFFFFFFul);
  return TRUE;
 }
@@ -46,7 +47,7 @@ void FreeFlybyTest(void)
 
  // release model
  instance.release();
- model.FreeModel();
+ model.Free();
 }
 
 void UpdateFlybyTest(real32 dt)

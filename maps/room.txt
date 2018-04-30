@@ -3,7 +3,7 @@ Simple Map Example
 ### STATIC MODELS
 ###
 1 # number of static models
-models\room.txt
+models\map.txt
 ###
 ### DYNAMIC MODELS
 ###
