@@ -916,7 +916,7 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
  // PHASE FINAL:
  // READ STARTING PROPERTIES
  //
-/*
+
  // read starting sound index
  uint32 u32_temp = 0;
  code = ASCIIReadUint32(linelist, &u32_temp);
@@ -927,12 +927,14 @@ ErrorCode Map::LoadMap(LPCWSTR filename)
     sound_start = u32_temp;
     PlayVoice(sounds[sound_start], true);
    }
-*/
+
  return EC_SUCCESS;
 }
 
 void Map::FreeMap(void)
 {
+ sound_start = 0xFFFFFFFFul;
+
  // free data
  FreeCells();
  FreePortals();

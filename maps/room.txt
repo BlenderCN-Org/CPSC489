@@ -93,7 +93,7 @@ cm002
 1
 60.0
 1
-1
+0
 0.0
 cm003
 4.648349761962891 -14.398244857788086 9.390669822692871
@@ -372,75 +372,79 @@ portal_008_001
 ### CELLS
 ###
 8 # number of cells
-SM_ROOM
-room_001
-2 # number of connections
-SM_ROOM
-room_002
-portal_001_002
-SM_ROOM
-room_008
-portal_008_001
-SM_ROOM
-room_002
-2 # number of connections
-SM_ROOM
-room_001
-portal_001_002
-SM_ROOM
-room_003
-portal_002_003
-SM_ROOM
-room_003
-2 # number of connections
-SM_ROOM
-room_002
-portal_002_003
-SM_ROOM
-room_004
-portal_003_004
-SM_ROOM
-room_004
-2 # number of connections
-SM_ROOM
-room_003
-portal_003_004
-SM_ROOM
-room_005
-portal_004_005
-SM_ROOM
-room_005
-2 # number of connections
-SM_ROOM
-room_004
-portal_004_005
-SM_ROOM
-room_006
-portal_005_006
-SM_ROOM
-room_006
-2 # number of connections
-SM_ROOM
-room_005
-portal_005_006
-SM_ROOM
-room_007
-portal_006_007
-SM_ROOM
-room_007
-2 # number of connections
-SM_ROOM
-room_006
-portal_006_007
-SM_ROOM
-room_008
-portal_007_008
-SM_ROOM
-room_008
-2 # number of connections
-SM_ROOM
-room_007
-portal_007_008
-SM_ROOM
-room_001
-portal_008_001
+### SM_ROOM
+### room_001
+### 2 # number of connections
+### SM_ROOM
+### room_002
+### portal_001_002
+### SM_ROOM
+### room_008
+### portal_008_001
+### SM_ROOM
+### room_002
+### 2 # number of connections
+### SM_ROOM
+### room_001
+### portal_001_002
+### SM_ROOM
+### room_003
+### portal_002_003
+### SM_ROOM
+### room_003
+### 2 # number of connections
+### SM_ROOM
+### room_002
+### portal_002_003
+### SM_ROOM
+### room_004
+### portal_003_004
+### SM_ROOM
+### room_004
+### 2 # number of connections
+### SM_ROOM
+### room_003
+### portal_003_004
+### SM_ROOM
+### room_005
+### portal_004_005
+### SM_ROOM
+### room_005
+### 2 # number of connections
+### SM_ROOM
+### room_004
+### portal_004_005
+### SM_ROOM
+### room_006
+### portal_005_006
+### SM_ROOM
+### room_006
+### 2 # number of connections
+### SM_ROOM
+### room_005
+### portal_005_006
+### SM_ROOM
+### room_007
+### portal_006_007
+### SM_ROOM
+### room_007
+### 2 # number of connections
+### SM_ROOM
+### room_006
+### portal_006_007
+### SM_ROOM
+### room_008
+### portal_007_008
+### SM_ROOM
+### room_008
+### 2 # number of connections
+### SM_ROOM
+### room_007
+### portal_007_008
+### SM_ROOM
+### room_001
+### portal_008_001
+###
+### STARTING SOUND
+###
+1
