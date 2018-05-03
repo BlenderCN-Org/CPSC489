@@ -121,6 +121,9 @@ void FreeAudio(void)
 
 ErrorCode LoadVoice(LPCWSTR filename, SoundData** snd)
 {
+ // no audio engine
+ if(!xaudio) return EC_SUCCESS;
+
  // open file
  using namespace std;
  ifstream ifile(filename, ios::binary);
@@ -264,6 +267,9 @@ ErrorCode LoadVoice(LPCWSTR filename, SoundData** snd)
 
 ErrorCode FreeVoice(LPCWSTR filename)
 {
+ // no audio engine
+ if(!xaudio) return EC_SUCCESS;
+
  // lookup filename in hash table
  auto entry = hashmap.find(filename);
  if(entry == std::end(hashmap)) return DebugErrorCode(EC_AUDIO_RESOURCE, __LINE__, __FILE__);
@@ -296,6 +302,10 @@ SoundData* FindVoice(LPCWSTR filename)
 
 ErrorCode PlayVoice(SoundData* snd, bool loop)
 {
+ // no audio engine
+ if(!xaudio) return EC_SUCCESS;
+
+ // no sound data
  if(!snd) return EC_SUCCESS;
  if(!snd->voice || !snd->wavdata || !snd->wavsize) return EC_SUCCESS;
 

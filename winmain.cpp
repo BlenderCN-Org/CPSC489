@@ -56,9 +56,10 @@ int WINAPI WinMain(HINSTANCE basead, HINSTANCE unused, LPSTR cmdline, int cmdsho
 
 ErrorCode AppInit(void)
 {
- // audio system
+ // initialize audio engine
+ // do not return a failure if there is no audio
  ErrorCode code = InitAudio();
- if(Fail(code)) return code;
+ if(Fail(code)) DebugErrorCode(code, __LINE__, __FILE__);
 
  // initialize controllers and run program
  code = InitControllers();
