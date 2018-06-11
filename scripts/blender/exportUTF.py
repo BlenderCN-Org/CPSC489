@@ -671,9 +671,9 @@ def ExportMeshUTF():
 
     # mesh types
     meshlist1 = [] # portal meshes
-    meshlist2 = [] # normal meshes
+    meshlist2 = [] # door controllers
     meshlist3 = [] # collision meshes
-    meshlist4 = [] # door controllers
+    meshlist4 = [] # normal meshes
 
     # count number of portal and non-portal meshes
     n_mesh = 0
